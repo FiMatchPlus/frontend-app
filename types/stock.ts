@@ -34,8 +34,6 @@ export interface StockSearchResult {
   symbol: string
   name: string
   sector: string
-  price: number
-  changePercent: number
 }
 
 export interface StockState {

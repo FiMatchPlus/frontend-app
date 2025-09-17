@@ -10,9 +10,11 @@ import type { Stock } from "@/types/stock"
 interface StockSearchProps {
   onSelectStock: (stock: Stock) => void
   className?: string
+  // Deprecated: price/change preview removed from dropdown
+  showPriceChange?: boolean
 }
 
-export function StockSearch({ onSelectStock, className }: StockSearchProps) {
+export function StockSearch({ onSelectStock, className, showPriceChange = true }: StockSearchProps) {
   const { searchQuery, setSearchQuery, searchResults, isSearching, error, clearSearch } = useStockSearch()
   const [showResults, setShowResults] = useState(false)
 
@@ -22,9 +24,9 @@ export function StockSearch({ onSelectStock, className }: StockSearchProps) {
     const fullStock: Stock = {
       symbol: result.symbol,
       name: result.name,
-      price: result.price,
+      price: 0,
       change: 0, // Would be calculated from API
-      changePercent: result.changePercent,
+      changePercent: 0,
       volume: 0,
       marketCap: 0,
       sector: result.sector,
@@ -74,12 +76,7 @@ export function StockSearch({ onSelectStock, className }: StockSearchProps) {
                           {result.symbol} • {result.sector}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">{formatCurrency(result.price)}</div>
-                        <div className={`text-xs ${getChangeColor(result.changePercent)}`}>
-                          {formatPercent(result.changePercent)}
-                        </div>
-                      </div>
+                      {/* price/change preview removed per requirement */}
                     </div>
                   </button>
                 ))}

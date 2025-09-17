@@ -11,11 +11,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Plus, ArrowLeft, ChevronDown, ChevronRight } from "lucide-react"
+import { X, Plus, ArrowLeft, ChevronDown, ChevronRight, Pencil } from "lucide-react"
 import { CreatePortfolioData, StockHolding, Rule, RuleItem } from "@/types/portfolio"
 import { StockSearch } from "@/components/stocks/StockSearch"
 import type { Stock } from "@/types/stock"
 import { createPortfolio } from "@/lib/api"
+import { fetchCurrentPriceByCode } from "@/lib/api/stockNow"
 
 // 카테고리 상수 정의
 const RULE_CATEGORIES = {
@@ -100,8 +101,6 @@ export default function CreatePortfolioPage() {
   }
 
   const handleInputChange = (field: keyof CreatePortfolioData, value: any) => {
-    console.log('Input change:', field, value)
-    
     setFormData(prev => {
       const newData = {
         ...prev,
@@ -121,7 +120,8 @@ export default function CreatePortfolioPage() {
     }))
   }
 
-  const handleStockSelect = (stock: Stock) => {
+  const handleStockSelect = async (stock: Stock) => {
+    // Optimistically set selected stock with placeholders
     setSelectedStock(stock)
     setNewStock(prev => ({
       ...prev,
@@ -134,6 +134,17 @@ export default function CreatePortfolioPage() {
       totalValue: undefined,
       weight: undefined
     }))
+
+    // Fetch live current price and daily rate
+    const now = await fetchCurrentPriceByCode(stock.symbol)
+    if (now) {
+      setSelectedStock(prev => prev ? { ...prev, price: now.price, changePercent: now.changePercent } : prev)
+      setNewStock(prev => ({
+        ...prev,
+        currentPrice: now.price,
+        changePercent: now.changePercent,
+      }))
+    }
   }
 
   const handleSharesChange = (shares: number) => {
@@ -284,6 +295,49 @@ export default function CreatePortfolioPage() {
     })
   }
 
+  const editStock = (index: number) => {
+    setFormData(prev => {
+      const target = prev.stockHoldings[index]
+      if (!target) return prev
+
+      // Remove the stock from holdings first
+      const remaining = prev.stockHoldings.filter((_, i) => i !== index)
+      const newTotalValue = remaining.reduce((sum, s) => sum + s.totalValue, 0)
+      const updatedHoldings = remaining.map(s => ({
+        ...s,
+        weight: newTotalValue > 0 ? (s.totalValue / newTotalValue) * 100 : 0
+      }))
+
+      // Load into edit form
+      setSelectedStock({
+        symbol: target.symbol,
+        name: target.name,
+        price: target.currentPrice,
+        change: target.change ?? 0,
+        changePercent: target.changePercent ?? 0,
+        volume: 0,
+        marketCap: 0,
+        sector: "",
+      })
+      setNewStock({
+        symbol: target.symbol,
+        name: target.name,
+        shares: target.shares,
+        currentPrice: target.currentPrice,
+        totalValue: target.totalValue,
+        change: target.change ?? 0,
+        changePercent: target.changePercent ?? 0,
+        weight: undefined,
+      })
+
+      return {
+        ...prev,
+        stockHoldings: updatedHoldings,
+        totalValue: newTotalValue,
+      }
+    })
+  }
+
   const addRuleItem = () => {
     if (newRuleItem.category.trim()) {
       // 유효성 검사
@@ -338,6 +392,27 @@ export default function CreatePortfolioPage() {
       alert("최소 하나의 종목을 추가해주세요.")
       return
     }
+
+    // Additional payload validation for diagnostics
+    const invalidHoldings = formData.stockHoldings.filter(h => {
+      const hasSymbol = typeof h.symbol === 'string' && h.symbol.trim().length > 0
+      const validShares = typeof h.shares === 'number' && isFinite(h.shares) && h.shares > 0
+      const validPrice = typeof h.currentPrice === 'number' && isFinite(h.currentPrice) && h.currentPrice > 0
+      const validTotal = typeof h.totalValue === 'number' && isFinite(h.totalValue) && h.totalValue > 0
+      return !hasSymbol || !validShares || !validPrice || !validTotal
+    })
+    if (invalidHoldings.length > 0) {
+      console.error('[CreatePortfolio] Invalid holdings detected:', invalidHoldings)
+      alert('종목 데이터가 올바르지 않습니다. 수량/현재가/평가금액을 확인하세요.')
+      return
+    }
+
+    // Log payload for verification
+    try {
+      console.log('[CreatePortfolio] Request payload:', JSON.parse(JSON.stringify(formData)))
+    } catch (_) {
+      console.log('[CreatePortfolio] Request payload (raw):', formData)
+    }
     
     setIsSubmitting(true)
     
@@ -375,6 +450,9 @@ export default function CreatePortfolioPage() {
           </Button>
           <h1 className="text-3xl font-bold text-[#1f2937]">새 포트폴리오 생성</h1>
           <p className="text-[#6b7280] mt-2">포트폴리오의 기본 정보와 전략을 설정하세요</p>
+          <div className="mt-2 text-sm text-[#6b7280]">
+            백테스트를 생성하려면 상단의 포트폴리오 상세 내 백테스트 탭에서 "백테스트 추가"를 사용하세요.
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -423,6 +501,7 @@ export default function CreatePortfolioPage() {
                   <StockSearch
                     onSelectStock={handleStockSelect}
                     className="mt-2"
+                    showPriceChange={false}
                   />
                   {selectedStock && (
                     <div className="mt-2 p-3 bg-white rounded-lg border">
@@ -476,18 +555,15 @@ export default function CreatePortfolioPage() {
                         onBlur={handleSharesBlur}
                         placeholder="보유할 주식 수량을 입력하세요"
                       />
-                      {newStock.weight && newStock.weight > 0 && (
-                        <div className="text-sm text-[#6b7280] mt-1">
-                          비중: {newStock.weight.toFixed(1)}%
-                        </div>
-                      )}
                     </div>
                     
                     <div>
                       <Label>투자금액 (원)</Label>
-                      <div className="p-3 bg-white rounded-lg border text-lg font-medium">
-                        {newStock.totalValue && newStock.totalValue > 0 ? `${newStock.totalValue.toLocaleString()}원` : '투자금액을 입력하세요'}
-                      </div>
+                      <Input
+                        readOnly
+                        value={newStock.totalValue && newStock.totalValue > 0 ? `${newStock.totalValue.toLocaleString()}원` : ''}
+                        placeholder="투자금액을 입력하세요"
+                      />
                     </div>
                   </div>
                 )}
@@ -532,15 +608,26 @@ export default function CreatePortfolioPage() {
                           <span className="ml-2 text-[#059669] font-medium">({stock.weight.toFixed(1)}%)</span>
                         </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeStock(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editStock(index)}
+                          className="text-[#374151] hover:text-[#111827]"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeStock(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

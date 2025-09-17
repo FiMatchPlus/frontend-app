@@ -54,6 +54,38 @@ export interface PortfolioWithDetails extends Portfolio {
     message: string
     date: string
   }>
+  backtests: BacktestSummary[]
+}
+
+// Backtest related types (aligned with server response shape but simplified for FE mock)
+export interface BacktestMetrics {
+  total_return: number
+  annualized_return: number
+  volatility: number
+  sharpe_ratio: number
+  max_drawdown: number
+  var_95: number
+  var_99: number
+  cvar_95: number
+  cvar_99: number
+  win_rate: number
+  profit_loss_ratio: number
+}
+
+export interface BacktestDailyReturn {
+  date: string // YYYY-MM-DD
+  // dynamic keys for each stock symbol/name with numeric return or contribution
+  [stock: string]: string | number
+}
+
+export interface BacktestSummary {
+  id: number
+  name: string
+  createdAt: string
+  period: string
+  metrics: BacktestMetrics
+  daily_returns: BacktestDailyReturn[]
+  execution_time: number
 }
 
 export const portfolios: Portfolio[] = [
@@ -242,6 +274,7 @@ export const getPortfolioWithDetails = (portfolio: Portfolio): PortfolioWithDeta
         date: "2024-01-20",
       },
     ],
+    backtests: generateMockBacktests(portfolio),
   }
 }
 
@@ -255,4 +288,63 @@ export const getTotalChangePercent = (portfolios: Portfolio[]) => {
   const totalValue = getTotalPortfolioValue(portfolios)
   const totalChange = getTotalChange(portfolios)
   return (totalChange / (totalValue - totalChange)) * 100
+}
+
+// Helpers to create mock backtests per portfolio
+function generateMockBacktests(portfolio: Portfolio): BacktestSummary[] {
+  const holdingNames = portfolio.stockHoldings.map((s) => s.name)
+  const days = 30
+  const start = new Date("2024-01-01")
+
+  const daily_returns: BacktestDailyReturn[] = Array.from({ length: days }).map((_, i) => {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    const entry: BacktestDailyReturn = { date: d.toISOString().slice(0, 10) }
+    let remaining = 1
+    holdingNames.forEach((name, idx) => {
+      const isLast = idx === holdingNames.length - 1
+      // generate small daily contribution with slight randomness; ensure stack sums ~1
+      const value = isLast ? remaining : Math.max(0, Number((Math.random() * (remaining / 2)).toFixed(2)))
+      remaining = Math.max(0, Number((remaining - value).toFixed(2)))
+      // store as percentage contribution basis 1.0
+      entry[name] = Number((value * (Math.random() > 0.5 ? 1 : -1)).toFixed(2))
+    })
+    return entry
+  })
+
+  const metrics: BacktestMetrics = {
+    total_return: 0.18,
+    annualized_return: 0.22,
+    volatility: 0.14,
+    sharpe_ratio: 1.2,
+    max_drawdown: -0.11,
+    var_95: -0.06,
+    var_99: -0.1,
+    cvar_95: -0.08,
+    cvar_99: -0.13,
+    win_rate: 0.58,
+    profit_loss_ratio: 1.6,
+  }
+
+  const createdAt = "2024-01-25"
+  return [
+    {
+      id: Number(`${portfolio.id}01`),
+      name: `${portfolio.name} 전략 테스트 #1`,
+      createdAt,
+      period: "2주",
+      metrics,
+      daily_returns,
+      execution_time: 1.37,
+    },
+  ]
+}
+
+export function findBacktestById(id: number): { portfolio: PortfolioWithDetails; backtest: BacktestSummary } | null {
+  for (const p of portfolios) {
+    const detailed = getPortfolioWithDetails(p)
+    const found = detailed.backtests.find((b) => b.id === id)
+    if (found) return { portfolio: detailed, backtest: found }
+  }
+  return null
 }

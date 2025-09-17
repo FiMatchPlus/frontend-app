@@ -31,3 +31,71 @@ export interface CreatePortfolioData {
   stockHoldings: StockHolding[]
   rule: Rule
 }
+
+// Backtest types
+export interface BacktestMetrics {
+  total_return: number
+  annualized_return: number
+  volatility: number
+  sharpe_ratio: number
+  max_drawdown: number
+  win_rate: number
+  profit_loss_ratio: number
+}
+
+export interface BacktestData {
+  id: number
+  name: string
+  period: string
+  execution_time: number
+  createdAt: string
+  metrics: BacktestMetrics
+  daily_returns: Array<{
+    date: string
+    [key: string]: string | number
+  }>
+}
+
+export interface BacktestResponse {
+  id: number
+  name: string
+  period: string
+  execution_time: number
+  createdAt: string
+  metrics: BacktestMetrics
+  daily_returns: Array<{
+    date: string
+    [key: string]: string | number
+  }>
+}
+
+// Backtest creation types
+export interface StopCondition {
+  id: string
+  type: 'stopLoss' | 'takeProfit' | 'period'
+  startDate?: string
+  endDate?: string
+  criteria?: string  // 손절/익절 기준
+  value?: string     // 기준값
+  description?: string
+}
+
+export interface CreateBacktestData {
+  name: string
+  memo?: string
+  stopConditions: StopCondition[]
+}
+
+// Portfolio main data types
+export interface HoldingSummary {
+  name: string
+  weight: number
+  dailyRate: number
+}
+
+export interface PortfolioMainData {
+  name: string
+  totalValue: number
+  holdings: HoldingSummary[]
+  dailySum: number
+}

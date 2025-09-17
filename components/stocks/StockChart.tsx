@@ -266,6 +266,12 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
     const candlesticks = svg.append("g")
       .attr("class", "candlesticks")
 
+    // Determine dynamic candle width based on time pixel spacing
+    const xPositions: number[] = data.map((d) => scales.xScale(d.date))
+    const deltas: number[] = xPositions.slice(1).map((p: number, i: number) => p - xPositions[i])
+    const minDelta = d3.min(deltas) ?? 12
+    const candleWidth = Math.max(2, Math.min(16, minDelta - 4)) // keep small gaps between candles
+
     // Add wicks
     candlesticks.selectAll("line.wick")
       .data(data)
@@ -285,9 +291,9 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       .enter()
       .append("rect")
       .attr("class", "candle")
-      .attr("x", d => scales.xScale(d.date) - 8) // 캔들 너비를 늘리기 위해 x 위치 조정
+      .attr("x", d => scales.xScale(d.date) - candleWidth / 2)
       .attr("y", d => scales.yScale(Math.max(d.open, d.close)))
-      .attr("width", 16) // 캔들 너비를 10에서 16으로 증가 (더 두껍게)
+      .attr("width", candleWidth)
       .attr("height", d => Math.abs(scales.yScale(d.close) - scales.yScale(d.open)))
       .attr("fill", d => d.close >= d.open ? "#26a69a" : "#ef5350")
       .attr("stroke", d => d.close >= d.open ? "#26a69a" : "#ef5350")
@@ -356,9 +362,9 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
         .enter()
         .append("rect")
         .attr("class", "volume")
-        .attr("x", d => scales.xScale(d.date) - 2)
+        .attr("x", d => scales.xScale(d.date) - Math.max(2, Math.floor(candleWidth * 0.4)))
         .attr("y", d => scales.volumeScale(d.volume))
-        .attr("width", 4)
+        .attr("width", Math.max(4, Math.floor(candleWidth * 0.8)))
         .attr("height", d => height - margin.bottom - scales.volumeScale(d.volume))
         .attr("fill", d => d.close >= d.open ? "hsl(var(--primary) / 0.3)" : "hsl(var(--destructive) / 0.3)")
     }

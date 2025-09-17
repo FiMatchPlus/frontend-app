@@ -1,14 +1,5 @@
 import type { StockSearchResult } from "@/types/stock"
-
-// 기존 API 모듈의 설정 재사용
-const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8081",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-}
+import { API_CONFIG } from "../api"
 
 // 기존 API 모듈의 응답 형식에 맞춤
 interface ApiResponse<T> {
@@ -69,8 +60,13 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
       throw new Error(data.message || 'API 요청이 실패했습니다.')
     }
     
-    // API 응답이 이미 StockSearchResult 형식과 일치하므로 그대로 반환
-    return data.data.results || []
+    // price, changePercent 제거하여 반환
+    const sanitized = (data.data.results || []).map(r => ({
+      symbol: r.symbol,
+      name: r.name,
+      sector: r.sector,
+    }))
+    return sanitized
   } catch (error) {
     if (error instanceof TypeError) {
       console.error("[StockSearch] Network connection failed - Mixed Content or CORS issue")
@@ -125,8 +121,12 @@ export async function getPopularStocks(): Promise<StockSearchResult[]> {
       throw new Error(data.message || 'API 요청이 실패했습니다.')
     }
     
-    // API 응답이 이미 StockSearchResult 형식과 일치하므로 그대로 반환
-    return data.data.results || []
+    const sanitized = (data.data.results || []).map(r => ({
+      symbol: r.symbol,
+      name: r.name,
+      sector: r.sector,
+    }))
+    return sanitized
   } catch (error) {
     if (error instanceof TypeError) {
       console.error("[StockSearch] Network connection failed - Mixed Content or CORS issue")
