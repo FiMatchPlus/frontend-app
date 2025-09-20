@@ -26,10 +26,10 @@ export default function BacktestNotFound() {
           
           <div className="space-y-4">
             <Button
-              onClick={() => router.push("/portfolios/backtests/create")}
+              onClick={() => router.push("/portfolios")}
               className="bg-[#008485] hover:bg-[#006b6c] text-white px-8 py-3 text-lg font-semibold"
             >
-              새 백테스트 생성하기
+              포트폴리오로 돌아가기
             </Button>
             <div className="text-sm text-[#6b7280]">
               또는 <Link 

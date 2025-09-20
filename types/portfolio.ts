@@ -56,17 +56,20 @@ export interface BacktestData {
   }>
 }
 
+export type BacktestStatus = 'created' | 'running' | 'completed' | 'failed'
+
 export interface BacktestResponse {
   id: number
   name: string
   period: string
   execution_time: number
   createdAt: string
-  metrics: BacktestMetrics
-  daily_returns: Array<{
+  status: BacktestStatus
+  metrics?: BacktestMetrics  // 실행 완료된 경우에만 존재
+  daily_returns?: Array<{
     date: string
     [key: string]: string | number
-  }>
+  }>  // 실행 완료된 경우에만 존재
 }
 
 // Backtest creation types

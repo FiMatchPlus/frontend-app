@@ -18,9 +18,15 @@ export const formatCurrency = (amount: number): string => {
 /**
  * Format percentage with sign and color indication
  */
-export const formatPercent = (percent: number, includeSign = true): string => {
-  const sign = includeSign && percent > 0 ? "+" : ""
-  return `${sign}${percent.toFixed(2)}%`
+export const formatPercent = (value: number, showSign = true): string => {
+  const formatted = new Intl.NumberFormat("ko-KR", {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2,
+    signDisplay: showSign ? "always" : "auto"
+  }).format(value / 100)
+
+  return formatted
 }
 
 /**

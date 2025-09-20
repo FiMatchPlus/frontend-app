@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { ProductListCard as ProductListCardType } from "@/types/product"
 import { RISK_LEVEL_LABELS, RISK_LEVEL_COLORS } from "@/types/product"
 import { TrendingUp, TrendingDown, ChevronRight } from "lucide-react"
+import { formatPercent } from "@/utils/formatters"
 
 interface ProductListCardProps {
   product: ProductListCardType
@@ -62,7 +63,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
                   ) : (
                     <TrendingDown className="w-4 h-4" />
                   )}
-                  {isPositive ? '+' : ''}{product.oneYearReturn.toFixed(1)}%
+                  {formatPercent(product.oneYearReturn)}
                 </div>
               </div>
 

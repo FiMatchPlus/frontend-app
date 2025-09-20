@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PortfolioHolding } from "@/types/product"
 import { TrendingUp, TrendingDown } from "lucide-react"
+import { formatPercent } from "@/utils/formatters"
 
 interface PortfolioHoldingsProps {
   holdings: PortfolioHolding[]
@@ -73,7 +74,7 @@ export function PortfolioHoldings({ holdings }: PortfolioHoldingsProps) {
                         ) : (
                           <TrendingDown className="w-4 h-4" />
                         )}
-                        {isPositive ? '+' : ''}{holding.changePercent.toFixed(1)}%
+                        {formatPercent(holding.changePercent)}
                       </div>
                     </div>
                   </div>

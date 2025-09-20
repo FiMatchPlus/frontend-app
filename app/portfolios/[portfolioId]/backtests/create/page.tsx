@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Header from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
-import { ArrowLeft, Play, Plus, X, ChevronDown, ChevronRight } from "lucide-react"
+import { ArrowLeft, Save, Plus, X, ChevronDown, ChevronRight } from "lucide-react"
 import { CreateBacktestData, StopCondition } from "@/types/portfolio"
+import { createBacktest, transformToBacktestRequest, CreateBacktestResponse } from "@/lib/api/backtests"
 
 // 중지 조건 타입 옵션
 const STOP_CONDITION_TYPES = [
@@ -27,6 +28,8 @@ const TAKE_PROFIT_CRITERIA = ["단일 종목 목표 수익률 달성"]
 
 export default function CreateBacktestPage() {
   const router = useRouter()
+  const params = useParams()
+  const portfolioId = params.portfolioId as string
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState<CreateBacktestData>({
     name: "",
@@ -161,6 +164,13 @@ export default function CreateBacktestPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // 포트폴리오 ID 유효성 검사
+    if (!portfolioId) {
+      alert("포트폴리오 ID가 필요합니다. 포트폴리오 목록에서 다시 시도해주세요.")
+      router.push("/portfolios")
+      return
+    }
+    
     // 유효성 검사
     if (!formData.name.trim()) {
       alert("백테스트 이름을 입력해주세요.")
@@ -176,10 +186,21 @@ export default function CreateBacktestPage() {
 
     setSubmitting(true)
     try {
-      // TODO: integrate with backend API when available
-      await new Promise((r) => setTimeout(r, 600))
-      alert("백테스트 생성 요청이 제출되었습니다. 결과는 목록에서 확인하세요.")
+      // 폼 데이터를 API 요청 형식으로 변환
+      const requestData = transformToBacktestRequest(formData, portfolioId)
+      
+      // 백테스트 생성 API 호출 (비동기 작업 큐 방식)
+      const response: CreateBacktestResponse = await createBacktest(portfolioId, requestData)
+      
+      console.log("[UI] 백테스트 실행 시작:", response.data) // 백테스트 ID
+      alert(`백테스트 실행이 시작되었습니다.\n백테스트 ID: ${response.data}`)
+      
+      // 포트폴리오 목록으로 이동하여 실행중 상태 확인
       router.push("/portfolios")
+    } catch (error) {
+      console.error("백테스트 요청 실패:", error)
+      const errorMessage = error instanceof Error ? error.message : "백테스트 요청에 실패했습니다."
+      alert(errorMessage)
     } finally {
       setSubmitting(false)
     }
@@ -589,8 +610,8 @@ export default function CreateBacktestPage() {
               className="bg-[#008485] hover:bg-[#006b6c]"
               disabled={submitting}
             >
-              <Play className="w-4 h-4 mr-2" />
-              {submitting ? "생성 중..." : "백테스트 실행"}
+              <Save className="w-4 h-4 mr-2" />
+              {submitting ? "저장 중..." : "저장"}
             </Button>
           </div>
         </form>

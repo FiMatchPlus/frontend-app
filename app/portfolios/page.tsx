@@ -1,34 +1,63 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Header from "@/components/header"
 import PortfolioPageHeader from "@/components/portfolios/portfolio-page-header"
 import PortfolioSummaryCard from "@/components/portfolios/portfolio-summary-card"
 import { PortfolioListCard } from "@/components/portfolios/portfolio-list-card"
 import { PortfolioDetailPanel } from "@/components/portfolios/portfolio-detail-panel"
 import PortfolioEmptyState from "@/components/portfolios/portfolio-empty-state"
-import {
-  portfolios,
-  getTotalPortfolioValue,
-  getTotalChange,
-  getTotalChangePercent,
-  getPortfolioWithDetails,
-  type PortfolioWithDetails,
-} from "@/data/portfolios"
+import { fetchPortfolioSummary, fetchPortfolioList, type PortfolioWithDetails, type PortfolioSummary } from "@/lib/api/portfolios"
 
 export default function PortfoliosPage() {
-  const [selectedPortfolio, setSelectedPortfolio] = useState<PortfolioWithDetails | null>(
-    portfolios.length > 0 ? getPortfolioWithDetails(portfolios[0]) : null,
-  )
+  const [portfolios, setPortfolios] = useState<PortfolioWithDetails[]>([])
+  const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null)
+  const [selectedPortfolio, setSelectedPortfolio] = useState<PortfolioWithDetails | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const handlePortfolioClick = (portfolio: any) => {
-    const portfolioWithDetails = getPortfolioWithDetails(portfolio)
-    setSelectedPortfolio(portfolioWithDetails)
+  useEffect(() => {
+    const loadPortfolioData = async () => {
+      setLoading(true)
+      try {
+        const [summaryData, portfolioList] = await Promise.all([
+          fetchPortfolioSummary(),
+          fetchPortfolioList()
+        ])
+        
+        setPortfolioSummary(summaryData)
+        setPortfolios(portfolioList)
+        
+        // 첫 번째 포트폴리오를 기본 선택
+        if (portfolioList.length > 0) {
+          setSelectedPortfolio(portfolioList[0])
+        }
+      } catch (error) {
+        console.error("Failed to load portfolio data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadPortfolioData()
+  }, [])
+
+  const handlePortfolioClick = (portfolio: PortfolioWithDetails) => {
+    setSelectedPortfolio(portfolio)
   }
 
-  const totalPortfolioValue = getTotalPortfolioValue(portfolios)
-  const totalChange = getTotalChange(portfolios)
-  const totalChangePercent = getTotalChangePercent(portfolios)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f9f7]">
+        <Header />
+        <PortfolioPageHeader />
+        <main className="max-w-7xl mx-auto pt-1 px-4 pb-4 space-y-3">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-lg text-gray-600">포트폴리오 데이터를 불러오는 중...</div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f0f9f7]">
@@ -36,11 +65,13 @@ export default function PortfoliosPage() {
       <PortfolioPageHeader />
 
       <main className="max-w-7xl mx-auto pt-1 px-4 pb-4 space-y-3">
-        <PortfolioSummaryCard
-          totalValue={totalPortfolioValue}
-          totalChange={totalChange}
-          totalChangePercent={totalChangePercent}
-        />
+        {portfolioSummary && (
+          <PortfolioSummaryCard
+            totalValue={portfolioSummary.totalAssets}
+            totalChange={portfolioSummary.dailyTotalChange}
+            totalChangePercent={portfolioSummary.dailyTotalReturn}
+          />
+        )}
 
         {portfolios.length > 0 ? (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-12">
@@ -54,11 +85,11 @@ export default function PortfoliosPage() {
                     id: portfolio.id.toString(),
                     name: portfolio.name,
                     description: portfolio.description,
-                    totalValue: portfolio.totalValue,
-                    changeAmount: portfolio.changeAmount,
-                    changePercent: portfolio.change,
-                    riskLevel: portfolio.riskLevel as "낮음" | "보통" | "높음",
-                    holdings: portfolio.stockHoldings
+                    totalValue: portfolio.totalAssets,
+                    changeAmount: portfolio.dailyChange,
+                    changePercent: portfolio.dailyRate,
+                    riskLevel: "보통" as "낮음" | "보통" | "높음", // API에서 제공하지 않으므로 기본값
+                    holdings: portfolio.holdingStocks
                       .sort((a, b) => b.weight - a.weight)
                       .slice(0, 3)
                       .map((stock) => ({

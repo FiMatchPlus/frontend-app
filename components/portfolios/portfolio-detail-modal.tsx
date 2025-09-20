@@ -197,7 +197,6 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                       <div className="text-right">
                         <div className="font-semibold text-[#1f2937]">{formatCurrency(holding.amount)}</div>
                         <div className={`text-sm ${holding.change > 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
-                          {holding.change > 0 ? "+" : ""}
                           {formatPercent(holding.change)}
                         </div>
                       </div>

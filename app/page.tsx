@@ -6,7 +6,8 @@ import { fetchPortfolioMain } from "@/lib/api"
 import { PortfolioMainData } from "@/types/portfolio"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import * as echarts from "echarts"
 
 const stockData = [
   { rank: 1, name: "삼성전자", price: 74500, change: 1200, changePercent: 1.6 },
@@ -44,6 +45,8 @@ export default function MainPage() {
   const [portfolioData, setPortfolioData] = useState<PortfolioMainData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const pieChartRef = useRef<HTMLDivElement>(null)
+  const pieChartInstance = useRef<echarts.ECharts | null>(null)
 
   useEffect(() => {
     const loadPortfolioData = async () => {
@@ -63,6 +66,83 @@ export default function MainPage() {
 
     loadPortfolioData()
   }, [])
+
+  // 파이 차트 초기화
+  useEffect(() => {
+    if (!portfolioData || !pieChartRef.current) return
+
+    // 기존 차트 인스턴스 정리
+    if (pieChartInstance.current) {
+      pieChartInstance.current.dispose()
+    }
+
+    // 새 차트 인스턴스 생성
+    pieChartInstance.current = echarts.init(pieChartRef.current)
+
+    const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
+
+    // ECharts 옵션 설정
+    const option = {
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {c}% ({d}%)'
+      },
+      series: [
+        {
+          name: '포트폴리오',
+          type: 'pie',
+          radius: ['35%', '80%'],
+          center: ['50%', '50%'],
+          itemStyle: {
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: false,
+            position: 'center'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: {
+            show: false
+          },
+          data: portfolioData.holdings.map((holding, index) => ({
+            value: holding.weight,
+            name: holding.name,
+            itemStyle: {
+              color: colors[index % colors.length]
+            }
+          }))
+        }
+      ]
+    }
+
+    // 차트 옵션 설정
+    pieChartInstance.current.setOption(option)
+
+    // 리사이즈 이벤트 리스너
+    const handleResize = () => {
+      if (pieChartInstance.current) {
+        pieChartInstance.current.resize()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // 정리 함수
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (pieChartInstance.current) {
+        pieChartInstance.current.dispose()
+        pieChartInstance.current = null
+      }
+    }
+  }, [portfolioData])
   return (
     <div className="min-h-screen bg-[#f0f9f7]">
       <Header />
@@ -137,24 +217,18 @@ export default function MainPage() {
               <div className="text-lg text-[#6b7280]">포트폴리오 데이터를 불러오는 중...</div>
             </div>
           ) : portfolioData ? (
-            <div className="flex flex-col lg:flex-row gap-6 items-center flex-1">
+            <div className="flex flex-col lg:flex-row gap-12 items-center flex-1">
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="w-48 h-48 rounded-full relative flex items-center justify-center"
-                style={{
-                  background: `conic-gradient(${portfolioData.holdings
-                    .map((holding, index) => {
-                      const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
-                      const startAngle = index === 0 ? 0 : portfolioData.holdings.slice(0, index).reduce((sum, h) => sum + h.weight * 3.6, 0)
-                      const endAngle = startAngle + holding.weight * 3.6
-                      return `${colors[index % colors.length]} ${startAngle}deg ${endAngle}deg`
-                    })
-                    .join(", ")})`,
-                }}
+                className="w-56 h-56 rounded-full relative flex items-center justify-center"
               >
-                <div className="w-28 h-28 bg-white rounded-full absolute"></div>
+                <div 
+                  ref={pieChartRef} 
+                  className="w-full h-full"
+                  style={{ width: '100%', height: '100%' }}
+                />
               </motion.div>
 
               {/* Chart Legend */}
@@ -176,7 +250,7 @@ export default function MainPage() {
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="text-lg font-semibold text-[#1f2937]">{holding.weight.toFixed(1)}%</span>
                         <span className={`text-base font-medium ${holding.dailyRate >= 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
-                          {holding.dailyRate >= 0 ? "+" : ""} {formatPercent(holding.dailyRate)}
+                          {formatPercent(holding.dailyRate)}
                         </span>
                       </div>
                     </motion.div>

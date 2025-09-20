@@ -226,7 +226,7 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
   try {
     console.log("[API] Fetching backtests for portfolio:", portfolioId)
 
-    const apiUrl = `${API_CONFIG.baseUrl}/backtest/portfolio/${portfolioId}`
+    const apiUrl = `${API_CONFIG.baseUrl}/api/backtests/portfolio/${portfolioId}`
     console.log("[API] API URL:", apiUrl)
 
     const controller = new AbortController()
@@ -234,7 +234,12 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
 
     const response = await fetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
+      headers: {
+        ...API_CONFIG.headers,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
       signal: controller.signal,
     })
 
@@ -304,5 +309,57 @@ export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
   } catch (error) {
     // Silenced detailed console error for portfolio main fetch
     throw error
+  }
+}
+
+/**
+ * 백테스트를 실행하는 함수 (비동기 작업 큐 방식)
+ * 즉시 응답을 받고 백테스트는 백그라운드에서 실행됨
+ */
+export async function executeBacktest(backtestId: number): Promise<{ success: boolean; message?: string; backtestId?: string }> {
+  try {
+    console.log("[API] Executing backtest:", backtestId)
+
+    const apiUrl = `${API_CONFIG.baseUrl}/api/backtests/${backtestId}/execute`
+    console.log("[API] API URL:", apiUrl)
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: API_CONFIG.headers,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    console.log("[API] Response Status:", response.status)
+    console.log("[API] Response OK:", response.ok)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("[API] Error Response:", errorText)
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log("[API] Execute backtest result:", result)
+
+    // 비동기 작업 큐 방식: 즉시 응답 받음
+    // 응답 형태: { "status": "success", "message": "백테스트 실행이 시작되었습니다", "data": "123" }
+    return { 
+      success: true, 
+      message: result.message || "백테스트 실행이 시작되었습니다",
+      backtestId: result.data 
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[API] Execute backtest request timeout")
+      throw new Error("백테스트 실행 요청 시간이 초과되었습니다.")
+    } else {
+      console.error("[API] Execute backtest error:", error)
+      throw error instanceof Error ? error : new Error("백테스트 실행 요청에 실패했습니다.")
+    }
   }
 }

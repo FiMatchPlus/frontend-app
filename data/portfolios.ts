@@ -118,14 +118,14 @@ export const portfolios: Portfolio[] = [
         weight: 22.7,
       },
       {
-        symbol: "035420",
-        name: "NAVER",
-        shares: 200,
-        currentPrice: 180000,
-        totalValue: 3600000,
-        change: 2.1,
-        changePercent: 1.2,
-        weight: 28.7,
+        symbol: "066570",
+        name: "LG전자",
+        shares: 250,
+        currentPrice: 90000,
+        totalValue: 2250000,
+        change: 1.5,
+        changePercent: 1.7,
+        weight: 17.9,
       },
       {
         symbol: "035720",
@@ -341,6 +341,57 @@ function generateMockBacktests(portfolio: Portfolio): BacktestSummary[] {
 }
 
 export function findBacktestById(id: number): { portfolio: PortfolioWithDetails; backtest: BacktestSummary } | null {
+  // ID 1번 백테스트를 위한 특별 처리
+  if (id === 1) {
+    const portfolio = getPortfolioWithDetails(portfolios[0]) // 첫 번째 포트폴리오 사용
+    const mockBacktest: BacktestSummary = {
+      id: 1,
+      name: "첫 테스트",
+      createdAt: "2025-09-17T18:27:07",
+      period: "2025-01-08 ~ 2025-06-30",
+      metrics: {
+        total_return: 0.155,
+        annualized_return: 0.123,
+        volatility: 0.187,
+        sharpe_ratio: 0.65,
+        max_drawdown: -0.082,
+        var_95: -0.06,
+        var_99: -0.1,
+        cvar_95: -0.08,
+        cvar_99: -0.13,
+        win_rate: 0.65,
+        profit_loss_ratio: 1.2,
+      },
+      daily_returns: [
+        { date: "2025-01-08", "삼성전자": 0.025, "SK하이닉스": -0.035, "LG전자": 0.045 },
+        { date: "2025-01-09", "삼성전자": 0.055, "SK하이닉스": 0.028, "LG전자": -0.042 },
+        { date: "2025-01-10", "삼성전자": -0.038, "SK하이닉스": 0.065, "LG전자": 0.022 },
+        { date: "2025-01-11", "삼성전자": 0.072, "SK하이닉스": -0.048, "LG전자": 0.035 },
+        { date: "2025-01-12", "삼성전자": 0.018, "SK하이닉스": 0.041, "LG전자": -0.025 },
+        { date: "2025-01-13", "삼성전자": -0.029, "SK하이닉스": 0.033, "LG전자": 0.058 },
+        { date: "2025-01-14", "삼성전자": 0.046, "SK하이닉스": -0.055, "LG전자": 0.015 },
+        { date: "2025-01-15", "삼성전자": 0.063, "SK하이닉스": 0.024, "LG전자": 0.037 },
+        { date: "2025-01-16", "삼성전자": -0.051, "SK하이닉스": 0.019, "LG전자": -0.044 },
+        { date: "2025-01-17", "삼성전자": 0.034, "SK하이닉스": -0.026, "LG전자": 0.067 },
+        { date: "2025-01-18", "삼성전자": 0.021, "SK하이닉스": 0.048, "LG전자": -0.031 },
+        { date: "2025-01-19", "삼성전자": -0.043, "SK하이닉스": 0.029, "LG전자": 0.052 },
+        { date: "2025-01-20", "삼성전자": 0.068, "SK하이닉스": -0.039, "LG전자": 0.016 },
+        { date: "2025-01-21", "삼성전자": 0.032, "SK하이닉스": 0.054, "LG전자": 0.027 },
+        { date: "2025-01-22", "삼성전자": -0.036, "SK하이닉스": 0.017, "LG전자": -0.049 },
+        { date: "2025-01-23", "삼성전자": 0.059, "SK하이닉스": -0.033, "LG전자": 0.023 },
+        { date: "2025-01-24", "삼성전자": 0.041, "SK하이닉스": 0.045, "LG전자": 0.038 },
+        { date: "2025-01-25", "삼성전자": -0.027, "SK하이닉스": 0.012, "LG전자": -0.035 },
+        { date: "2025-01-26", "삼성전자": 0.048, "SK하이닉스": -0.041, "LG전자": 0.061 },
+        { date: "2025-01-27", "삼성전자": 0.056, "SK하이닉스": 0.031, "LG전자": 0.019 },
+        { date: "2025-01-28", "삼성전자": -0.062, "SK하이닉스": 0.044, "LG전자": -0.028 },
+        { date: "2025-01-29", "삼성전자": 0.037, "SK하이닉스": -0.024, "LG전자": 0.053 },
+        { date: "2025-01-30", "삼성전자": 0.042, "SK하이닉스": 0.058, "LG전자": 0.026 }
+      ],
+      execution_time: 0
+    }
+    return { portfolio, backtest: mockBacktest }
+  }
+
   for (const p of portfolios) {
     const detailed = getPortfolioWithDetails(p)
     const found = detailed.backtests.find((b) => b.id === id)

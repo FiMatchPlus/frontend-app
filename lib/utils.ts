@@ -23,10 +23,8 @@ export function formatPercent(value: number, showSign = true): string {
     style: "percent",
     minimumFractionDigits: 1,
     maximumFractionDigits: 2,
+    signDisplay: showSign ? "always" : "auto"
   }).format(value / 100)
 
-  if (showSign && value > 0) {
-    return `+${formatted}`
-  }
   return formatted
 }

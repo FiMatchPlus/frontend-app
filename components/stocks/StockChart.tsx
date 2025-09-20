@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import * as d3 from "d3"
+import { useState, useEffect, useRef } from "react"
+import * as echarts from "echarts"
 import { TrendingUp, TrendingDown, BarChart3, LineChartIcon } from "lucide-react"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { useStockData } from "@/hooks/useStockData"
@@ -35,347 +35,24 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
     chartType: "candlestick",
   })
 
-  const chartContainerRef = useRef<HTMLDivElement>(null)
-  const svgRef = useRef<SVGSVGElement>(null)
+  const chartRef = useRef<HTMLDivElement>(null)
+  const chartInstance = useRef<echarts.ECharts | null>(null)
 
-  // Chart dimensions and margins
-  const margin = { top: 20, right: 20, bottom: 60, left: 40 }
-  const width = 1000 // 차트 너비를 적당하게 조정
-  const height = 400
-
-  // Convert timestamp to Date object
-  const convertTimestamp = (timestamp: number): Date => {
-    return new Date(timestamp)
-  }
-
-  // Create scales
-  const createScales = useCallback((data: any[]) => {
-    if (!data.length) return null
-
-    const xDomain = (() => {
-      const extent = d3.extent(data, d => d.date) as [Date, Date]
-      if (extent[0] && extent[1]) {
-        const timeRange = extent[1].getTime() - extent[0].getTime()
-        const padding = timeRange * 0.1 // 10% 여백
-        return [
-          new Date(extent[0].getTime() - padding),
-          new Date(extent[1].getTime() + padding)
-        ]
-      }
-      return extent
-    })()
-
-    const xScale = d3.scaleTime()
-      .domain(xDomain)
-      .range([margin.left, width - margin.right])
-      .nice() // 눈금을 깔끔하게 정리
-
-    const yDomain = (() => {
-      const minPrice = d3.min(data, d => d.low) as number
-      const maxPrice = d3.max(data, d => d.high) as number
-      const priceRange = maxPrice - minPrice
-      const padding = priceRange * 0.1 // 10% 여백
-      return [
-        minPrice - padding,
-        maxPrice + padding
-      ]
-    })()
-
-    const yScale = d3.scaleLinear()
-      .domain(yDomain)
-      .range([height - margin.bottom, margin.top])
-      .nice() // 눈금을 깔끔하게 정리
-
-    const volumeScale = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.volume) as number])
-      .range([height - margin.bottom, height - margin.bottom - 80])
-
-    return { xScale, yScale, volumeScale }
-  }, [margin, width, height])
-
-  // Create line chart
-  const createLineChart = useCallback((data: any[], scales: any) => {
-    if (!scales || !svgRef.current) return
-
-    const svg = d3.select(svgRef.current)
-    
-    // Clear previous chart
-    svg.selectAll("*").remove()
-
-    // Add grid lines
-    const gridLines = svg.append("g")
-      .attr("class", "grid")
-      .attr("stroke", "hsl(var(--muted-foreground) / 0.2)") // 연한 회색 격자
-      .attr("stroke-width", 0.5)
-      .attr("stroke-opacity", 0.5)
-
-    // Horizontal grid lines
-    gridLines.selectAll("line.horizontal")
-      .data(scales.yScale.ticks(8))
-      .enter()
-      .append("line")
-      .attr("class", "horizontal")
-      .attr("x1", margin.left)
-      .attr("x2", width - margin.right)
-      .attr("y1", d => scales.yScale(d))
-      .attr("y2", d => scales.yScale(d))
-
-    // Vertical grid lines
-    gridLines.selectAll("line.vertical")
-      .data(scales.xScale.ticks(8))
-      .enter()
-      .append("line")
-      .attr("class", "vertical")
-      .attr("x1", d => scales.xScale(d))
-      .attr("x2", d => scales.xScale(d))
-      .attr("y1", margin.top)
-      .attr("y2", height - margin.bottom)
-
-    // Create line generator
-    const line = d3.line<any>()
-      .x(d => scales.xScale(d.date))
-      .y(d => scales.yScale(d.close))
-
-    // Add line path
-    svg.append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("stroke", "hsl(var(--primary))")
-      .attr("stroke-width", 2)
-      .attr("d", line)
-
-    // Add data points
-    svg.selectAll("circle")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("cx", d => scales.xScale(d.date))
-      .attr("cy", d => scales.yScale(d.close))
-      .attr("r", 3)
-      .attr("fill", "hsl(var(--primary))")
-      .attr("opacity", 0.7)
-      .on("mouseover", function(event, d) {
-        // 툴팁 표시
-        const tooltip = d3.select("#chart-tooltip")
-        const dateStr = d3.timeFormat("%Y-%m-%d %H:%M")(d.date)
-        
-        // 차트뷰의 절대 위치를 고려한 정확한 마우스 위치 계산
-        const chartContainer = event.currentTarget.closest('.chart-container') || event.currentTarget.closest('svg')?.parentElement
-        const chartRect = chartContainer?.getBoundingClientRect()
-        
-        if (chartRect) {
-          // 차트뷰 내부에서의 상대적 마우스 위치
-          const relativeX = event.clientX - chartRect.left
-          const relativeY = event.clientY - chartRect.top
-          
-          // 전체 페이지 기준 절대 위치 계산
-          const absoluteX = chartRect.left + relativeX + window.pageXOffset
-          const absoluteY = chartRect.top + relativeY + window.pageYOffset
-          
-          tooltip
-            .style("opacity", 1)
-            .html(`
-              <div class="font-semibold">${dateStr}</div>
-              <div class="text-sm space-y-1">
-                <div>종가: ${formatCurrency(d.close)}</div>
-                <div>거래량: ${d.volume.toLocaleString()}</div>
-              </div>
-            `)
-            .style("left", (absoluteX + 15) + "px")
-            .style("top", (absoluteY - 10) + "px")
-        }
-      })
-      .on("mouseout", function() {
-        // 툴팁 숨김
-        d3.select("#chart-tooltip").style("opacity", 0)
-      })
-
-    // Add axes
-    const xAxis = d3.axisBottom(scales.xScale)
-      .tickFormat((d: any) => d3.timeFormat("%m/%d")(d as Date))
-      .ticks(8)
-
-    const yAxis = d3.axisRight(scales.yScale)
-      .tickFormat((d: any) => formatCurrency(d as number))
-      .ticks(8)
-
-    svg.append("g")
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(xAxis as any)
-      .attr("color", "hsl(var(--muted-foreground))")
-
-    svg.append("g")
-      .attr("transform", `translate(${width - margin.right},0)`)
-      .call(yAxis as any)
-      .attr("color", "hsl(var(--muted-foreground))")
-
-    // Add volume if enabled
-    if (chartConfig.showVolume) {
-      svg.selectAll("rect.volume")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "volume")
-        .attr("x", d => scales.xScale(d.date) - 6) // 거래량 바 너비를 캔들에 맞춰 조정
-        .attr("y", d => scales.volumeScale(d.volume))
-        .attr("width", 12) // 거래량 바 너비를 8에서 12로 증가
-        .attr("height", d => height - margin.bottom - scales.volumeScale(d.volume))
-        .attr("fill", d => d.close >= d.open ? "hsl(var(--primary) / 0.3)" : "hsl(var(--destructive) / 0.3)")
-    }
-  }, [chartConfig.showVolume, margin, width, height])
-
-  // Create candlestick chart
-  const createCandlestickChart = useCallback((data: any[], scales: any) => {
-    if (!scales || !svgRef.current) return
-
-    const svg = d3.select(svgRef.current)
-    
-    // Clear previous chart
-    svg.selectAll("*").remove()
-
-    // Add grid lines
-    const gridLines = svg.append("g")
-      .attr("class", "grid")
-      .attr("stroke", "hsl(var(--muted-foreground) / 0.2)") // 연한 회색 격자
-      .attr("stroke-width", 0.5)
-      .attr("stroke-opacity", 0.5)
-
-    // Horizontal grid lines
-    gridLines.selectAll("line.horizontal")
-      .data(scales.yScale.ticks(8))
-      .enter()
-      .append("line")
-      .attr("class", "horizontal")
-      .attr("x1", margin.left)
-      .attr("x2", width - margin.right)
-      .attr("y1", d => scales.yScale(d))
-      .attr("y2", d => scales.yScale(d))
-
-    // Vertical grid lines
-    gridLines.selectAll("line.vertical")
-      .data(scales.xScale.ticks(8))
-      .enter()
-      .append("line")
-      .attr("class", "vertical")
-      .attr("x1", d => scales.xScale(d))
-      .attr("x2", d => scales.xScale(d))
-      .attr("y1", margin.top)
-      .attr("y2", height - margin.bottom)
-
-    // Create candlesticks
-    const candlesticks = svg.append("g")
-      .attr("class", "candlesticks")
-
-    // Determine dynamic candle width based on time pixel spacing
-    const xPositions: number[] = data.map((d) => scales.xScale(d.date))
-    const deltas: number[] = xPositions.slice(1).map((p: number, i: number) => p - xPositions[i])
-    const minDelta = d3.min(deltas) ?? 12
-    const candleWidth = Math.max(2, Math.min(16, minDelta - 4)) // keep small gaps between candles
-
-    // Add wicks
-    candlesticks.selectAll("line.wick")
-      .data(data)
-      .enter()
-      .append("line")
-      .attr("class", "wick")
-      .attr("x1", d => scales.xScale(d.date))
-      .attr("x2", d => scales.xScale(d.date))
-      .attr("y1", d => scales.yScale(d.high))
-      .attr("y2", d => scales.yScale(d.low))
-      .attr("stroke", d => d.close >= d.open ? "#26a69a" : "#ef5350")
-      .attr("stroke-width", 1)
-
-    // Add candle bodies
-    candlesticks.selectAll("rect.candle")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("class", "candle")
-      .attr("x", d => scales.xScale(d.date) - candleWidth / 2)
-      .attr("y", d => scales.yScale(Math.max(d.open, d.close)))
-      .attr("width", candleWidth)
-      .attr("height", d => Math.abs(scales.yScale(d.close) - scales.yScale(d.open)))
-      .attr("fill", d => d.close >= d.open ? "#26a69a" : "#ef5350")
-      .attr("stroke", d => d.close >= d.open ? "#26a69a" : "#ef5350")
-      .on("mouseover", function(event, d) {
-        // 툴팁 표시
-        const tooltip = d3.select("#chart-tooltip")
-        const dateStr = d3.timeFormat("%Y-%m-%d %H:%M")(d.date)
-        
-        // 차트뷰의 절대 위치를 고려한 정확한 마우스 위치 계산
-        const chartContainer = event.currentTarget.closest('.chart-container') || event.currentTarget.closest('svg')?.parentElement
-        const chartRect = chartContainer?.getBoundingClientRect()
-        
-        if (chartRect) {
-          // 차트뷰 내부에서의 상대적 마우스 위치
-          const relativeX = event.clientX - chartRect.left
-          const relativeY = event.clientY - chartRect.top
-          
-          // 전체 페이지 기준 절대 위치 계산
-          const absoluteX = chartRect.left + relativeX + window.pageXOffset
-          const absoluteY = chartRect.top + relativeY + window.pageYOffset
-          
-          tooltip
-            .style("opacity", 1)
-            .html(`
-              <div class="font-semibold">${dateStr}</div>
-              <div class="text-sm space-y-1">
-                <div>시가: ${formatCurrency(d.open)}</div>
-                <div>고가: ${formatCurrency(d.high)}</div>
-                <div>저가: ${formatCurrency(d.low)}</div>
-                <div>종가: ${formatCurrency(d.close)}</div>
-                <div>거래량: ${d.volume.toLocaleString()}</div>
-              </div>
-            `)
-            .style("left", (absoluteX + 15) + "px")
-            .style("top", (absoluteY - 10) + "px")
-        }
-      })
-      .on("mouseout", function() {
-        // 툴팁 숨김
-        d3.select("#chart-tooltip").style("opacity", 0)
-      })
-
-    // Add axes
-    const xAxis = d3.axisBottom(scales.xScale)
-      .tickFormat((d: any) => d3.timeFormat("%m/%d")(d as Date))
-      .ticks(8)
-
-    const yAxis = d3.axisRight(scales.yScale)
-      .tickFormat((d: any) => formatCurrency(d as number))
-      .ticks(8)
-
-    svg.append("g")
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(xAxis as any)
-      .attr("color", "hsl(var(--muted-foreground))")
-
-    svg.append("g")
-      .attr("transform", `translate(${width - margin.right},0)`)
-      .call(yAxis as any)
-      .attr("color", "hsl(var(--muted-foreground))")
-
-    // Add volume if enabled
-    if (chartConfig.showVolume) {
-      svg.selectAll("rect.volume")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "volume")
-        .attr("x", d => scales.xScale(d.date) - Math.max(2, Math.floor(candleWidth * 0.4)))
-        .attr("y", d => scales.volumeScale(d.volume))
-        .attr("width", Math.max(4, Math.floor(candleWidth * 0.8)))
-        .attr("height", d => height - margin.bottom - scales.volumeScale(d.volume))
-        .attr("fill", d => d.close >= d.open ? "hsl(var(--primary) / 0.3)" : "hsl(var(--destructive) / 0.3)")
-    }
-  }, [chartConfig.showVolume, margin, width, height])
-
-  // Update chart when data or config changes
+  // ECharts 차트 업데이트
   useEffect(() => {
-    if (!chartData.length || !svgRef.current) return
+    if (!chartData.length || !chartRef.current) return
 
+    // 기존 차트 인스턴스 정리
+    if (chartInstance.current) {
+      chartInstance.current.dispose()
+    }
+
+    // 새 차트 인스턴스 생성
+    chartInstance.current = echarts.init(chartRef.current)
+
+    // 데이터 변환
     const convertedData = chartData.map(item => ({
-      date: convertTimestamp(item.timestamp),
+      date: new Date(item.timestamp).toISOString().split('T')[0],
       open: item.open,
       high: item.high,
       low: item.low,
@@ -383,15 +60,166 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       volume: item.volume
     }))
 
-    const scales = createScales(convertedData)
-    if (!scales) return
-
+    // ECharts 옵션 설정
+    const option = {
+      title: {
+        text: `${selectedStock?.name} (${selectedStock?.symbol})`,
+        left: 'center',
+        textStyle: {
+          fontSize: 16,
+          fontWeight: 'bold'
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'cross'
+        },
+        formatter: function(params: any) {
     if (chartConfig.chartType === 'candlestick') {
-      createCandlestickChart(convertedData, scales)
+            const data = params[0]
+            return `
+              <div style="font-weight: bold; margin-bottom: 8px;">${data.axisValue}</div>
+              <div style="font-size: 12px; line-height: 1.5;">
+                <div>시가: ${formatCurrency(data.data[1])}</div>
+                <div>고가: ${formatCurrency(data.data[4])}</div>
+                <div>저가: ${formatCurrency(data.data[3])}</div>
+                <div>종가: ${formatCurrency(data.data[2])}</div>
+                <div>거래량: ${data.data[5]?.toLocaleString() || 'N/A'}</div>
+              </div>
+            `
     } else {
-      createLineChart(convertedData, scales)
+            const data = params[0]
+            return `
+              <div style="font-weight: bold; margin-bottom: 8px;">${data.axisValue}</div>
+              <div style="font-size: 12px; line-height: 1.5;">
+                <div>종가: ${formatCurrency(data.data[1])}</div>
+                <div>거래량: ${data.data[2]?.toLocaleString() || 'N/A'}</div>
+              </div>
+            `
+          }
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        top: '15%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: convertedData.map(d => d.date),
+        axisLine: {
+          lineStyle: {
+            color: '#e5e7eb'
+          }
+        },
+        axisLabel: {
+          color: '#9ca3af',
+          fontSize: 11
+        }
+      },
+      yAxis: {
+        type: 'value',
+        position: 'right',
+        axisLine: {
+          lineStyle: {
+            color: '#e5e7eb'
+          }
+        },
+        axisLabel: {
+          color: '#9ca3af',
+          fontSize: 11,
+          formatter: function(value: number) {
+            return formatCurrency(value)
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#f3f4f6',
+            type: 'dashed'
+          }
+        }
+      },
+      series: chartConfig.chartType === 'candlestick' 
+        ? [
+            {
+              name: 'K선',
+              type: 'candlestick',
+              data: convertedData.map(d => [d.open, d.close, d.low, d.high]),
+              itemStyle: {
+                color: '#26a69a',
+                color0: '#ef5350',
+                borderColor: '#26a69a',
+                borderColor0: '#ef5350'
+              }
+            },
+            ...(chartConfig.showVolume ? [{
+              name: '거래량',
+              type: 'bar',
+              yAxisIndex: 0,
+              data: convertedData.map(d => d.volume),
+              itemStyle: {
+                color: function(params: any) {
+                  const dataIndex = params.dataIndex
+                  const candleData = convertedData[dataIndex]
+                  return candleData.close >= candleData.open ? '#26a69a' : '#ef5350'
+                },
+                opacity: 0.3
+              }
+            }] : [])
+          ]
+        : [
+            {
+              name: '종가',
+              type: 'line',
+              data: convertedData.map(d => [d.date, d.close]),
+              smooth: true,
+              lineStyle: {
+                color: '#6366f1',
+                width: 2
+              },
+              itemStyle: {
+                color: '#6366f1'
+              },
+              symbol: 'circle',
+              symbolSize: 4
+            },
+            ...(chartConfig.showVolume ? [{
+              name: '거래량',
+              type: 'bar',
+              yAxisIndex: 0,
+              data: convertedData.map(d => d.volume),
+              itemStyle: {
+                color: '#6366f1',
+                opacity: 0.3
+              }
+            }] : [])
+          ]
     }
-  }, [chartData, chartConfig.chartType, chartConfig.showVolume, createScales, createLineChart, createCandlestickChart])
+
+    // 차트 옵션 설정
+    chartInstance.current.setOption(option)
+
+    // 리사이즈 이벤트 리스너
+    const handleResize = () => {
+      if (chartInstance.current) {
+        chartInstance.current.resize()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // 정리 함수
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (chartInstance.current) {
+        chartInstance.current.dispose()
+        chartInstance.current = null
+      }
+    }
+  }, [chartData, chartConfig.chartType, chartConfig.showVolume, selectedStock])
 
   if (!selectedStock) {
     return (
@@ -499,26 +327,14 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
           </div>
         ) : (
           <div className="h-96 w-full relative">
-            <svg
-              ref={svgRef}
-              width="100%"
-              height={height}
-              className="h-full w-full"
-              viewBox={`0 0 ${width} ${height}`}
-              preserveAspectRatio="xMidYMid meet"
-            />
-            {/* Tooltip */}
-            <div
-              id="chart-tooltip"
-              className="fixed pointer-events-none bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg opacity-0 transition-opacity duration-200 z-50"
-            />
+            <div ref={chartRef} style={{ height: '100%', width: '100%' }} />
           </div>
         )}
       </div>
 
       {/* Attribution */}
       <div className="p-2 text-xs text-center text-muted-foreground border-t border-border">
-        Powered by <a href="https://d3js.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">D3.js</a>
+        Powered by <a href="https://echarts.apache.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Apache ECharts</a>
       </div>
     </div>
   )
