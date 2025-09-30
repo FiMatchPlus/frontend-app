@@ -185,7 +185,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                 }}
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setTimeout(() => setShowTooltip(false), 1000)}
-                className="w-14 h-14 rounded-full bg-[#008485] hover:bg-[#006b6c] text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-14 h-14 rounded-full bg-[#009178] hover:bg-[#006b6c] text-white shadow-lg hover:shadow-xl transition-all duration-300"
                 size="sm"
               >
                 <MessageCircle className="w-6 h-6" />
@@ -205,8 +205,8 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            <Card className="h-full shadow-2xl border border-[#008485]/20">
-              <CardHeader className="bg-[#008485] text-white p-4 rounded-t-lg">
+            <Card className="h-full shadow-2xl border border-[#009178]/20">
+              <CardHeader className="bg-[#009178] text-white p-4 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Bot className="w-5 h-5" />
@@ -234,7 +234,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                       <div className={`flex gap-2 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                           message.type === 'user' 
-                            ? 'bg-[#008485] text-white' 
+                            ? 'bg-[#009178] text-white' 
                             : 'bg-gray-100 text-gray-600'
                         }`}>
                           {message.type === 'user' ? (
@@ -245,7 +245,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                         </div>
                         <div className={`p-3 rounded-lg ${
                           message.type === 'user'
-                            ? 'bg-[#008485] text-white'
+                            ? 'bg-[#009178] text-white'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
                           <p className="text-sm leading-relaxed">{message.content}</p>
@@ -287,12 +287,12 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="메시지를 입력하세요..."
-                      className="flex-1 border-gray-200 focus:border-[#008485] focus:ring-[#008485]"
+                      className="flex-1 border-gray-200 focus:border-[#009178] focus:ring-[#009178]"
                     />
                     <Button
                       onClick={handleSendMessage}
                       disabled={!inputValue.trim() || isTyping}
-                      className="bg-[#008485] hover:bg-[#006b6c] text-white"
+                      className="bg-[#009178] hover:bg-[#006b6c] text-white"
                       size="sm"
                     >
                       <Send className="w-4 h-4" />

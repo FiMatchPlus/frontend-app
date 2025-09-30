@@ -18,7 +18,7 @@ export default function PortfolioPageHeader() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="p-2 rounded-xl bg-[#008485] text-white hover:bg-[#006b6c] transition-colors"
+              className="p-2 rounded-xl bg-[#009178] text-white hover:bg-[#004e42] transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </motion.button>
@@ -32,7 +32,7 @@ export default function PortfolioPageHeader() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 bg-[#008485] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#006b6c] transition-colors"
+            className="flex items-center gap-2 bg-[#009178] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#004e42] transition-colors"
           >
             <Plus className="w-5 h-5" />새 포트폴리오
           </motion.button>

@@ -26,7 +26,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
             {/* Left Section - Product Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-2">
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-[#008485] transition-colors">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-[#006b6c] transition-colors">
                   {product.name}
                 </h3>
                 <Badge 
@@ -84,7 +84,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
               </div>
 
               {/* Arrow */}
-              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#008485] transition-colors" />
+              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#006b6c] transition-colors" />
             </div>
           </div>
         </div>

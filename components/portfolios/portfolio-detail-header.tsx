@@ -27,7 +27,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange }: Por
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-[#1f2937]">{formatCurrency(portfolio.totalAssets)}</div>
-          <div className={`flex items-center gap-1 ${portfolio.dailyRate >= 0 ? "text-[#008485]" : "text-[#dc2626]"}`}>
+          <div className={`flex items-center gap-1 ${portfolio.dailyRate >= 0 ? "text-[#009178]" : "text-[#dc2626]"}`}>
             {portfolio.dailyRate >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
             <span className="font-semibold">{formatPercent(portfolio.dailyRate)}</span>
             <span className="text-sm">
@@ -48,7 +48,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange }: Por
               onClick={() => onTabChange(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === tab.id
-                  ? "bg-white text-[#008485] shadow-sm"
+                  ? "bg-white text-[#009178] shadow-sm"
                   : "text-[#6b7280] hover:text-[#1f2937] hover:bg-white/50"
               }`}
             >

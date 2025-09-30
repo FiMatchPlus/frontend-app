@@ -79,7 +79,7 @@ export function ProductPagination({
                 onClick={() => onPageChange(page as number)}
                 className={`w-10 h-10 ${
                   currentPage === page 
-                    ? "bg-[#008485] hover:bg-[#006b6c] text-white" 
+                    ? "bg-[#009178] hover:bg-[#004e42] text-white" 
                     : "hover:bg-gray-50"
                 }`}
               >

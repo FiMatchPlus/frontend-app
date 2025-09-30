@@ -13,7 +13,7 @@ export default function BacktestNotFound() {
     <div className="min-h-screen bg-[#f0f9f7]">
       <Header />
       <main className="max-w-5xl mx-auto pt-8 px-4 pb-8">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-4 text-[#1f2937] hover:text-[#059669]">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-4 text-[#1f2937] hover:text-[#009178]">
           <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
         </Button>
         
@@ -27,14 +27,14 @@ export default function BacktestNotFound() {
           <div className="space-y-4">
             <Button
               onClick={() => router.push("/portfolios")}
-              className="bg-[#008485] hover:bg-[#006b6c] text-white px-8 py-3 text-lg font-semibold"
+              className="bg-[#009178] hover:bg-[#004e42] text-white px-8 py-3 text-lg font-semibold"
             >
               포트폴리오로 돌아가기
             </Button>
             <div className="text-sm text-[#6b7280]">
               또는 <Link 
                 href="/portfolios"
-                className="text-[#008485] hover:text-[#006b6c] underline"
+                className="text-[#009178] hover:text-[#004e42] underline"
               >
                 포트폴리오 목록
               </Link>으로 돌아가세요

@@ -87,7 +87,7 @@ export default function ProductsPage() {
 
           {/* Results Summary */}
           <div className="text-base text-gray-600">
-            총 <span className="font-semibold text-[#008485]">{filteredProducts.length}</span>개의 상품이 있습니다
+            총 <span className="font-semibold text-[#006b6c]">{filteredProducts.length}</span>개의 상품이 있습니다
             {searchQuery && (
               <span> (검색어: "{searchQuery}")</span>
             )}

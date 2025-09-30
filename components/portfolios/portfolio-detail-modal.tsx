@@ -130,7 +130,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === tab.id
-                        ? "border-[#008485] text-[#008485]"
+                        ? "border-[#009178] text-[#009178]"
                         : "border-transparent text-[#6b7280] hover:text-[#1f2937]"
                     }`}
                   >
@@ -154,7 +154,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                     <div className="bg-[#f0f9f7] rounded-xl p-4">
                       <div className="text-sm text-[#6b7280] mb-1">수익률</div>
                       <div
-                        className={`text-2xl font-bold ${portfolio.totalChangePercent > 0 ? "text-[#dc2626]" : "text-[#008485]"}`}
+                        className={`text-2xl font-bold ${portfolio.totalChangePercent > 0 ? "text-[#dc2626]" : "text-[#009178]"}`}
                       >
                         {formatPercent(portfolio.totalChangePercent)}
                       </div>
@@ -162,7 +162,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                     <div className="bg-[#f0f9f7] rounded-xl p-4">
                       <div className="text-sm text-[#6b7280] mb-1">수익금</div>
                       <div
-                        className={`text-2xl font-bold ${portfolio.totalChange > 0 ? "text-[#dc2626]" : "text-[#008485]"}`}
+                        className={`text-2xl font-bold ${portfolio.totalChange > 0 ? "text-[#dc2626]" : "text-[#009178]"}`}
                       >
                         {formatCurrency(portfolio.totalChange)}
                       </div>
@@ -170,7 +170,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                   </div>
 
                   {/* Pie Chart */}
-                  <div className="bg-white rounded-xl border border-[#008485] p-6">
+                  <div className="bg-white rounded-xl border border-[#009178] p-6">
                     <h3 className="text-lg font-semibold text-[#1f2937] mb-4">포트폴리오 구성</h3>
                     <PortfolioPieChart data={portfolio.holdings.map((h) => ({ ...h, trend: h.change }))} />
                   </div>
@@ -196,7 +196,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                       </div>
                       <div className="text-right">
                         <div className="font-semibold text-[#1f2937]">{formatCurrency(holding.amount)}</div>
-                        <div className={`text-sm ${holding.change > 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
+                        <div className={`text-sm ${holding.change > 0 ? "text-[#dc2626]" : "text-[#009178]"}`}>
                           {formatPercent(holding.change)}
                         </div>
                       </div>
@@ -221,7 +221,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                       </div>
                       <div>
                         <div className="text-sm text-[#6b7280] mb-1">익절매</div>
-                        <div className="font-semibold text-[#008485]">
+                        <div className="font-semibold text-[#009178]">
                           {formatPercent(portfolio.strategy.takeProfit)}
                         </div>
                       </div>

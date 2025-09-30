@@ -304,7 +304,7 @@ export default function CreateBacktestPage() {
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="mb-4 text-[#1f2937] hover:text-[#059669]"
+          className="mb-4 text-[#1f2937] hover:text-[#009178]"
         >
             <ArrowLeft className="w-4 h-4 mr-2" />
             뒤로가기
@@ -451,7 +451,7 @@ export default function CreateBacktestPage() {
                                 setNewStopCondition(prev => ({ ...prev, type: 'period' }))
                                 addStopCondition()
                               }}
-                              className="bg-[#008485] hover:bg-[#006b6c]"
+                              className="bg-[#009178] hover:bg-[#004e42]"
                               disabled={!newStopCondition.startDate || !newStopCondition.endDate || newStopCondition.type !== 'period'}
                             >
                               <Plus className="w-4 h-4 mr-2" />
@@ -560,7 +560,7 @@ export default function CreateBacktestPage() {
                                 setNewStopCondition(prev => ({ ...prev, type: 'stopLoss' }))
                                 addStopCondition()
                               }}
-                              className="bg-[#008485] hover:bg-[#006b6c]"
+                              className="bg-[#009178] hover:bg-[#004e42]"
                               disabled={!newStopCondition.criteria || !newStopCondition.value || newStopCondition.type !== 'stopLoss'}
                             >
                               <Plus className="w-4 h-4 mr-2" />
@@ -669,7 +669,7 @@ export default function CreateBacktestPage() {
                                 setNewStopCondition(prev => ({ ...prev, type: 'takeProfit' }))
                                 addStopCondition()
                               }}
-                              className="bg-[#008485] hover:bg-[#006b6c]"
+                              className="bg-[#009178] hover:bg-[#004e42]"
                               disabled={!newStopCondition.criteria || !newStopCondition.value || newStopCondition.type !== 'takeProfit'}
                             >
                               <Plus className="w-4 h-4 mr-2" />
@@ -734,7 +734,7 @@ export default function CreateBacktestPage() {
             <Button
               type="submit"
               size="lg"
-              className="bg-[#008485] hover:bg-[#006b6c]"
+              className="bg-[#009178] hover:bg-[#004e42]"
               disabled={submitting}
             >
               <Save className="w-4 h-4 mr-2" />

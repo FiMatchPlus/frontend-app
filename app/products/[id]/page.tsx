@@ -50,7 +50,7 @@ export default function ProductDetailPage() {
           <p className="text-gray-600 mb-6">요청하신 상품이 존재하지 않거나 삭제되었습니다.</p>
           <Button 
             onClick={() => router.push('/products')}
-            className="bg-[#008485] hover:bg-[#006b6c]"
+            className="bg-[#009178] hover:bg-[#004e42]"
           >
             상품 목록으로 돌아가기
           </Button>
@@ -110,7 +110,7 @@ export default function ProductDetailPage() {
                 router.push(`/portfolios/create?${queryParams.toString()}`)
               }
             }}
-            className="bg-[#008485] hover:bg-[#006b6c] text-white px-6 py-2"
+            className="bg-[#009178] hover:bg-[#004e42] text-white px-6 py-2"
           >
             <Copy className="w-4 h-4 mr-2" />
             이 구성으로 포트폴리오 만들기

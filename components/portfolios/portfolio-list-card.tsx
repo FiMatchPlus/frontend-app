@@ -42,7 +42,7 @@ export function PortfolioListCard({ portfolio, onClick, index, isSelected }: Por
     <div
       onClick={onClick}
       className={`backdrop-blur-sm rounded-2xl p-6 shadow-xl cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02] animate-in fade-in duration-500 ${
-        isSelected ? "bg-[#008485] text-white ring-4 ring-[#008485]/30" : "bg-white/95 border border-[#008485]"
+        isSelected ? "bg-[#009178] text-white ring-4 ring-[#009178]/30" : "bg-white/95 border border-[#009178]"
       }`}
       style={{ animationDelay: `${index * 100}ms` }}
     >

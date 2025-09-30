@@ -517,7 +517,7 @@ export default function CreatePortfolioPage() {
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="mb-4 text-[#1f2937] hover:text-[#059669]"
+            className="mb-4 text-[#1f2937] hover:text-[#009178]"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             뒤로가기
@@ -525,8 +525,8 @@ export default function CreatePortfolioPage() {
           <h1 className="text-3xl font-bold text-[#1f2937]">새 포트폴리오 생성</h1>
           <p className="text-[#6b7280] mt-2">포트폴리오의 기본 정보와 전략을 설정하세요</p>
           {searchParams.get('template') === 'true' && (
-            <div className="mt-4 p-4 bg-[#008485]/10 border border-[#008485]/20 rounded-lg">
-              <p className="text-[#008485] font-medium">
+            <div className="mt-4 p-4 bg-[#009178]/10 border border-[#009178]/20 rounded-lg">
+              <p className="text-[#009178] font-medium">
                 📋 템플릿에서 구성이 복사되었습니다. 원하는 대로 수정하여 나만의 포트폴리오를 만들어보세요!
               </p>
             </div>
@@ -655,7 +655,7 @@ export default function CreatePortfolioPage() {
                     <Button 
                       type="button" 
                       onClick={addStock} 
-                      className="bg-[#008485] hover:bg-[#006b6c]"
+                      className="bg-[#009178] hover:bg-[#004e42]"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       종목 추가
@@ -686,7 +686,7 @@ export default function CreatePortfolioPage() {
                         <div className="font-medium">{stock.name} ({stock.symbol})</div>
                         <div className="text-sm text-[#6b7280]">
                           {stock.shares}주 × {stock.currentPrice.toLocaleString()}원 = {stock.totalValue.toLocaleString()}원
-                          <span className="ml-2 text-[#059669] font-medium">({stock.weight.toFixed(1)}%)</span>
+                          <span className="ml-2 text-[#009178] font-medium">({stock.weight.toFixed(1)}%)</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
@@ -827,7 +827,7 @@ export default function CreatePortfolioPage() {
                           setNewRuleItem(prev => ({ ...prev, type: "rebalance" }))
                           addRuleItem()
                       }}
-                        className="bg-[#008485] hover:bg-[#006b6c]"
+                        className="bg-[#009178] hover:bg-[#004e42]"
                         disabled={!newRuleItem.category || newRuleItem.type !== "rebalance"}
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -956,7 +956,7 @@ export default function CreatePortfolioPage() {
                           setNewRuleItem(prev => ({ ...prev, type: "stopLoss" }))
                           addRuleItem()
                       }}
-                        className="bg-[#008485] hover:bg-[#006b6c]"
+                        className="bg-[#009178] hover:bg-[#004e42]"
                         disabled={!newRuleItem.category || newRuleItem.type !== "stopLoss"}
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -1085,7 +1085,7 @@ export default function CreatePortfolioPage() {
                           setNewRuleItem(prev => ({ ...prev, type: "takeProfit" }))
                           addRuleItem()
                       }}
-                        className="bg-[#008485] hover:bg-[#006b6c]"
+                        className="bg-[#009178] hover:bg-[#004e42]"
                         disabled={!newRuleItem.category || newRuleItem.type !== "takeProfit"}
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -1140,7 +1140,7 @@ export default function CreatePortfolioPage() {
             <Button
               type="submit"
               size="lg"
-              className="bg-[#008485] hover:bg-[#006b6c]"
+              className="bg-[#009178] hover:bg-[#004e42]"
               disabled={isSubmitting}
             >
               {isSubmitting ? "생성 중..." : "포트폴리오 생성"}

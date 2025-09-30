@@ -223,8 +223,8 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="h-full shadow-2xl border border-[#008485]/20">
-            <CardHeader className="bg-[#008485] text-white p-4 rounded-t-lg">
+          <Card className="h-full shadow-2xl border border-[#009178]/20">
+            <CardHeader className="bg-[#009178] text-white p-4 rounded-t-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Bot className="w-5 h-5" />
@@ -252,7 +252,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
                     <div className={`flex gap-2 max-w-[85%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                         message.type === 'user' 
-                          ? 'bg-[#008485] text-white' 
+                          ? 'bg-[#009178] text-white' 
                           : 'bg-gray-100 text-gray-600'
                       }`}>
                         {message.type === 'user' ? (
@@ -263,7 +263,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
                       </div>
                       <div className={`p-3 rounded-lg ${
                         message.type === 'user'
-                          ? 'bg-[#008485] text-white'
+                          ? 'bg-[#009178] text-white'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
                         <div className="text-sm leading-relaxed whitespace-pre-line">
@@ -307,12 +307,12 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="궁금한 점을 질문해보세요..."
-                    className="flex-1 border-gray-200 focus:border-[#008485] focus:ring-[#008485]"
+                    className="flex-1 border-gray-200 focus:border-[#009178] focus:ring-[#009178]"
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputValue.trim() || isTyping}
-                    className="bg-[#008485] hover:bg-[#006b6c] text-white"
+                    className="bg-[#009178] hover:bg-[#006b6c] text-white"
                     size="sm"
                   >
                     <Send className="w-4 h-4" />

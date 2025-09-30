@@ -54,7 +54,7 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
           className,
         )}
       >
-        <div className="h-full bg-teal-50/30 backdrop-blur-sm overflow-hidden">
+        <div className="h-full bg-green-50/30 backdrop-blur-sm overflow-hidden">
           {/* Mobile Close Button */}
           <div className="flex items-center justify-between p-4 border-b border-border lg:hidden">
             <h2 className="font-semibold text-foreground">종목 검색</h2>

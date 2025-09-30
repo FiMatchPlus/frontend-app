@@ -58,7 +58,7 @@ export default function BacktestDetailClient() {
       <div className="min-h-screen bg-[#f0f9f7]">
         <Header />
         <main className="max-w-5xl mx-auto pt-8 px-4 pb-8">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-4 text-[#1f2937] hover:text-[#059669]">
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4 text-[#1f2937] hover:text-[#009178]">
             <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
           </Button>
           
@@ -72,7 +72,7 @@ export default function BacktestDetailClient() {
             <div className="space-y-4">
               <Button
                 onClick={() => router.push("/portfolios")}
-                className="bg-[#008485] hover:bg-[#006b6c] text-white px-8 py-3 text-lg font-semibold"
+                className="bg-[#009178] hover:bg-[#004e42] text-white px-8 py-3 text-lg font-semibold"
               >
                 포트폴리오 목록으로 돌아가기
               </Button>
@@ -96,7 +96,7 @@ export default function BacktestDetailClient() {
       <main className="max-w-6xl mx-auto pt-8 px-4 pb-10 space-y-8">
         {/* 헤더 */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => router.back()} className="text-[#1f2937] hover:text-[#059669]">
+          <Button variant="ghost" onClick={() => router.back()} className="text-[#1f2937] hover:text-[#009178]">
             <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
           </Button>
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export default function BacktestDetailClient() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-[#f0f9f7] rounded-lg">
               <div className="text-sm text-[#6b7280] mb-1">총 수익률</div>
-              <div className={`text-xl font-bold ${backtestData.metrics.totalReturn >= 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
+              <div className={`text-xl font-bold ${backtestData.metrics.totalReturn >= 0 ? "text-[#dc2626]" : "text-[#009178]"}`}>
                 {(backtestData.metrics.totalReturn * 100).toFixed(1)}%
               </div>
             </div>

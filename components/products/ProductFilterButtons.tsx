@@ -27,7 +27,7 @@ export function ProductFilterButtons({
           variant={selectedRiskLevel === null ? "default" : "outline"}
           size="sm"
           onClick={() => onRiskLevelChange(null)}
-          className={selectedRiskLevel === null ? "bg-[#008485] hover:bg-[#006b6c]" : ""}
+          className={selectedRiskLevel === null ? "bg-[#009178] hover:bg-[#004e42]" : ""}
         >
           전체
         </Button>
@@ -44,7 +44,7 @@ export function ProductFilterButtons({
             size="sm"
             onClick={() => onRiskLevelChange(riskLevel.key)}
             className={selectedRiskLevel === riskLevel.key ? 
-              "bg-[#008485] hover:bg-[#006b6c]" : 
+              "bg-[#009178] hover:bg-[#004e42]" : 
               "hover:bg-gray-50"
             }
           >

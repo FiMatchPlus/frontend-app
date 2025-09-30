@@ -21,7 +21,7 @@ export default function PortfolioEmptyState({ onShowAll }: PortfolioEmptyStatePr
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onShowAll}
-        className="bg-[#008485] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#006b6c] transition-colors"
+        className="bg-[#009178] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#004e42] transition-colors"
       >
         전체 보기
       </motion.button>

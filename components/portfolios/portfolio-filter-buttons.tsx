@@ -32,8 +32,8 @@ export default function PortfolioFilterButtons({ selectedFilter, onFilterChange 
           onClick={() => onFilterChange(filter.key)}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
             selectedFilter === filter.key
-              ? "bg-[#008485] text-white"
-              : "bg-white/95 text-[#6b7280] hover:bg-[#008485]/10 border border-[#008485]/20"
+              ? "bg-[#009178] text-white"
+              : "bg-white/95 text-[#6b7280] hover:bg-[#009178]/10 border border-[#009178]/20"
           }`}
         >
           <filter.icon className="w-4 h-4" />

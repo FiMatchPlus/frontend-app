@@ -26,7 +26,7 @@ export function PortfolioDetailPanel({ portfolio }: PortfolioDetailPanelProps) {
   }
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#008485] p-6 animate-in fade-in duration-500">
+    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6 animate-in fade-in duration-500">
       <PortfolioDetailHeader 
         portfolio={portfolio} 
         activeTab={activeTab} 

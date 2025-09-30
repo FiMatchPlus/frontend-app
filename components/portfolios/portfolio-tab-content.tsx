@@ -186,7 +186,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                   <div className="text-right">
                     <div className="font-bold text-[#1f2937] text-lg">{formatCurrency(stock.value)}</div>
                     <div
-                      className={`text-sm font-medium ${stock.dailyRate >= 0 ? "text-[#008485]" : "text-[#dc2626]"}`}
+                      className={`text-sm font-medium ${stock.dailyRate >= 0 ? "text-[#009178]" : "text-[#dc2626]"}`}
                     >
                       {formatPercent(stock.dailyRate)}
                     </div>
@@ -202,18 +202,18 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
         <div className="bg-[#f0f9f7] rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-[#008485]" />
+              <Activity className="w-5 h-5 text-[#009178]" />
               <h3 className="text-lg font-semibold text-[#1f2937]">백테스트 내역</h3>
             </div>
             <Link href={`/portfolios/${portfolio.id}/backtests/create`}>
-              <button className="flex items-center gap-2 bg-[#008485] text-white px-3 py-2 rounded-lg text-sm hover:bg-[#006b6c]">
+              <button className="flex items-center gap-2 bg-[#009178] text-white px-3 py-2 rounded-lg text-sm hover:bg-[#004e42]">
                 <Plus className="w-4 h-4" /> 백테스트 추가
               </button>
             </Link>
           </div>
           {isLoadingBacktests && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-[#008485]" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#009178]" />
               <span className="ml-2 text-[#6b7280]">백테스트 내역을 불러오는 중...</span>
             </div>
           )}
@@ -227,14 +227,14 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
               
               <div className="space-y-3">
                 <Link href={`/portfolios/${portfolio.id}/backtests/create`}>
-                  <button className="bg-[#008485] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#006b6c] transition-colors">
+                  <button className="bg-[#009178] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#004e42] transition-colors">
                     백테스트 생성하기
                   </button>
                 </Link>
                 <div className="text-sm text-[#6b7280]">
                   또는 <button 
                     onClick={loadBacktests}
-                    className="text-[#008485] hover:text-[#006b6c] underline"
+                    className="text-[#009178] hover:text-[#004e42] underline"
                   >
                     다시 시도
                   </button>
@@ -299,7 +299,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                               </Link>
                               <button
                                 onClick={() => handleExecuteBacktest(bt.id)}
-                                className="flex items-center gap-1 bg-[#008485] text-white px-3 py-1.5 rounded text-sm hover:bg-[#006b6c] transition-colors"
+                                className="flex items-center gap-1 bg-[#009178] text-white px-3 py-1.5 rounded text-sm hover:bg-[#004e42] transition-colors"
                               >
                                 <Play className="w-3 h-3" />
                                 실행
@@ -319,7 +319,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                           {displayStatus === 'completed' && (
                             <>
                               <Link href={`/portfolios/backtests/${bt.id}`}>
-                                <button className="px-3 py-1.5 border border-[#008485] text-[#008485] rounded text-sm hover:bg-[#f0f9f7] transition-colors">
+                                <button className="px-3 py-1.5 border border-[#009178] text-[#009178] rounded text-sm hover:bg-[#f0f9f7] transition-colors">
                                   상세보기
                                 </button>
                               </Link>
@@ -388,7 +388,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                   </p>
                   
                   <Link href={`/portfolios/${portfolio.id}/backtests/create`}>
-                    <button className="bg-[#008485] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#006b6c] transition-colors">
+                    <button className="bg-[#009178] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#004e42] transition-colors">
                       백테스트 생성하기
                     </button>
                   </Link>
@@ -402,7 +402,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       {activeTab === "analysis" && (
         <div className="bg-[#f0f9f7] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="w-5 h-5 text-[#008485]" />
+            <Target className="w-5 h-5 text-[#009178]" />
             <h3 className="text-lg font-semibold text-[#1f2937]">상세 분석</h3>
           </div>
           <div className="text-center py-12">
