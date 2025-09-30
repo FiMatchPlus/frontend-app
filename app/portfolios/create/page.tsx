@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Header from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X, Plus, ArrowLeft, ChevronDown, ChevronRight, Pencil } from "lucide-react"
 import { CreatePortfolioData, StockHolding, Rule, RuleItem } from "@/types/portfolio"
 import { StockSearch } from "@/components/stocks/StockSearch"
+import FloatingChatbot from "@/components/ui/FloatingChatbot"
 import type { Stock } from "@/types/stock"
 import { createPortfolio } from "@/lib/api"
 import { fetchCurrentPriceByCode } from "@/lib/api/stockNow"
@@ -27,6 +28,7 @@ const RULE_CATEGORIES = {
 
 export default function CreatePortfolioPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState<CreatePortfolioData>({
     name: "",
     totalValue: 0,           // 자동 계산되는 포트폴리오 가치
@@ -77,6 +79,78 @@ export default function CreatePortfolioPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // URL 파라미터에서 템플릿 데이터 처리
+  useEffect(() => {
+    const isTemplate = searchParams.get('template')
+    const templateData = searchParams.get('data')
+    
+    if (isTemplate === 'true' && templateData) {
+      try {
+        const parsedData = JSON.parse(templateData)
+        
+        // Product의 holdings 데이터를 StockHolding 형식으로 변환
+        // 1단계: 최소 투자 금액을 보장하는 방식으로 계산
+        const baseInvestment = 1000000 // 100만원
+        const minInvestmentPerStock = 50000 // 종목당 최소 5만원
+        
+        // 각 종목의 최소 주식 수 계산 (최소 1주)
+        const tempHoldings = parsedData.holdings.map((holding: any) => {
+          const minShares = Math.max(1, Math.ceil(minInvestmentPerStock / holding.price))
+          const targetValue = (baseInvestment * holding.weight) / 100
+          const targetShares = Math.max(minShares, Math.round(targetValue / holding.price))
+          
+          return {
+            ...holding,
+            shares: targetShares,
+            minValue: minShares * holding.price,
+            targetValue: targetShares * holding.price
+          }
+        })
+        
+        // 2단계: 총 목표 금액과 실제 필요 금액 비교 후 조정
+        const totalTargetValue = tempHoldings.reduce((sum, h) => sum + h.targetValue, 0)
+        const adjustmentRatio = baseInvestment / totalTargetValue
+        
+        const stockHoldings: StockHolding[] = tempHoldings.map((holding: any) => {
+          // 조정된 주식 수 계산 (최소 1주 보장)
+          const adjustedShares = Math.max(1, Math.round(holding.shares * adjustmentRatio))
+          const actualTotalValue = adjustedShares * holding.price
+          
+          return {
+            symbol: holding.symbol,
+            name: holding.name,
+            shares: adjustedShares,
+            currentPrice: holding.price,
+            totalValue: actualTotalValue,
+            change: holding.change || 0,
+            changePercent: holding.changePercent || 0,
+            weight: holding.weight // 원래 비중 유지 (나중에 재계산됨)
+          }
+        })
+        
+        // 총 투자 금액 계산
+        const totalValue = stockHoldings.reduce((sum, holding) => sum + holding.totalValue, 0)
+        
+        // 비중 재계산 (실제 투자 금액 기준)
+        const updatedHoldings = stockHoldings.map(holding => ({
+          ...holding,
+          weight: totalValue > 0 ? (holding.totalValue / totalValue) * 100 : 0
+        }))
+        
+        setFormData(prev => ({
+          ...prev,
+          name: parsedData.name || "",
+          description: parsedData.description || "",
+          stockHoldings: updatedHoldings,
+          totalValue: totalValue
+        }))
+        
+      } catch (error) {
+        console.error('템플릿 데이터 파싱 실패:', error)
+      }
+    }
+  }, [searchParams])
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({
@@ -450,6 +524,13 @@ export default function CreatePortfolioPage() {
           </Button>
           <h1 className="text-3xl font-bold text-[#1f2937]">새 포트폴리오 생성</h1>
           <p className="text-[#6b7280] mt-2">포트폴리오의 기본 정보와 전략을 설정하세요</p>
+          {searchParams.get('template') === 'true' && (
+            <div className="mt-4 p-4 bg-[#008485]/10 border border-[#008485]/20 rounded-lg">
+              <p className="text-[#008485] font-medium">
+                📋 템플릿에서 구성이 복사되었습니다. 원하는 대로 수정하여 나만의 포트폴리오를 만들어보세요!
+              </p>
+            </div>
+          )}
           <div className="mt-2 text-sm text-[#6b7280]">
             백테스트를 생성하려면 상단의 포트폴리오 상세 내 백테스트 탭에서 "백테스트 추가"를 사용하세요.
           </div>
@@ -1067,6 +1148,9 @@ export default function CreatePortfolioPage() {
           </div>
         </form>
       </main>
+      
+      {/* 플로팅 챗봇 */}
+      <FloatingChatbot context="create-portfolio" />
     </div>
   )
 }

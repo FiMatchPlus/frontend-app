@@ -1,4 +1,4 @@
-// Data formatting utilities for StockOne19
+// Data formatting utilities for Fi-Match⁺
 
 /**
  * Format number as Korean Won currency
@@ -46,8 +46,8 @@ export const formatNumber = (num: number): string => {
  * Get color class based on change value
  */
 export const getChangeColor = (change: number): string => {
-  if (change > 0) return "text-green-500"
-  if (change < 0) return "text-red-500"
+  if (change > 0) return "text-red-500"    // 상승: 빨강
+  if (change < 0) return "text-blue-500"   // 하강: 파랑
   return "text-gray-500"
 }
 

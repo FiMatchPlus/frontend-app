@@ -5,7 +5,8 @@ import * as echarts from "echarts"
 import { TrendingUp, TrendingDown, BarChart3, LineChartIcon } from "lucide-react"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { useStockData } from "@/hooks/useStockData"
-import { formatCurrency, formatDate, formatTime } from "@/utils/formatters"
+import { useStockCacheContext } from "@/contexts/StockCacheContext"
+import { formatCurrency, formatDate, formatTime, getChangeColor } from "@/utils/formatters"
 import type { Stock, TimeFrame, ChartConfig } from "@/types/stock"
 import { cn } from "@/lib/utils"
 
@@ -15,7 +16,6 @@ interface StockChartProps {
 }
 
 const timeFrameOptions: { value: TimeFrame; label: string }[] = [
-  { value: "1m", label: "1분" },
   { value: "1D", label: "1일" },
   { value: "1W", label: "1주" },
   { value: "1M", label: "1개월" },
@@ -28,15 +28,26 @@ const chartTypeOptions = [
 ]
 
 export function StockChart({ selectedStock, className }: StockChartProps) {
-  const { chartData, isLoading, error, timeFrame, changeTimeFrame } = useStockData(selectedStock)
+  const { chartData, isLoading, isLoadingMore, error, timeFrame, changeTimeFrame, handleScrollBoundary } = useStockData(selectedStock)
+  const { getStockPrice } = useStockCacheContext()
   const [chartConfig, setChartConfig] = useState<ChartConfig>({
     timeFrame: "1D",
     showVolume: false,
     chartType: "candlestick",
   })
 
+  // 실시간 가격 데이터 조회
+  const realTimeData = selectedStock ? getStockPrice(selectedStock.symbol) : null
+  const currentStock = realTimeData ? {
+    ...selectedStock,
+    price: realTimeData.price,
+    change: realTimeData.change,
+    changePercent: realTimeData.changePercent
+  } : selectedStock
+
   const chartRef = useRef<HTMLDivElement>(null)
   const chartInstance = useRef<echarts.ECharts | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // ECharts 차트 업데이트
   useEffect(() => {
@@ -50,18 +61,22 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
     // 새 차트 인스턴스 생성
     chartInstance.current = echarts.init(chartRef.current)
 
-    // 데이터 변환
-    const convertedData = chartData.map(item => ({
-      date: new Date(item.timestamp).toISOString().split('T')[0],
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      close: item.close,
-      volume: item.volume
-    }))
+    // 데이터 변환 및 날짜순 정렬
+    const convertedData = chartData
+      .map(item => ({
+        date: new Date(item.timestamp).toISOString().split('T')[0],
+        timestamp: new Date(item.timestamp).getTime(), // 밀리초 타임스탬프로 변환
+        open: item.open,
+        high: item.high,
+        low: item.low,
+        close: item.close,
+        volume: item.volume
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp) // 오래된 날짜부터 최신 날짜 순으로 정렬
 
     // ECharts 옵션 설정
     const option = {
+      animation: false, // 애니메이션 비활성화로 부드러운 스크롤
       title: {
         text: `${selectedStock?.name} (${selectedStock?.symbol})`,
         left: 'center',
@@ -70,6 +85,55 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
           fontWeight: 'bold'
         }
       },
+      dataZoom: [
+        {
+          type: 'inside', // 마우스 드래그로 스크롤 가능
+          xAxisIndex: 0,
+          zoomLock: true, // 줌 비활성화
+          disabled: false, // 드래그 활성화
+          moveOnMouseMove: true, // 마우스 드래그로 이동 가능
+          moveOnMouseWheel: false, // 커스텀 휠 이벤트 사용하므로 비활성화
+          preventDefaultMouseMove: false, // 기본 동작 허용
+          startValue: Math.max(0, convertedData.length - 45), // 절대 인덱스: 최근 45개
+          endValue: Math.max(44, convertedData.length - 1), // 절대 인덱스: 45개 윈도우 끝
+          // 스크롤 이벤트 감지
+          onDataZoom: function(params: any) {
+            console.log('[Chart] Inside DataZoom event:', params)
+            if (params && typeof params.startValue === 'number') {
+              handleScrollBoundary(params.startValue, convertedData.length)
+            }
+          }
+        },
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          show: true,
+          height: 20,
+          bottom: 40,
+          zoomLock: true, // 줌 비활성화, 스크롤만 가능
+          startValue: Math.max(0, convertedData.length - 45), // 절대 인덱스: 최근 45개
+          endValue: Math.max(44, convertedData.length - 1), // 절대 인덱스: 45개 윈도우 끝
+          handleStyle: {
+            color: '#6366f1',
+            borderWidth: 1,
+            borderColor: '#4f46e5'
+          },
+          textStyle: {
+            color: '#9ca3af',
+            fontSize: 10
+          },
+          borderColor: '#e5e7eb',
+          fillerColor: 'rgba(99, 102, 241, 0.1)',
+          selectedDataBackground: {
+            lineStyle: {
+              color: '#6366f1'
+            },
+            areaStyle: {
+              color: 'rgba(99, 102, 241, 0.1)'
+            }
+          }
+        }
+      ],
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -103,13 +167,13 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       grid: {
         left: '3%',
         right: '4%',
-        bottom: '3%',
+        bottom: '20%', // 슬라이더 공간 확보
         top: '15%',
         containLabel: true
       },
       xAxis: {
-        type: 'category',
-        data: convertedData.map(d => d.date),
+        type: 'category', // category 축으로 복원
+        data: convertedData.map(d => d.date), // 실제 거래일만 포함된 데이터
         axisLine: {
           lineStyle: {
             color: '#e5e7eb'
@@ -117,12 +181,41 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
         },
         axisLabel: {
           color: '#9ca3af',
-          fontSize: 11
+          fontSize: 11,
+          formatter: function(value: string, index: number) {
+            const date = new Date(value)
+            const year = date.getFullYear()
+            const month = date.getMonth() + 1
+            const day = date.getDate()
+            
+            // 첫 번째 라벨에는 항상 연도 표시
+            if (index === 0) {
+              return `${month}/${day}\n'${year.toString().slice(-2)}`
+            }
+            
+            // 1월 1일이거나 연도가 바뀌는 지점에서 연도 표시
+            if (month === 1 && day <= 7) { // 1월 첫 주
+              return `${month}/${day}\n'${year.toString().slice(-2)}`
+            }
+            
+            // 월이 바뀌는 지점에서는 월만 강조
+            if (day <= 3) { // 월 초
+              return `${month}/${day}`
+            }
+            
+            return `${day}`
+          },
+          margin: 8,
+          lineHeight: 14
+        },
+        splitLine: {
+          show: false
         }
       },
       yAxis: {
         type: 'value',
         position: 'right',
+        scale: true, // 데이터 범위에 맞게 스케일 조정
         axisLine: {
           lineStyle: {
             color: '#e5e7eb'
@@ -149,10 +242,10 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
               type: 'candlestick',
               data: convertedData.map(d => [d.open, d.close, d.low, d.high]),
               itemStyle: {
-                color: '#26a69a',
-                color0: '#ef5350',
-                borderColor: '#26a69a',
-                borderColor0: '#ef5350'
+                color: '#dc2626', // 상승: 빨간색 (red-600)
+                color0: '#2563eb', // 하락: 파란색 (blue-600)
+                borderColor: '#dc2626', // 상승 테두리: 빨간색
+                borderColor0: '#2563eb' // 하락 테두리: 파란색
               }
             },
             ...(chartConfig.showVolume ? [{
@@ -164,7 +257,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
                 color: function(params: any) {
                   const dataIndex = params.dataIndex
                   const candleData = convertedData[dataIndex]
-                  return candleData.close >= candleData.open ? '#26a69a' : '#ef5350'
+                  return candleData.close >= candleData.open ? '#dc2626' : '#2563eb' // 상승: 빨간색, 하락: 파란색
                 },
                 opacity: 0.3
               }
@@ -174,7 +267,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
             {
               name: '종가',
               type: 'line',
-              data: convertedData.map(d => [d.date, d.close]),
+              data: convertedData.map(d => d.close),
               smooth: true,
               lineStyle: {
                 color: '#6366f1',
@@ -211,9 +304,67 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
 
     window.addEventListener('resize', handleResize)
 
+    // 차트 컨테이너에 휠 이벤트 추가
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault() // 페이지 스크롤 방지
+      
+      if (chartInstance.current) {
+        const chart = chartInstance.current
+        const dataZoom = chart.getOption().dataZoom as any[]
+        
+        if (dataZoom && dataZoom[0]) {
+          const currentStartValue = dataZoom[0].startValue || 0
+          const currentEndValue = dataZoom[0].endValue || 44
+          const WINDOW_SIZE = 45 // 고정 윈도우 사이즈
+          
+          // 휠 방향에 따라 인덱스 이동 (속도 줄임)
+          const delta = event.deltaY > 0 ? 3 : -3 // 3개 캔들씩 이동
+          
+          let newStartValue = currentStartValue + delta
+          let newEndValue = newStartValue + WINDOW_SIZE - 1 // 45개 윈도우 유지
+          
+          // 경계 처리 - 데이터 범위 내에서만 이동
+          if (newStartValue < 0) {
+            newStartValue = 0
+            newEndValue = WINDOW_SIZE - 1
+          }
+          if (newEndValue >= convertedData.length) {
+            newEndValue = convertedData.length - 1
+            newStartValue = Math.max(0, newEndValue - WINDOW_SIZE + 1)
+          }
+          
+          // dataZoom 업데이트 - 절대 인덱스로 처리
+          chart.setOption({
+            dataZoom: [{
+              startValue: newStartValue,
+              endValue: newEndValue
+            }]
+          }, {
+            replaceMerge: ['dataZoom'],
+            silent: true,
+            notMerge: false,
+            lazyUpdate: false
+          })
+          
+          // 경계 감지해서 추가 데이터 로드 (시작점이 전체의 10% 미만일 때)
+          if (newStartValue < convertedData.length * 0.1) {
+            handleScrollBoundary(newStartValue, convertedData.length)
+          }
+        }
+      }
+    }
+    
+    // 차트 컨테이너에 휠 이벤트 등록
+    if (containerRef.current) {
+      containerRef.current.addEventListener('wheel', handleWheel, { passive: false })
+    }
+
     // 정리 함수
     return () => {
       window.removeEventListener('resize', handleResize)
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('wheel', handleWheel)
+      }
       if (chartInstance.current) {
         chartInstance.current.dispose()
         chartInstance.current = null
@@ -223,7 +374,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
 
   if (!selectedStock) {
     return (
-      <div className={cn("flex items-center justify-center h-96 bg-muted/20 rounded-lg", className)}>
+      <div className={cn("flex items-center justify-center h-[500px] bg-muted/20 rounded-lg", className)}>
         <div className="text-center">
           <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">종목을 선택하여 차트를 확인하세요</p>
@@ -233,26 +384,31 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
   }
 
   return (
-    <div className={cn("bg-background/50 backdrop-blur-sm rounded-lg border border-border", className)}>
+    <div ref={containerRef} className={cn("bg-background/50 backdrop-blur-sm rounded-lg border border-border", className)}>
       {/* Chart Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-foreground">{selectedStock.name}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{currentStock?.name || selectedStock.name}</h2>
             <span className="text-sm text-muted-foreground">{selectedStock.symbol}</span>
-            {selectedStock.changePercent > 0 ? (
+            {(currentStock?.changePercent || selectedStock.changePercent) > 0 ? (
               <TrendingUp className="h-4 w-4 text-green-500" />
             ) : (
               <TrendingDown className="h-4 w-4 text-red-500" />
             )}
           </div>
           <div className="text-right">
-            <div className="text-xl font-bold text-foreground">{formatCurrency(selectedStock.price)}</div>
+            <div className="text-xl font-bold text-foreground">
+              {formatCurrency(currentStock?.price || selectedStock.price)}
+            </div>
             <div
-              className={cn("text-sm font-medium", selectedStock.changePercent > 0 ? "text-green-500" : "text-red-500")}
+              className={cn(
+                "text-sm font-medium", 
+                getChangeColor(currentStock?.changePercent || selectedStock.changePercent)
+              )}
             >
-              {selectedStock.changePercent > 0 ? "+" : ""}
-              {selectedStock.changePercent.toFixed(2)}%
+              {(currentStock?.changePercent || selectedStock.changePercent) > 0 ? "+" : ""}
+              {(currentStock?.changePercent || selectedStock.changePercent).toFixed(2)}%
             </div>
           </div>
         </div>
@@ -316,26 +472,29 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
 
       {/* Chart Content */}
       <div className="px-4 py-4">
+        {/* 추가 데이터 로딩 표시 */}
+        {isLoadingMore && (
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-background/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-border shadow-sm">
+            <LoadingSpinner size="sm" />
+            <span className="text-xs text-muted-foreground">과거 데이터 로딩 중...</span>
+          </div>
+        )}
         {isLoading ? (
-          <div className="flex items-center justify-center h-96">
+          <div className="flex items-center justify-center h-[500px]">
             <LoadingSpinner size="lg" />
             <span className="ml-3 text-muted-foreground">차트 로딩 중...</span>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-96 text-red-500">
+          <div className="flex items-center justify-center h-[500px] text-red-500">
             <p>{error}</p>
           </div>
         ) : (
-          <div className="h-96 w-full relative">
+          <div className="h-[500px] w-full relative">
             <div ref={chartRef} style={{ height: '100%', width: '100%' }} />
           </div>
         )}
       </div>
 
-      {/* Attribution */}
-      <div className="p-2 text-xs text-center text-muted-foreground border-t border-border">
-        Powered by <a href="https://echarts.apache.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Apache ECharts</a>
-      </div>
     </div>
   )
 }

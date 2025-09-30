@@ -7,6 +7,7 @@ export interface CreateBacktestRequest {
   description?: string
   startAt: string // ISO 8601 datetime string
   endAt: string   // ISO 8601 datetime string
+  benchmarkCode: string
   rules: RulesRequest
 }
 
@@ -25,7 +26,8 @@ export interface RuleItemRequest {
 // 폼 데이터를 API 요청 형식으로 변환하는 함수
 export function transformToBacktestRequest(
   formData: CreateBacktestData,
-  portfolioId: string
+  portfolioId: string,
+  benchmarkCode: string
 ): CreateBacktestRequest {
   // 기간 조건에서 시작일과 종료일 추출
   const periodCondition = formData.stopConditions.find(condition => condition.type === 'period')
@@ -57,6 +59,7 @@ export function transformToBacktestRequest(
     description: formData.memo || undefined,
     startAt: `${periodCondition.startDate}T00:00:00`,
     endAt: `${periodCondition.endDate}T23:59:59`,
+    benchmarkCode,
     rules: {
       memo: formData.memo || undefined,
       stopLoss,
@@ -91,6 +94,8 @@ export interface BacktestDetailResponse {
     name: string
     period: string
     executionTime: number
+    benchmarkCode: string
+    benchmarkName: string
     metrics: {
       totalReturn: number
       annualizedReturn: number
@@ -104,10 +109,36 @@ export interface BacktestDetailResponse {
       date: string
       stocks: Record<string, number>
     }>
+    benchmarkData: Array<{
+      date: string
+      value: number
+      dailyReturn: number
+    }>
     holdings: Array<{
       stockName: string
       quantity: number
     }>
+    report: string  // 마크다운 형식의 리포트
+    rules?: {
+      id: string
+      memo?: string
+      stopLoss: Array<{
+        category: string
+        threshold: string
+        description?: string
+      }>
+      takeProfit: Array<{
+        category: string
+        threshold: string
+        description?: string
+      }>
+      rebalance: Array<{
+        category: string
+        threshold: string
+        description?: string
+      }>
+      basicBenchmark?: string
+    }
   }
 }
 

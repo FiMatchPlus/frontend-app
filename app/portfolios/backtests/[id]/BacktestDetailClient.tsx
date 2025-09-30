@@ -1,14 +1,14 @@
 "use client"
 
-import { useMemo, useEffect, useState } from "react"
-import { useRouter, useParams, notFound } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Header from "@/components/header"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getBacktestDetail } from "@/lib/api/backtests"
 import BacktestChart from "@/components/portfolios/BacktestChart"
-import { ArrowLeft } from "lucide-react"
-import { formatCurrency } from "@/utils/formatters"
+import { MarkdownReport } from "@/components/portfolios/MarkdownReport"
+import FloatingChatbot from "@/components/ui/FloatingChatbot"
+import { ArrowLeft, Download, Share2 } from "lucide-react"
 
 export default function BacktestDetailClient() {
   const router = useRouter()
@@ -79,6 +79,9 @@ export default function BacktestDetailClient() {
             </div>
           </div>
         </main>
+        
+        {/* 플로팅 챗봇 */}
+        <FloatingChatbot context="backtest" />
       </div>
     )
   }
@@ -87,79 +90,183 @@ export default function BacktestDetailClient() {
     return null
   }
 
-  // Natural language summary placeholder using metrics
-  const m = backtestData.metrics
-  const summary = m ? `총 수익률 ${(m.totalReturn * 100).toFixed(1)}%, 연환산 ${(m.annualizedReturn * 100).toFixed(1)}%, 
-샤프 ${m.sharpeRatio.toFixed(2)}, 최대낙폭 ${(m.maxDrawdown * 100).toFixed(1)}%. 
-승률 ${(m.winRate * 100).toFixed(0)}%, 손익비 ${m.profitLossRatio.toFixed(2)}로 ${m.sharpeRatio > 1 ? "위험 대비 수익이 양호" : "위험 대비 수익이 낮은"} 편입니다.` : "백테스트 지표 데이터를 불러오는 중입니다."
-
   return (
     <div className="min-h-screen bg-[#f0f9f7]">
       <Header />
-      <main className="max-w-5xl mx-auto pt-8 px-4 pb-10 space-y-6">
-        <Button variant="ghost" onClick={() => router.back()} className="text-[#1f2937] hover:text-[#059669]">
-          <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
-        </Button>
+      <main className="max-w-6xl mx-auto pt-8 px-4 pb-10 space-y-8">
+        {/* 헤더 */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-[#1f2937]">{backtestData.name}</h1>
-          <div className="text-[#6b7280] text-right">기간 {backtestData.period} · 실행시간 {backtestData.executionTime.toFixed(2)}초</div>
+          <Button variant="ghost" onClick={() => router.back()} className="text-[#1f2937] hover:text-[#059669]">
+            <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
+          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Share2 className="w-4 h-4" />
+              공유
+            </Button>
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              PDF 다운로드
+            </Button>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-[#1f2937]">누적 평가액</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BacktestChart 
-              data={backtestData.dailyEquity} 
-              holdings={backtestData.holdings}
-              className="w-full"
-            />
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base text-[#1f2937]">주요 지표</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              {m ? (
-                <>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6b7280]">총 수익률</span>
-                    <span className="font-semibold text-[#1f2937]">{(m.totalReturn * 100).toFixed(1)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6b7280]">변동성</span>
-                    <span className="font-semibold text-[#1f2937]">{(m.volatility * 100).toFixed(1)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6b7280]">샤프 비율</span>
-                    <span className="font-semibold text-[#1f2937]">{m.sharpeRatio.toFixed(2)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6b7280]">최대 낙폭</span>
-                    <span className="font-semibold text-[#1f2937]">{(m.maxDrawdown * 100).toFixed(1)}%</span>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-4 text-[#6b7280]">
-                  지표 데이터를 불러오는 중입니다...
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base text-[#1f2937]">요약</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-[#1f2937] leading-6 whitespace-pre-line">
-              {summary}
-            </CardContent>
-          </Card>
+        {/* 리포트 헤더 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-[#1f2937]">{backtestData.name}</h1>
+            <div className="text-right text-sm text-[#6b7280]">
+              <div>기간: {backtestData.period}</div>
+              <div>벤치마크: {backtestData.benchmarkName}</div>
+              <div>실행시간: {backtestData.executionTime.toFixed(2)}초</div>
+            </div>
+          </div>
+          
+          {/* 핵심 지표 요약 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-[#f0f9f7] rounded-lg">
+              <div className="text-sm text-[#6b7280] mb-1">총 수익률</div>
+              <div className={`text-xl font-bold ${backtestData.metrics.totalReturn >= 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
+                {(backtestData.metrics.totalReturn * 100).toFixed(1)}%
+              </div>
+            </div>
+            <div className="text-center p-3 bg-[#f0f9f7] rounded-lg">
+              <div className="text-sm text-[#6b7280] mb-1">샤프 비율</div>
+              <div className="text-xl font-bold text-[#1f2937]">
+                {backtestData.metrics.sharpeRatio.toFixed(2)}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-[#f0f9f7] rounded-lg">
+              <div className="text-sm text-[#6b7280] mb-1">최대 낙폭</div>
+              <div className="text-xl font-bold text-[#1f2937]">
+                {(backtestData.metrics.maxDrawdown * 100).toFixed(1)}%
+              </div>
+            </div>
+            <div className="text-center p-3 bg-[#f0f9f7] rounded-lg">
+              <div className="text-sm text-[#6b7280] mb-1">승률</div>
+              <div className="text-xl font-bold text-[#1f2937]">
+                {(backtestData.metrics.winRate * 100).toFixed(0)}%
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* 누적 평가액 차트 (벤치마크 포함) */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-[#1f2937] mb-4">누적 평가액</h2>
+          <BacktestChart 
+            data={backtestData.dailyEquity} 
+            holdings={backtestData.holdings}
+            benchmarkData={backtestData.benchmarkData}
+            benchmarkName={backtestData.benchmarkName}
+            className="w-full"
+          />
+        </div>
+
+        {/* 룰 정보 */}
+        {backtestData.rules ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-[#1f2937] mb-4">매매기준</h2>
+            
+            {/* 룰 메모 */}
+            {backtestData.rules.memo && (
+              <div className="mb-6 p-4 bg-[#f0f9f7] rounded-lg">
+                <h3 className="text-sm font-medium text-[#6b7280] mb-1">메모</h3>
+                <p className="text-[#1f2937]">{backtestData.rules.memo}</p>
+              </div>
+            )}
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* 손절 조건 */}
+              <div>
+                <h3 className="text-lg font-medium text-[#1f2937] mb-3">손절 조건</h3>
+                {backtestData.rules.stopLoss.length > 0 ? (
+                  <div className="space-y-3">
+                    {backtestData.rules.stopLoss.map((rule: any, index: number) => (
+                      <div key={index} className="p-3 border border-red-200 bg-red-50 rounded-lg">
+                        <div className="text-sm font-medium text-red-800">
+                          {rule.category}: {rule.threshold}
+                        </div>
+                        {rule.description && (
+                          <div className="text-xs text-red-600 mt-1">{rule.description}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-[#6b7280] italic">손절 조건이 설정되지 않음</div>
+                )}
+              </div>
+
+              {/* 익절 조건 */}
+              <div>
+                <h3 className="text-lg font-medium text-[#1f2937] mb-3">익절 조건</h3>
+                {backtestData.rules.takeProfit.length > 0 ? (
+                  <div className="space-y-3">
+                    {backtestData.rules.takeProfit.map((rule: any, index: number) => (
+                      <div key={index} className="p-3 border border-green-200 bg-green-50 rounded-lg">
+                        <div className="text-sm font-medium text-green-800">
+                          {rule.category}: {rule.threshold}
+                        </div>
+                        {rule.description && (
+                          <div className="text-xs text-green-600 mt-1">{rule.description}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-[#6b7280] italic">익절 조건이 설정되지 않음</div>
+                )}
+              </div>
+
+              {/* 리밸런싱 조건 */}
+              <div>
+                <h3 className="text-lg font-medium text-[#1f2937] mb-3">리밸런싱</h3>
+                {backtestData.rules.rebalance.length > 0 ? (
+                  <div className="space-y-3">
+                    {backtestData.rules.rebalance.map((rule: any, index: number) => (
+                      <div key={index} className="p-3 border border-blue-200 bg-blue-50 rounded-lg">
+                        <div className="text-sm font-medium text-blue-800">
+                          {rule.category}: {rule.threshold}
+                        </div>
+                        {rule.description && (
+                          <div className="text-xs text-blue-600 mt-1">{rule.description}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-[#6b7280] italic">리밸런싱 조건이 설정되지 않음</div>
+                )}
+              </div>
+            </div>
+
+            {/* 벤치마크 정보 */}
+            {backtestData.rules.basicBenchmark && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-sm font-medium text-[#6b7280] mb-1">기본 벤치마크</h3>
+                <p className="text-[#1f2937]">{backtestData.rules.basicBenchmark}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-[#1f2937] mb-4">매매기준</h2>
+            <div className="p-4 bg-gray-50 rounded-lg text-center">
+              <p className="text-[#6b7280]">특별한 매매기준 설정 없이 기간만 반영하여 백테스트를 진행했습니다.</p>
+            </div>
+          </div>
+        )}
+
+        {/* 마크다운 레포트 (API 응답 기반) */}
+        <MarkdownReport
+          report={backtestData.report}
+          metrics={backtestData.metrics}
+        />
       </main>
+      
+      {/* 플로팅 챗봇 */}
+      <FloatingChatbot context="backtest" />
     </div>
   )
 }

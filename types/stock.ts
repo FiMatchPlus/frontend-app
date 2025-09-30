@@ -1,4 +1,4 @@
-// Stock-related type definitions for StockOne19
+// Stock-related type definitions for Fi-Match⁺
 
 export interface Stock {
   symbol: string

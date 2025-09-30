@@ -43,12 +43,27 @@ interface ChartDataResponse {
 /**
  * 차트 데이터를 서버에서 가져오는 함수
  */
-export async function fetchChartData(symbol: string, timeFrame: string): Promise<ChartDataResponse[]> {
+export async function fetchChartData(
+  symbol: string, 
+  timeFrame: string, 
+  startDate?: string, 
+  endDate?: string
+): Promise<ChartDataResponse[]> {
   try {
-    console.log("[v0] Fetching chart data for:", symbol, "timeframe:", timeFrame)
+    console.log("[v0] Fetching chart data for:", symbol, "timeframe:", timeFrame, "range:", startDate, "~", endDate)
 
     const mappedInterval = TIMEFRAME_MAPPING[timeFrame] || timeFrame.toLowerCase()
-    const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/chart?stockId=${symbol}&interval=${mappedInterval}`
+    
+    // 기본 URL에 파라미터 추가
+    const params = new URLSearchParams({
+      stockId: symbol,
+      interval: mappedInterval
+    })
+    
+    if (startDate) params.append('startDate', startDate)
+    if (endDate) params.append('endDate', endDate)
+    
+    const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/chart?${params.toString()}`
     console.log("[v0] API URL:", apiUrl)
 
     console.log("[v0] Request headers:", API_CONFIG.headers)

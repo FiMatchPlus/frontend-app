@@ -1,4 +1,4 @@
-// Model Portfolio type definitions for StockOne19
+// Model Portfolio type definitions for Fi-Match⁺
 
 export interface ModelPortfolio {
   id: string

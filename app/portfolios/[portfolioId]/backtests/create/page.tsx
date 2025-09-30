@@ -10,10 +10,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ArrowLeft, Save, Plus, X, ChevronDown, ChevronRight } from "lucide-react"
+import TermHelpButton from "@/components/ui/TermHelpButton"
+import TermChatbot from "@/components/ui/TermChatbot"
 import { CreateBacktestData, StopCondition } from "@/types/portfolio"
 import { createBacktest, transformToBacktestRequest, CreateBacktestResponse } from "@/lib/api/backtests"
+import { fetchPortfolioDetail } from "@/lib/api/portfolios"
+import { useBacktest } from "@/contexts/BacktestContext"
 
 // 중지 조건 타입 옵션
 const STOP_CONDITION_TYPES = [
@@ -31,11 +35,17 @@ export default function CreateBacktestPage() {
   const params = useParams()
   const portfolioId = params.portfolioId as string
   const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [portfolioDetail, setPortfolioDetail] = useState<any>(null)
+  const [selectedBenchmark, setSelectedBenchmark] = useState<string>("")
   const [formData, setFormData] = useState<CreateBacktestData>({
     name: "",
     memo: "",
     stopConditions: []
   })
+
+  // 전역 백테스트 상태 사용
+  const { updateBacktestStatus, startPolling } = useBacktest()
 
   const [newStopCondition, setNewStopCondition] = useState<{
     type: 'stopLoss' | 'takeProfit' | 'period'
@@ -63,11 +73,69 @@ export default function CreateBacktestPage() {
     period: true // 기간 설정은 기본으로 열어둠
   })
 
+  // 챗봇 상태
+  const [chatbotOpen, setChatbotOpen] = useState<{
+    isOpen: boolean
+    term: 'loss' | 'profit' | 'benchmark' | null
+  }>({
+    isOpen: false,
+    term: null
+  })
+
+  // 포트폴리오 상세 정보 로드
+  useEffect(() => {
+    const loadPortfolioDetail = async () => {
+      try {
+        setLoading(true)
+        const detail = await fetchPortfolioDetail(portfolioId)
+        
+        if (detail) {
+          setPortfolioDetail(detail)
+          // 포트폴리오의 기본 벤치마크를 설정
+          const defaultBenchmark = detail.rules?.basicBenchmark || "KOSPI"
+          setSelectedBenchmark(defaultBenchmark)
+        } else {
+          // 기본값으로 KOSPI 설정
+          setSelectedBenchmark("KOSPI")
+        }
+      } catch (error) {
+        console.error("Failed to load portfolio detail:", error)
+        // 기본값으로 KOSPI 설정
+        setSelectedBenchmark("KOSPI")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (portfolioId) {
+      loadPortfolioDetail()
+    } else {
+      // 포트폴리오 ID가 없는 경우에도 기본값 설정
+      setSelectedBenchmark("KOSPI")
+      setLoading(false)
+    }
+  }, [portfolioId])
+
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }))
+  }
+
+  // 챗봇 열기/닫기 함수
+  const openChatbot = (term: 'loss' | 'profit' | 'benchmark') => {
+    setChatbotOpen({
+      isOpen: true,
+      term
+    })
+  }
+
+  const closeChatbot = () => {
+    setChatbotOpen({
+      isOpen: false,
+      term: null
+    })
   }
 
   const handleInputChange = (field: keyof CreateBacktestData, value: any) => {
@@ -184,15 +252,23 @@ export default function CreateBacktestPage() {
       return
     }
 
+    // 벤치마크 코드 검증
+    if (!selectedBenchmark) {
+      alert("벤치마크 지수를 선택해주세요.")
+      return
+    }
+
     setSubmitting(true)
     try {
       // 폼 데이터를 API 요청 형식으로 변환
-      const requestData = transformToBacktestRequest(formData, portfolioId)
+      const requestData = transformToBacktestRequest(formData, portfolioId, selectedBenchmark)
       
       // 백테스트 생성 API 호출 (비동기 작업 큐 방식)
       const response: CreateBacktestResponse = await createBacktest(portfolioId, requestData)
       
-      console.log("[UI] 백테스트 실행 시작:", response.data) // 백테스트 ID
+      // 전역 상태에서 CREATED 상태로 업데이트
+      updateBacktestStatus(portfolioId, response.data, 'CREATED')
+      
       alert(`백테스트 실행이 시작되었습니다.\n백테스트 ID: ${response.data}`)
       
       // 포트폴리오 목록으로 이동하여 실행중 상태 확인
@@ -204,6 +280,20 @@ export default function CreateBacktestPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f9f7]">
+        <Header />
+        <main className="max-w-4xl mx-auto pt-8 px-4 pb-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-32 mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -249,6 +339,35 @@ export default function CreateBacktestPage() {
                   placeholder="백테스트에 대한 추가 설명이나 메모를 입력하세요"
                   rows={3}
                 />
+              </div>
+              
+              {/* 벤치마크 지수 선택 */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Label htmlFor="benchmark">벤치마크 지수</Label>
+                  <TermHelpButton 
+                    term="benchmark" 
+                    onClick={() => openChatbot('benchmark')}
+                  />
+                </div>
+                <Select 
+                  value={selectedBenchmark} 
+                  onValueChange={(value) => setSelectedBenchmark(value)}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={loading ? "로딩 중..." : "벤치마크 지수를 선택하세요"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="KOSPI">KOSPI</SelectItem>
+                    <SelectItem value="KOSDAQ">KOSDAQ</SelectItem>
+                  </SelectContent>
+                </Select>
+                {portfolioDetail?.rules?.basicBenchmark && selectedBenchmark === portfolioDetail.rules.basicBenchmark && (
+                  <p className="text-sm text-[#6b7280] mt-1">
+                    포트폴리오 기본 벤치마크 지수로 설정되었습니다.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -363,6 +482,10 @@ export default function CreateBacktestPage() {
                     )}
                   </Button>
                   <Label className="text-base font-medium">손절</Label>
+                  <TermHelpButton 
+                    term="loss" 
+                    onClick={() => openChatbot('loss')}
+                  />
                   <Badge variant="secondary" className="text-xs">선택</Badge>
                 </div>
                 
@@ -468,6 +591,10 @@ export default function CreateBacktestPage() {
                     )}
                   </Button>
                   <Label className="text-base font-medium">익절</Label>
+                  <TermHelpButton 
+                    term="profit" 
+                    onClick={() => openChatbot('profit')}
+                  />
                   <Badge variant="secondary" className="text-xs">선택</Badge>
                 </div>
                 
@@ -615,6 +742,15 @@ export default function CreateBacktestPage() {
             </Button>
           </div>
         </form>
+
+        {/* 용어 설명 챗봇 */}
+        {chatbotOpen.isOpen && chatbotOpen.term && (
+          <TermChatbot
+            isOpen={chatbotOpen.isOpen}
+            onClose={closeChatbot}
+            term={chatbotOpen.term}
+          />
+        )}
       </main>
     </div>
   )

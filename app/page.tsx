@@ -1,374 +1,535 @@
 "use client"
 
 import Header from "@/components/header"
-import { formatCurrency, formatPercent } from "@/lib/utils"
-import { fetchPortfolioMain } from "@/lib/api"
-import { PortfolioMainData } from "@/types/portfolio"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { useEffect, useState, useRef } from "react"
-import * as echarts from "echarts"
-
-const stockData = [
-  { rank: 1, name: "삼성전자", price: 74500, change: 1200, changePercent: 1.6 },
-  { rank: 2, name: "SK하이닉스", price: 128000, change: -2000, changePercent: -1.5 },
-  { rank: 3, name: "LG전자", price: 89300, change: 700, changePercent: 0.8 },
-  { rank: 4, name: "현대차", price: 195500, change: 1500, changePercent: 0.8 },
-  { rank: 5, name: "NAVER", price: 195000, change: -1000, changePercent: -0.5 },
-]
-
-
-const marketData = [
-  { name: "코스피", value: 2456.78, change: 12.45, changePercent: 0.51 },
-  { name: "코스닥", value: 876.32, change: -5.23, changePercent: -0.59 },
-  { name: "달러/원", value: 1342.5, change: 2.3, changePercent: 0.17 },
-]
-
-const insights = [
-  {
-    title: "반도체 섹터 상승세 지속",
-    description: "메모리 반도체 가격 상승으로 관련 종목들이 강세를 보이고 있습니다.",
-  },
-  {
-    title: "전기차 관련주 주목",
-    description: "정부 전기차 보조금 정책 발표로 관련 업종에 관심이 집중되고 있습니다.",
-  },
-]
+import { ArrowRight, BarChart3, TrendingUp, Shield, Zap, Users, FileText, Target, ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
 
 const features = [
-  { text: "PCA 기반 포트폴리오 시각화 분석" },
-  { text: "개인 맞춤형 투자 전략 추천" },
-  { text: "실시간 리밸런싱 알림 서비스" },
+  {
+    icon: <TrendingUp className="w-8 h-8" />,
+    title: "포트폴리오 관리",
+    description: "여러 종목을 한 곳에서 관리하고 비중을 조절하며 수익률을 추적할 수 있어요"
+  },
+  {
+    icon: <Zap className="w-8 h-8" />,
+    title: "백테스트 분석",
+    description: "과거 데이터로 내 투자 전략을 미리 검증해보고 예상 수익률을 확인하세요"
+  },
+  {
+    icon: <FileText className="w-8 h-8" />,
+    title: "투자 성향 리포팅",
+    description: "MPT와 CAPM 이론을 기반으로 실제 포트폴리오 구성을 분석하여 설문지가 아닌 데이터로 투자성향을 과학적으로 진단해드려요"
+  },
+  {
+    icon: <Target className="w-8 h-8" />,
+    title: "모델 포트폴리오 제공",
+    description: "전문가가 설계한 다양한 투자 전략과 모델 포트폴리오를 참고하여 투자하세요"
+  }
 ]
 
-export default function MainPage() {
-  const [portfolioData, setPortfolioData] = useState<PortfolioMainData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const pieChartRef = useRef<HTMLDivElement>(null)
-  const pieChartInstance = useRef<echarts.ECharts | null>(null)
+export default function LandingPage() {
+  const [currentSection, setCurrentSection] = useState(0)
+  const totalSections = 5
 
+  const nextSection = () => {
+    setCurrentSection((prev) => (prev + 1) % totalSections)
+  }
+
+  const prevSection = () => {
+    setCurrentSection((prev) => (prev - 1 + totalSections) % totalSections)
+  }
+
+  // 키보드 이벤트 처리
   useEffect(() => {
-    const loadPortfolioData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const data = await fetchPortfolioMain()
-        setPortfolioData(data)
-      } catch (err) {
-        console.error("Failed to load portfolio data:", err)
-        setError(err instanceof Error ? err.message : "포트폴리오 데이터를 불러오는데 실패했습니다.")
-        setPortfolioData(null) // 404나 에러 시 portfolioData를 null로 설정
-      } finally {
-        setLoading(false)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        prevSection()
+      } else if (event.key === 'ArrowRight') {
+        nextSection()
       }
     }
 
-    loadPortfolioData()
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // 파이 차트 초기화
-  useEffect(() => {
-    if (!portfolioData || !pieChartRef.current) return
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  }
 
-    // 기존 차트 인스턴스 정리
-    if (pieChartInstance.current) {
-      pieChartInstance.current.dispose()
-    }
+  const swipeConfidenceThreshold = 10000
+  const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity
+  }
 
-    // 새 차트 인스턴스 생성
-    pieChartInstance.current = echarts.init(pieChartRef.current)
+  const SectionWrapper = ({ children, sectionKey }: { children: React.ReactNode, sectionKey: string }) => (
+    <motion.section
+      key={sectionKey}
+      custom={currentSection}
+      variants={slideVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{
+        x: { type: "spring", stiffness: 300, damping: 30 },
+        opacity: { duration: 0.2 }
+      }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={1}
+      onDragEnd={(e, { offset, velocity }) => {
+        const swipe = swipePower(offset.x, velocity.x)
 
-    const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
-
-    // ECharts 옵션 설정
-    const option = {
-      tooltip: {
-        trigger: 'item',
-        formatter: '{b}: {c}% ({d}%)'
-      },
-      series: [
-        {
-          name: '포트폴리오',
-          type: 'pie',
-          radius: ['35%', '80%'],
-          center: ['50%', '50%'],
-          itemStyle: {
-            borderColor: '#fff',
-            borderWidth: 2
-          },
-          label: {
-            show: false,
-            position: 'center'
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: 16,
-              fontWeight: 'bold'
-            }
-          },
-          labelLine: {
-            show: false
-          },
-          data: portfolioData.holdings.map((holding, index) => ({
-            value: holding.weight,
-            name: holding.name,
-            itemStyle: {
-              color: colors[index % colors.length]
-            }
-          }))
+        if (swipe < -swipeConfidenceThreshold) {
+          nextSection()
+        } else if (swipe > swipeConfidenceThreshold) {
+          prevSection()
         }
-      ]
-    }
+      }}
+      className="absolute inset-0 flex flex-col justify-center px-8 py-4 overflow-y-auto"
+    >
+      <div className="max-w-6xl mx-auto w-full flex-1 flex items-center">
+        {children}
+      </div>
+      
+      {/* Section Indicators */}
+      <div className="flex justify-center pb-8">
+        <div className="flex gap-3">
+          {Array.from({ length: totalSections }).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSection(index)}
+              className={`w-3 h-3 rounded-full transition-all ${
+                index === currentSection 
+                  ? 'bg-[#009178] scale-125' 
+                  : 'bg-gray-400/50 hover:bg-gray-400/80'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  )
 
-    // 차트 옵션 설정
-    pieChartInstance.current.setOption(option)
-
-    // 리사이즈 이벤트 리스너
-    const handleResize = () => {
-      if (pieChartInstance.current) {
-        pieChartInstance.current.resize()
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-
-    // 정리 함수
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      if (pieChartInstance.current) {
-        pieChartInstance.current.dispose()
-        pieChartInstance.current = null
-      }
-    }
-  }, [portfolioData])
   return (
-    <div className="min-h-screen bg-[#f0f9f7]">
+    <div className="h-screen bg-[#f0f9f7] flex flex-col overflow-hidden">
       <Header />
 
-      <main className="max-w-6xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Ranking Section */}
-        <motion.section
+      {/* Navigation Buttons */}
+      <div className="fixed top-1/2 left-4 z-50 transform -translate-y-1/2">
+        <button
+          onClick={prevSection}
+          className="bg-white/80 hover:bg-white text-[#009178] p-3 rounded-full shadow-lg transition-all hover:scale-110"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      </div>
+      
+      <div className="fixed top-1/2 right-4 z-50 transform -translate-y-1/2">
+        <button
+          onClick={nextSection}
+          className="bg-white/80 hover:bg-white text-[#009178] p-3 rounded-full shadow-lg transition-all hover:scale-110"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Sections Container */}
+      <div className="relative flex-1 pt-8">
+        <AnimatePresence initial={false} custom={currentSection}>
+          {/* Section 1: Hero */}
+          {currentSection === 0 && (
+            <SectionWrapper sectionKey="hero">
+              <div className="w-full">
+        <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[#008485]"
-        >
-          <div className="mb-6">
-            <h2 className="text-3xl font-bold text-[#1f2937] mb-2">인기 종목 순위</h2>
-            <p className="text-[#6b7280] text-lg">실시간 주가 정보와 인기 종목을 확인하세요</p>
-          </div>
+          transition={{ duration: 0.8 }}
+          className="text-center"
+                >
+                  {/* 표어 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.1 }}
+                    className="text-[#009178] text-5xl font-bold mb-4"
+                  >
+                    나누고 맞추고 플러스로 키우다
+                  </motion.div>
+                  
+                  <motion.h1 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                    className="text-5xl font-bold text-[#1f2937] mb-6 leading-tight"
+                  >
+                    <span className="text-[#009178]">Fi-Match<span className="text-[#DC321E]">⁺</span></span>
+                  </motion.h1>
+                  
+                  <motion.p 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="text-lg text-[#6b7280] mb-8 max-w-3xl mx-auto leading-relaxed"
+                  >
+                    <strong>Fi</strong>(파이)로 자산을 나누고, 최적의 조합을 <strong>Match</strong>해서<br />
+                    수익을 키워<strong>(+)</strong>나가는 스마트한 포트폴리오 플랫폼
+                  </motion.p>
 
-          <ul className="space-y-0">
-            {stockData.map((stock, index) => (
-              <motion.li
-                key={stock.rank}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                whileHover={{ x: 4, backgroundColor: "#f9fafb" }}
-                className="flex justify-between items-center py-2 border-b border-[#f3f4f6] last:border-b-0 rounded-lg px-2 transition-all"
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+          >
+            <Link href="/login">
+              <motion.button
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-[#009178] text-white px-10 py-4 rounded-xl font-semibold text-xl hover:bg-[#004e42] transition-all shadow-lg flex items-center gap-3"
               >
-                <div className="flex items-center gap-2">
-                  <span className="bg-[#f3f4f6] text-[#6b7280] w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">
-                    {stock.rank}
-                  </span>
-                  <span className="font-medium text-[#1f2937] text-lg">{stock.name}</span>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-[#1f2937] text-lg">{formatCurrency(stock.price)}</div>
-                  <div className={`text-base mt-0.5 ${stock.change > 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
-                    {stock.change > 0 ? "+" : ""}
-                    {formatCurrency(stock.change)} ({formatPercent(stock.changePercent)})
-                  </div>
-                </div>
-              </motion.li>
-            ))}
-          </ul>
-        </motion.section>
-
-        {/* Portfolio Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[#008485] flex flex-col gap-6"
-        >
-          <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-bold text-[#1f2937]">내 포트폴리오</h2>
-            {loading ? (
-              <div className="text-right">
-                <div className="text-2xl font-bold text-[#1f2937]">로딩 중...</div>
-              </div>
-            ) : portfolioData ? (
-              <div className="text-right">
-                <div className="text-2xl font-bold text-[#1f2937]">{formatCurrency(portfolioData.totalValue)}</div>
-                <div className={`text-lg mt-1 ${portfolioData.dailySum >= 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
-                  {portfolioData.dailySum >= 0 ? "+" : ""}
-                  {formatCurrency(portfolioData.dailySum)} ({formatPercent((portfolioData.dailySum / portfolioData.totalValue) * 100)})
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center items-center py-12 flex-1">
-              <div className="text-lg text-[#6b7280]">포트폴리오 데이터를 불러오는 중...</div>
-            </div>
-          ) : portfolioData ? (
-            <div className="flex flex-col lg:flex-row gap-12 items-center flex-1">
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                className="w-56 h-56 rounded-full relative flex items-center justify-center"
+                무료로 시작하기
+                <ArrowRight className="w-6 h-6" />
+              </motion.button>
+            </Link>
+            
+            <Link href="/portfolios">
+              <motion.button
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="border-2 border-[#009178] text-[#009178] px-10 py-4 rounded-xl font-semibold text-xl hover:bg-[#009178] hover:text-white transition-all"
               >
-                <div 
-                  ref={pieChartRef} 
-                  className="w-full h-full"
-                  style={{ width: '100%', height: '100%' }}
-                />
-              </motion.div>
-
-              {/* Chart Legend */}
-              <div className="flex-1 w-full">
-                {portfolioData.holdings.map((holding, index) => {
-                  const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
-                  return (
-                    <motion.div
-                      key={holding.name}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
-                      className="flex justify-between items-center py-1"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[index % colors.length] }}></div>
-                        <span className="text-lg text-[#374151] font-medium">{holding.name}</span>
-                      </div>
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-lg font-semibold text-[#1f2937]">{holding.weight.toFixed(1)}%</span>
-                        <span className={`text-base font-medium ${holding.dailyRate >= 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
-                          {formatPercent(holding.dailyRate)}
-                        </span>
-                      </div>
-                    </motion.div>
-                  )
-                })}
+                포트폴리오 보기
+              </motion.button>
+            </Link>
+          </motion.div>
+        </motion.div>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 flex-1">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                className="text-center"
-              >
-                <div className="w-24 h-24 bg-[#f3f4f6] rounded-full flex items-center justify-center mb-4 mx-auto">
-                  <svg className="w-12 h-12 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-[#1f2937] mb-2">포트폴리오가 없습니다</h3>
-                <p className="text-lg text-[#6b7280]">지금 시작해보세요</p>
-              </motion.div>
-            </div>
+            </SectionWrapper>
           )}
 
-          <Link href={portfolioData ? "/portfolios" : "/portfolios/create"}>
-            <motion.button
-              whileHover={{ y: -2, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full bg-[#008485] text-white py-4 rounded-xl font-semibold text-xl hover:bg-[#006b6c] transition-all"
+          {/* Section 2: Features */}
+          {currentSection === 1 && (
+            <SectionWrapper sectionKey="features">
+              <div className="w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-center mb-6"
+        >
+                <h2 className="text-3xl font-bold text-[#1f2937] mb-3">
+            <span className="text-[#009178]">Fi-Match<span className="text-[#DC321E]">⁺</span></span>로 뭘 할 수 있나요?
+          </h2>
+          <p className="text-lg text-[#6b7280] max-w-3xl mx-auto">
+            투자 초보자도 전문가처럼! 복잡한 투자 관리를 쉽고 체계적으로 할 수 있어요
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#009178] hover:shadow-2xl transition-all"
             >
-              {portfolioData ? "포트폴리오 더보기" : "포트폴리오 만들기"}
-            </motion.button>
-          </Link>
-        </motion.section>
+              <div className="text-[#009178] mb-3">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-bold text-[#1f2937] mb-3">{feature.title}</h3>
+              <p className="text-base text-[#6b7280] leading-relaxed">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
+                </div>
+            </SectionWrapper>
+          )}
 
-        {/* Bottom Section */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Market Status Card */}
+          {/* Section 3: Analysis */}
+          {currentSection === 2 && (
+            <SectionWrapper sectionKey="analysis">
+              <div className="w-full">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#008485]"
+                transition={{ duration: 0.8 }}
+                className="text-center mb-12"
           >
-            <div className="text-2xl font-bold text-[#1f2937] mb-4">시장 현황</div>
-            <div className="flex justify-between gap-4">
-              {marketData.map((market, index) => (
-                <motion.div
-                  key={market.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
-                  className="text-center flex-1"
-                >
-                  <div className="text-lg text-[#6b7280] mb-2 font-medium">{market.name}</div>
-                  <div className="text-xl font-bold text-[#1f2937]">
-                    {market.name === "달러/원" ? market.value.toLocaleString() : market.value.toFixed(2)}
-                  </div>
-                  <div className={`text-base mt-1 ${market.change > 0 ? "text-[#dc2626]" : "text-[#008485]"}`}>
-                    {market.change > 0 ? "+" : ""}
-                    {market.change.toFixed(2)} ({formatPercent(market.changePercent)})
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                <h2 className="text-4xl font-bold text-[#1f2937] mb-4">
+              <span className="text-[#009178]">과학적 데이터</span>로 알아보는 나의 투자 분석
+            </h2>
+            <p className="text-xl text-[#6b7280] max-w-3xl mx-auto">
+              설문지가 아닌 실제 포트폴리오 구성으로 투자 성향부터 전문 분석까지 한 번에!
+            </p>
           </motion.div>
 
-          {/* Investment Insights Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#008485]"
-          >
-            <div className="text-2xl font-bold text-[#1f2937] mb-4">투자 인사이트</div>
-            <div className="space-y-3">
-              {insights.map((insight, index) => (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Investment Style Analysis */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+              className="bg-white rounded-2xl p-8 shadow-xl border border-[#009178]"
+            >
+              <h3 className="text-2xl font-bold text-[#1f2937] mb-6 text-center">투자 성향 진단</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">위험 선호도</h4>
+                  <p className="text-[#6b7280] text-sm">안전 vs 고위험 자산 비중으로 리스크 성향 파악</p>
+                </div>
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">시장 민감도</h4>
+                  <p className="text-[#6b7280] text-sm">폭락장에서 내 포트폴리오 반응 정도 측정</p>
+                </div>
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">포트폴리오 효율성</h4>
+                  <p className="text-[#6b7280] text-sm">위험 대비 수익률 최적화 수준 분석</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Performance Analysis */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+              className="bg-white rounded-2xl p-8 shadow-xl border border-[#009178]"
+            >
+              <h3 className="text-2xl font-bold text-[#1f2937] mb-6 text-center">성과 분석</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">시장 대비 성과</h4>
+                  <p className="text-[#6b7280] text-sm">KOSPI 대비 내 투자 전략의 우수성 확인</p>
+                </div>
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">위험 조정 수익률</h4>
+                  <p className="text-[#6b7280] text-sm">샤프 비율로 효율적 수익 창출 여부 분석</p>
+                </div>
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">종목 기여도</h4>
+                  <p className="text-[#6b7280] text-sm">어떤 주식이 수익에 도움이 되었는지 분석</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Risk Analysis */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+              className="bg-white rounded-2xl p-8 shadow-xl border border-[#009178]"
+            >
+              <h3 className="text-2xl font-bold text-[#1f2937] mb-6 text-center">리스크 분석</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">최대 손실 예상</h4>
+                  <p className="text-[#6b7280] text-sm">최악의 상황에서 예상되는 최대 낙폭</p>
+                </div>
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">변동성 측정</h4>
+                  <p className="text-[#6b7280] text-sm">포트폴리오의 가격 변동 정도 수치화</p>
+                </div>
+                <div className="p-4 bg-[#f0f9f7] rounded-lg">
+                  <h4 className="font-bold text-[#1f2937] mb-2">하방 위험</h4>
+                  <p className="text-[#6b7280] text-sm">손실이 날 때만의 위험도 별도 측정</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+              </div>
+            </SectionWrapper>
+          )}
+
+          {/* Section 4: How to Use */}
+          {currentSection === 3 && (
+            <SectionWrapper sectionKey="howto">
+              <div className="w-full">
                 <motion.div
-                  key={insight.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 1.0 + index * 0.2 }}
-                  className="py-2 border-b border-[#f3f4f6] last:border-b-0"
-                >
-                  <div className="text-lg text-[#1f2937] mb-0.5 font-medium">{insight.title}</div>
-                  <div className="text-base text-[#6b7280] leading-normal">{insight.description}</div>
-                </motion.div>
-              ))}
-            </div>
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-center mb-12"
+        >
+                <h2 className="text-4xl font-bold text-[#1f2937] mb-4">
+            어떻게 사용하나요?
+          </h2>
+          <p className="text-xl text-[#6b7280] max-w-3xl mx-auto">
+            3단계만 따라하면 바로 투자 전문가처럼 포트폴리오를 관리할 수 있어요
+          </p>
           </motion.div>
 
-          {/* Service Introduction Card */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
-            className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#008485]"
+                  transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-center"
           >
-            <div className="text-2xl font-bold text-[#1f2937] mb-4">내 포트폴리오 소식</div>
-            <div className="space-y-2">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={feature.text}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all"
-                >
-                  <span className="text-lg text-[#374151] font-medium">{feature.text}</span>
-                </motion.div>
-              ))}
-            </div>
+            <div className="w-16 h-16 bg-[#009178] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
+            <h3 className="text-2xl font-bold text-[#1f2937] mb-4">종목 검색 & 차트 확인</h3>
+            <p className="text-lg text-[#6b7280] leading-relaxed">
+              관심 있는 종목을 검색하고 실시간 차트로 주가 흐름을 확인해보세요. 
+              1일부터 1년까지 다양한 기간으로 볼 수 있어요.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center"
+          >
+            <div className="w-16 h-16 bg-[#009178] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
+            <h3 className="text-2xl font-bold text-[#1f2937] mb-4">포트폴리오 만들기</h3>
+            <p className="text-lg text-[#6b7280] leading-relaxed">
+              마음에 드는 종목들을 선택하고 투자 비중을 정해서 나만의 포트폴리오를 만들어보세요. 
+              파이 차트로 한눈에 확인할 수 있어요.
+            </p>
+          </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+            className="text-center"
+          >
+            <div className="w-16 h-16 bg-[#009178] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
+            <h3 className="text-2xl font-bold text-[#1f2937] mb-4">백테스트로 검증하기</h3>
+            <p className="text-lg text-[#6b7280] leading-relaxed">
+              내 투자 전략이 과거에 어떤 성과를 냈을지 미리 시뮬레이션해보고 
+              수익률과 위험도를 확인한 후 투자하세요.
+            </p>
           </motion.div>
         </div>
-      </main>
+              </div>
+            </SectionWrapper>
+          )}
+
+          {/* Section 5: CTA */}
+          {currentSection === 4 && (
+            <SectionWrapper sectionKey="cta">
+              <div className="w-full">
+                <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="bg-gradient-to-r from-[#009178] to-[#004e42] rounded-3xl p-12 text-center text-white shadow-2xl"
+        >
+                <h2 className="text-4xl font-bold mb-4">투자 관리, 이제 더 쉽게!</h2>
+                <p className="text-lg mb-6 opacity-90">
+            복잡한 투자 분석이 클릭 몇 번으로! 지금 바로 체험해보세요
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <Link href="/login">
+              <motion.button
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-white text-[#009178] px-10 py-4 rounded-xl font-semibold text-xl hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3"
+              >
+                <Users className="w-6 h-6" />
+                회원가입하고 시작하기
+              </motion.button>
+            </Link>
+            
+            <Link href="/stocks">
+              <motion.button
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="border-2 border-white text-white px-10 py-4 rounded-xl font-semibold text-xl hover:bg-white hover:text-[#009178] transition-all"
+              >
+                종목 차트 먼저 보기
+              </motion.button>
+            </Link>
+          </div>
+
+      {/* Footer */}
+                <div className="mt-12 pt-6 border-t border-white/20">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-6 md:mb-0">
+                      <h3 className="text-3xl font-bold mb-2">Fi-Match<span className="text-[#DC321E]">⁺</span></h3>
+                      <p className="text-white/70">스마트한 투자의 시작</p>
+            </div>
+            
+            <div className="flex gap-8">
+                      <Link href="/products" className="hover:text-white/80 transition-colors">상품</Link>
+                      <Link href="/stocks" className="hover:text-white/80 transition-colors">종목 정보</Link>
+                      <Link href="/portfolios" className="hover:text-white/80 transition-colors">포트폴리오</Link>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-4 text-center border-t border-white/20">
+                    <p className="text-white/70">© 2025 Fi-Match<span className="text-[#DC321E]">⁺</span>. All rights reserved.</p>
+                  </div>
+              </div>
+                </motion.div>
+              </div>
+            </SectionWrapper>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Simplified Footer */}
+      <footer className="bg-[#004e42] text-white">
+        <div className="py-8">
+          <div className="max-w-6xl mx-auto px-8">
+            {/* Main Footer Content */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+              {/* Company Info */}
+              <div className="mb-4 md:mb-0 text-center md:text-left">
+                <h3 className="text-2xl font-bold mb-2">Fi-Match<span className="text-[#DC321E]">⁺</span></h3>
+                <p className="text-gray-300 text-sm">
+                  나누고 맞추고 플러스로 키우다
+                </p>
+              </div>
+
+              {/* Contact Info */}
+              <div className="text-center md:text-right text-sm text-gray-300">
+                <p className="font-semibold text-white mb-1">고객센터</p>
+                <p>1588-0000</p>
+                <p className="text-xs text-gray-400">평일 09:00~18:00</p>
+              </div>
+            </div>
+
+            {/* Bottom Section */}
+            <div className="border-t border-gray-600 pt-4">
+              <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+                <div className="mb-2 md:mb-0">
+                  <p>© 2025 Fi-Match<span className="text-[#DC321E]">⁺</span>. All rights reserved.</p>
+                </div>
+                <div className="flex gap-4">
+                  <Link href="#" className="hover:text-gray-300 transition-colors">개인정보처리방침</Link>
+                  <Link href="#" className="hover:text-gray-300 transition-colors">이용약관</Link>
+                  <Link href="#" className="hover:text-gray-300 transition-colors">투자유의사항</Link>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-xs text-gray-500 leading-relaxed text-center md:text-left">
+                <p>투자 위험 고지: 모든 투자에는 원금 손실의 위험이 있습니다. 과거 수익률이 미래 수익률을 보장하지 않습니다.</p>
+                <p>본 서비스는 투자 참고용이며, 투자 결정은 본인의 판단과 책임하에 이루어져야 합니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

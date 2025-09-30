@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect } from "react"
 import { Building2, TrendingUp, Volume2, DollarSign } from "lucide-react"
 import { formatCurrency, formatNumber, formatPercent, getChangeColor } from "@/utils/formatters"
+import { useStockCacheContext } from "@/contexts/StockCacheContext"
 import type { Stock } from "@/types/stock"
 import { cn } from "@/lib/utils"
 
@@ -11,6 +13,9 @@ interface StockInfoProps {
 }
 
 export function StockInfo({ selectedStock, className }: StockInfoProps) {
+  // 일시적으로 API 호출 비활성화 - 오른쪽 패널은 아직 구현하지 않음
+  // const { getStockPrice, isLoading } = useStockCacheContext()
+
   if (!selectedStock) {
     return (
       <div className={cn("bg-background/50 backdrop-blur-sm rounded-lg border border-border p-6", className)}>
@@ -22,28 +27,32 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
     )
   }
 
+  // 일시적으로 실시간 데이터 대신 기본 데이터만 사용
+  // const realTimeData = selectedStock ? getStockPrice(selectedStock.symbol) : null
+  const currentStock = selectedStock
+
   const infoItems = [
     {
       label: "현재가",
-      value: formatCurrency(selectedStock.price),
+      value: formatCurrency(currentStock.price),
       icon: DollarSign,
       color: "text-foreground",
     },
     {
       label: "등락률",
-      value: formatPercent(selectedStock.changePercent),
+      value: formatPercent(currentStock.changePercent),
       icon: TrendingUp,
-      color: getChangeColor(selectedStock.changePercent),
+      color: getChangeColor(currentStock.changePercent),
     },
     {
       label: "거래량",
-      value: formatNumber(selectedStock.volume),
+      value: formatNumber(selectedStock.volume), // 거래량은 실시간 API에 없으므로 기본값 사용
       icon: Volume2,
       color: "text-muted-foreground",
     },
     {
       label: "시가총액",
-      value: formatCurrency(selectedStock.marketCap),
+      value: formatCurrency(currentStock.marketCap),
       icon: Building2,
       color: "text-muted-foreground",
     },
@@ -54,10 +63,14 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 mb-2">
-          <h3 className="text-lg font-semibold text-foreground">{selectedStock.name}</h3>
-          <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-md">
-            {selectedStock.sector}
-          </span>
+          <h3 className="text-lg font-semibold text-foreground">{currentStock.name}</h3>
+          {/* 일시적으로 로딩 상태 비활성화
+          {isLoading && (
+            <span className="px-2 py-1 text-xs text-muted-foreground bg-muted/50 rounded-md">
+              업데이트 중...
+            </span>
+          )}
+          */}
         </div>
         <p className="text-sm text-muted-foreground">{selectedStock.symbol}</p>
       </div>
@@ -85,9 +98,9 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">전일 대비</span>
-            <div className={cn("font-medium", getChangeColor(selectedStock.change))}>
-              {selectedStock.change > 0 ? "+" : ""}
-              {formatCurrency(selectedStock.change)}
+            <div className={cn("font-medium", getChangeColor(currentStock.change))}>
+              {currentStock.change > 0 ? "+" : ""}
+              {formatCurrency(currentStock.change)}
             </div>
           </div>
           <div>

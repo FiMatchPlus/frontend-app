@@ -5,7 +5,7 @@ import { X, Menu } from "lucide-react"
 import { StockSearch } from "./StockSearch"
 import { StockList } from "./StockList"
 import { mockStocks, mockPortfolio } from "@/data/mockStockData"
-import { useRecentStocks, usePopularStocks } from "@/contexts/StockContext"
+import { useRecentStocks } from "@/contexts/StockContext"
 import type { Stock } from "@/types/stock"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +18,6 @@ interface StockSidebarProps {
 export function StockSidebar({ selectedStock, onSelectStock, className }: StockSidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const recentStocks = useRecentStocks()
-  const popularStocks = usePopularStocks()
 
   // Get portfolio stocks from mock data
   const portfolioStocksList = mockPortfolio.map((p) => mockStocks.find((s) => s.symbol === p.symbol)!).filter(Boolean)
@@ -83,9 +82,6 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
             {recentStocks.length > 0 && (
               <StockList title="최근 조회" stocks={recentStocks} onSelectStock={handleSelectStock} />
             )}
-
-            {/* Popular Stocks */}
-            <StockList title="인기 종목" stocks={popularStocks} onSelectStock={handleSelectStock} />
           </div>
         </div>
         {/* Added border separately to the sidebar content */}

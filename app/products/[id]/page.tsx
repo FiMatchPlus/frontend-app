@@ -14,7 +14,7 @@ import { getProductById } from "@/data/mockProductData"
 import { ModelPortfolio } from "@/types/product"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Copy } from "lucide-react"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -67,12 +67,12 @@ export default function ProductDetailPage() {
         transition={{ duration: 0.6 }}
         className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
       >
-        {/* Back Button */}
+        {/* Back Button and Action Button */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-6 max-w-6xl mx-auto"
+          className="mb-6 max-w-6xl mx-auto flex justify-between items-center"
         >
           <Button
             variant="ghost"
@@ -81,6 +81,39 @@ export default function ProductDetailPage() {
           >
             <ArrowLeft className="w-4 h-4" />
             뒤로가기
+          </Button>
+          
+          <Button
+            onClick={() => {
+              if (product) {
+                // ModelPortfolio 데이터를 CreatePortfolioData 형식으로 변환
+                const portfolioData = {
+                  name: `${product.name} - 커스텀`,
+                  description: product.description,
+                  holdings: product.holdings.map(holding => ({
+                    symbol: holding.symbol,
+                    name: holding.name,
+                    weight: holding.weight,
+                    price: holding.price,
+                    change: holding.change,
+                    changePercent: holding.changePercent,
+                    sector: holding.sector
+                  }))
+                }
+                
+                // Query string으로 데이터 전달
+                const queryParams = new URLSearchParams({
+                  template: 'true',
+                  data: JSON.stringify(portfolioData)
+                })
+                
+                router.push(`/portfolios/create?${queryParams.toString()}`)
+              }
+            }}
+            className="bg-[#008485] hover:bg-[#006b6c] text-white px-6 py-2"
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            이 구성으로 포트폴리오 만들기
           </Button>
         </motion.div>
 
