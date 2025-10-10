@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Header from "@/components/header"
@@ -26,7 +27,7 @@ const RULE_CATEGORIES = {
   takeProfit: ["해당없음", "단일 종목 목표 수익률 달성"]
 } as const
 
-export default function CreatePortfolioPage() {
+function CreatePortfolioContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState<CreatePortfolioData>({
@@ -1152,5 +1153,20 @@ export default function CreatePortfolioPage() {
       {/* 플로팅 챗봇 */}
       <FloatingChatbot context="create-portfolio" />
     </div>
+  )
+}
+
+export default function CreatePortfolioPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f0f9f7] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#009178] border-r-transparent"></div>
+          <p className="mt-4 text-[#1f2937]">포트폴리오 생성 페이지 로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <CreatePortfolioContent />
+    </Suspense>
   )
 }

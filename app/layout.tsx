@@ -5,6 +5,8 @@ import "./globals.css"
 import { StockProvider } from "@/contexts/StockContext"
 import { StockCacheProvider } from "@/contexts/StockCacheContext"
 import { BacktestProvider } from "@/contexts/BacktestContext"
+import { TickerMappingProvider } from "@/contexts/TickerMappingContext"
+import { AnalysisCacheProvider } from "@/contexts/AnalysisCacheContext"
 
 const hanaFont = localFont({
   src: [
@@ -57,13 +59,17 @@ export default function RootLayout({
   return (
     <html lang="ko" className={hanaFont.variable}>
       <body className={hanaFont.className}>
-        <StockProvider>
-          <StockCacheProvider>
-            <BacktestProvider>
-              {children}
-            </BacktestProvider>
-          </StockCacheProvider>
-        </StockProvider>
+                <StockProvider>
+                  <StockCacheProvider>
+                    <BacktestProvider>
+                      <TickerMappingProvider>
+                        <AnalysisCacheProvider>
+                          {children}
+                        </AnalysisCacheProvider>
+                      </TickerMappingProvider>
+                    </BacktestProvider>
+                  </StockCacheProvider>
+                </StockProvider>
       </body>
     </html>
   )

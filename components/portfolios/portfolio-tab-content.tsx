@@ -6,6 +6,7 @@ import type { PortfolioWithDetails } from "@/lib/api/portfolios"
 import type { BacktestResponse, BacktestStatus } from "@/types/portfolio"
 import { formatCurrency, formatPercent } from "@/utils/formatters"
 import { PortfolioPieChart } from "./portfolio-pie-chart"
+import { PortfolioAnalysisTab } from "./PortfolioAnalysisTab"
 import { fetchPortfolioBacktests, executeBacktest } from "@/lib/api"
 import { useBacktest } from "@/contexts/BacktestContext"
 import Link from "next/link"
@@ -124,14 +125,14 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     } finally {
       setIsLoadingBacktests(false)
     }
-  }, [portfolio.id, isLoadingBacktests, startPolling])
+  }, [portfolio.id, startPolling])
 
-  // 백테스트 탭이 활성화될 때 데이터 로드
+  // 백테스트 탭이 활성화될 때 또는 포트폴리오가 변경될 때 데이터 로드
   useEffect(() => {
-    if (activeTab === "backtests" && backtests.length === 0 && !isLoadingBacktests) {
+    if (activeTab === "backtests" && !isLoadingBacktests) {
       loadBacktests()
     }
-  }, [activeTab, backtests.length, isLoadingBacktests, loadBacktests])
+  }, [activeTab, portfolio.id, loadBacktests])
 
   // 실행 중인 백테스트가 있으면 폴링 시작 (전역 상태에서 자동 관리됨)
   useEffect(() => {
@@ -400,15 +401,10 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       )}
 
       {activeTab === "analysis" && (
-        <div className="bg-[#f0f9f7] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="w-5 h-5 text-[#009178]" />
-            <h3 className="text-lg font-semibold text-[#1f2937]">상세 분석</h3>
-          </div>
-          <div className="text-center py-12">
-            <div className="text-lg text-[#6b7280]">상세 분석 기능은 준비 중입니다.</div>
-          </div>
-        </div>
+        <PortfolioAnalysisTab 
+          portfolioId={portfolio.id}
+          holdings={portfolio.holdingStocks}
+        />
       )}
     </div>
   )

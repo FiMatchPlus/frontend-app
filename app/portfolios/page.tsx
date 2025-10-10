@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react"
 import Header from "@/components/header"
 import PortfolioPageHeader from "@/components/portfolios/portfolio-page-header"
-import PortfolioSummaryCard from "@/components/portfolios/portfolio-summary-card"
+// import PortfolioSummaryCard from "@/components/portfolios/portfolio-summary-card"
 import { PortfolioListCard } from "@/components/portfolios/portfolio-list-card"
 import { PortfolioDetailPanel } from "@/components/portfolios/portfolio-detail-panel"
 import PortfolioEmptyState from "@/components/portfolios/portfolio-empty-state"
 import FloatingChatbot from "@/components/ui/FloatingChatbot"
-import { BacktestNotification } from "@/components/portfolios/BacktestNotification"
+// import { BacktestNotification } from "@/components/portfolios/BacktestNotification"
 import { fetchPortfolioSummary, fetchPortfolioList, type PortfolioWithDetails, type PortfolioSummary } from "@/lib/api/portfolios"
 
 export default function PortfoliosPage() {
@@ -67,16 +67,9 @@ export default function PortfoliosPage() {
       <PortfolioPageHeader />
 
       <main className="max-w-7xl mx-auto pt-1 px-4 pb-4 space-y-3">
-        {portfolioSummary && (
-          <PortfolioSummaryCard
-            totalValue={portfolioSummary.totalAssets}
-            totalChange={portfolioSummary.dailyTotalChange}
-            totalChangePercent={portfolioSummary.dailyTotalReturn}
-          />
-        )}
 
         {portfolios.length > 0 ? (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-12">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-4">
             {/* Portfolio List */}
             <section className="xl:col-span-1 space-y-4 animate-in fade-in duration-700 delay-300">
               <h2 className="text-xl font-bold text-[#1f2937] mb-4">포트폴리오 목록</h2>
@@ -116,10 +109,10 @@ export default function PortfoliosPage() {
         )}
       </main>
       
-      {/* 백테스트 알림 */}
-      {selectedPortfolio && (
+      {/* 백테스트 알림 - 비활성화됨 */}
+      {/* {selectedPortfolio && (
         <BacktestNotification portfolioId={selectedPortfolio.id.toString()} />
-      )}
+      )} */}
       
       {/* 플로팅 챗봇 */}
       <FloatingChatbot context="portfolio" />

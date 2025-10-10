@@ -259,10 +259,22 @@ export default function BacktestDetailClient() {
         )}
 
         {/* 마크다운 레포트 (API 응답 기반) */}
-        <MarkdownReport
-          report={backtestData.report}
-          metrics={backtestData.metrics}
-        />
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-[#1f2937] mb-4">백테스트 분석 리포트</h2>
+          {backtestData.report ? (
+            <div className="text-sm text-green-600 mb-4">
+              ✓ 서버에서 제공된 리포트를 표시합니다
+            </div>
+          ) : (
+            <div className="text-sm text-orange-600 mb-4">
+              ⚠ 서버 리포트가 없어 동적으로 생성된 리포트를 표시합니다
+            </div>
+          )}
+          <MarkdownReport
+            report={backtestData.report}
+            metrics={backtestData.metrics}
+          />
+        </div>
       </main>
       
       {/* 플로팅 챗봇 */}

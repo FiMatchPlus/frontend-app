@@ -1,4 +1,5 @@
 import { API_CONFIG } from "../api"
+import type { PortfolioAnalysis } from "@/types/portfolio"
 
 interface ApiResponse<T> {
   status: string
@@ -55,6 +56,7 @@ export interface PortfolioWithDetails {
 export interface PortfolioDetailData {
   portfolioId: number
   holdings: Array<{
+    ticker: string
     name: string
     weight: number
     value: number
@@ -88,6 +90,7 @@ export interface PortfolioDetailData {
     createdAt: string
     updatedAt: string
   }
+  analysis?: PortfolioAnalysis
 }
 
 export async function fetchPortfolioSummary(): Promise<PortfolioSummary | null> {
@@ -108,7 +111,6 @@ export async function fetchPortfolioSummary(): Promise<PortfolioSummary | null> 
     if (!response.ok) {
       try {
         const text = await response.text()
-        console.error("[PortfolioSummary] Error Response:", text)
       } catch (_) {
         // ignore
       }
@@ -127,9 +129,9 @@ export async function fetchPortfolioSummary(): Promise<PortfolioSummary | null> 
     }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[PortfolioSummary] Request timeout after", API_CONFIG.timeout, "ms")
+      // Request timeout
     } else {
-      console.error("[PortfolioSummary] fetch error:", error)
+      // Fetch error
     }
     return null
   }
@@ -153,7 +155,6 @@ export async function fetchPortfolioList(): Promise<PortfolioWithDetails[]> {
     if (!response.ok) {
       try {
         const text = await response.text()
-        console.error("[PortfolioList] Error Response:", text)
       } catch (_) {
         // ignore
       }
@@ -176,9 +177,9 @@ export async function fetchPortfolioList(): Promise<PortfolioWithDetails[]> {
     }))
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[PortfolioList] Request timeout after", API_CONFIG.timeout, "ms")
+      // Request timeout
     } else {
-      console.error("[PortfolioList] fetch error:", error)
+      // Fetch error
     }
     return []
   }
@@ -203,7 +204,6 @@ export async function fetchPortfolioDetail(portfolioId: string): Promise<Portfol
     if (!response.ok) {
       try {
         const text = await response.text()
-        console.error("[PortfolioDetail] Error Response:", text)
       } catch (_) {
         // ignore
       }
@@ -211,17 +211,71 @@ export async function fetchPortfolioDetail(portfolioId: string): Promise<Portfol
     }
 
     const result: ApiResponse<PortfolioDetailData> = await response.json()
+    
     if (result.status !== "success") {
       return null
     }
 
     return result.data
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      console.error("[PortfolioDetail] Request timeout after", API_CONFIG.timeout, "ms")
-    } else {
-      console.error("[PortfolioDetail] fetch error:", error)
+    
+    if (error instanceof Error) {
+      
+      if (error.name === "AbortError") {
+        // Request timeout
+      } else if (error.name === "TypeError") {
+        // Network error
+      }
     }
+    
+    return null
+  }
+}
+
+// 포트폴리오 상세 분석을 가져오는 함수
+export async function fetchPortfolioAnalysis(portfolioId: string): Promise<PortfolioAnalysis | null> {
+  const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/${portfolioId}/analysis`
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: API_CONFIG.headers,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      try {
+        const text = await response.text()
+      } catch (_) {
+        // ignore
+      }
+      return null
+    }
+
+    const result: ApiResponse<PortfolioAnalysis> = await response.json()
+    
+    if (result.status !== "success") {
+      return null
+    }
+
+    return result.data
+  } catch (error) {
+    
+    if (error instanceof Error) {
+      
+      if (error.name === "AbortError") {
+        // Request timeout
+      } else if (error.name === "TypeError") {
+        // Network error
+      }
+    } else {
+    }
+    
     return null
   }
 }

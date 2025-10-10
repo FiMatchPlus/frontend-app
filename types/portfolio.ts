@@ -102,3 +102,45 @@ export interface PortfolioMainData {
   holdings: HoldingSummary[]
   dailySum: number
 }
+
+// 포트폴리오 상세 분석 관련 타입들
+export interface AnalysisMetrics {
+  stdDeviation: number    // 표준편차 (변동성)
+  sharpeRatio: number     // 샤프비율
+  expectedReturn?: number // 기대수익률 (선택적)
+}
+
+export interface AnalysisResult {
+  type: 'user' | 'min-variance' | 'max-sharpe'
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
+  holdings: Record<string, number> // ticker -> weight (0-1 사이 비율)
+  metrics?: AnalysisMetrics        // 분석 메트릭 (선택적)
+  strengths?: string[]             // 강점 (선택적)
+  weaknesses?: string[]            // 약점 (선택적)
+}
+
+export interface PortfolioAnalysis {
+  status: 'COMPLETED' | 'RUNNING' | 'PENDING' | 'FAILED'
+  portfolioName?: string           // 포트폴리오 이름 (선택적)
+  results: AnalysisResult[]
+  analysisDate?: string            // 분석 일시 (선택적)
+  analysisPeriod?: {               // 분석 기간 (선택적)
+    startDate: string
+    endDate: string
+  }
+}
+
+// 위험도 표시를 위한 상수 (products 페이지와 동일)
+export const PORTFOLIO_RISK_LEVEL_LABELS = {
+  LOW: '위험도 낮음',
+  MEDIUM: '위험도 보통', 
+  HIGH: '위험도 높음',
+  VERY_HIGH: '위험도 매우 높음'
+} as const
+
+export const PORTFOLIO_RISK_LEVEL_COLORS = {
+  LOW: 'text-green-600 bg-green-50',
+  MEDIUM: 'text-yellow-600 bg-yellow-50',
+  HIGH: 'text-orange-600 bg-orange-50',
+  VERY_HIGH: 'text-red-600 bg-red-50'
+} as const
