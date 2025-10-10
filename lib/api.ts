@@ -6,7 +6,7 @@ import type { BacktestResponse, PortfolioMainData } from "@/types/portfolio"
 
 // API 기본 설정
 export const API_CONFIG = {
-  baseUrl: "http://35.203.107.99",
+  baseUrl: "https://fi-match.shop",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

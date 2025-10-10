@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react"
 import Header from "@/components/header"
 import PortfolioPageHeader from "@/components/portfolios/portfolio-page-header"
-// import PortfolioSummaryCard from "@/components/portfolios/portfolio-summary-card"
 import { PortfolioListCard } from "@/components/portfolios/portfolio-list-card"
 import { PortfolioDetailPanel } from "@/components/portfolios/portfolio-detail-panel"
 import PortfolioEmptyState from "@/components/portfolios/portfolio-empty-state"
 import FloatingChatbot from "@/components/ui/FloatingChatbot"
-// import { BacktestNotification } from "@/components/portfolios/BacktestNotification"
 import { fetchPortfolioSummary, fetchPortfolioList, type PortfolioWithDetails, type PortfolioSummary } from "@/lib/api/portfolios"
 
 export default function PortfoliosPage() {
@@ -108,11 +106,6 @@ export default function PortfoliosPage() {
           <PortfolioEmptyState />
         )}
       </main>
-      
-      {/* 백테스트 알림 - 비활성화됨 */}
-      {/* {selectedPortfolio && (
-        <BacktestNotification portfolioId={selectedPortfolio.id.toString()} />
-      )} */}
       
       {/* 플로팅 챗봇 */}
       <FloatingChatbot context="portfolio" />
