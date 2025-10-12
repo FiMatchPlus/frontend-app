@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, ArrowLeft, CheckCircle, AlertCircle, Shield, Target, TrendingUp } from "lucide-react"
 import Header from "@/components/header"
-import { fetchPortfolioAnalysis, fetchPortfolioList } from "@/lib/api/portfolios"
+import { fetchPortfolioAnalysisDetail, fetchPortfolioList } from "@/lib/api/portfolios"
 import { useTickerMapping } from "@/contexts/TickerMappingContext"
 import { PortfolioPieChart } from "@/components/portfolios/portfolio-pie-chart"
 import { RiskEfficiencyChart } from "@/components/portfolios/RiskEfficiencyChart"
@@ -33,10 +33,10 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       setError(null)
       
       try {
-        // 포트폴리오 목록과 분석 데이터를 병렬로 가져오기
+        // 포트폴리오 목록과 분석 상세 데이터를 병렬로 가져오기
         const [portfolioList, analysisResult] = await Promise.all([
           fetchPortfolioList(),
-          fetchPortfolioAnalysis(portfolioId)
+          fetchPortfolioAnalysisDetail(portfolioId)
         ])
         
         if (!analysisResult) {
@@ -476,7 +476,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
               <div className="text-right">
                 <p className="text-sm text-[#6b7280]">분석 기간</p>
                 <p className="text-base font-semibold text-[#1f2937]">
-                  {analysisData.analysisPeriod.startDate} - {analysisData.analysisPeriod.endDate}
+                  {analysisData.analysisPeriod.startDate} ~ {analysisData.analysisPeriod.endDate}
                 </p>
               </div>
             )}

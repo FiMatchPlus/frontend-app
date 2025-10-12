@@ -3,7 +3,7 @@
 import Header from "@/components/header"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, BarChart3, TrendingUp, Shield, Zap, Users, FileText, Target, ChevronLeft, ChevronRight } from "lucide-react"
+import { BarChart3, TrendingUp, Shield, Zap, Users, FileText, Target, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useEffect } from "react"
 
 const features = [
@@ -101,9 +101,9 @@ export default function LandingPage() {
           prevSection()
         }
       }}
-      className="absolute inset-0 flex flex-col justify-center px-8 py-4 overflow-y-auto"
+      className="relative flex flex-col px-8 py-4"
     >
-      <div className="max-w-6xl mx-auto w-full flex-1 flex items-center">
+      <div className="max-w-6xl mx-auto w-full flex-1">
         {children}
       </div>
       
@@ -127,7 +127,7 @@ export default function LandingPage() {
   )
 
   return (
-    <div className="h-screen bg-[#f0f9f7] flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-[#f0f9f7] flex flex-col">
       <Header />
 
       {/* Navigation Buttons */}
@@ -150,12 +150,12 @@ export default function LandingPage() {
       </div>
 
       {/* Sections Container */}
-      <div className="relative flex-1 pt-8">
-        <AnimatePresence initial={false} custom={currentSection}>
+      <div className="flex-1">
+        <AnimatePresence initial={false} custom={currentSection} mode="wait">
           {/* Section 1: Hero */}
           {currentSection === 0 && (
             <SectionWrapper sectionKey="hero">
-              <div className="w-full">
+              <div className="w-full py-12">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -185,39 +185,33 @@ export default function LandingPage() {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.4 }}
-                    className="text-lg text-[#6b7280] mb-8 max-w-3xl mx-auto leading-relaxed"
+                    className="text-lg text-[#6b7280] max-w-3xl mx-auto leading-relaxed mb-8"
                   >
                     <strong>Fi</strong>(파이)로 자산을 나누고, 최적의 조합을 <strong>Match</strong>해서<br />
                     수익을 키워<strong>(+)</strong>나가는 스마트한 포트폴리오 플랫폼
                   </motion.p>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-          >
-            <Link href="/login">
-              <motion.button
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-[#009178] text-white px-10 py-4 rounded-xl font-semibold text-xl hover:bg-[#004e42] transition-all shadow-lg flex items-center gap-3"
-              >
-                무료로 시작하기
-                <ArrowRight className="w-6 h-6" />
-              </motion.button>
-            </Link>
-            
-            <Link href="/portfolios">
-              <motion.button
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="border-2 border-[#009178] text-[#009178] px-10 py-4 rounded-xl font-semibold text-xl hover:bg-[#009178] hover:text-white transition-all"
-              >
-                포트폴리오 보기
-              </motion.button>
-            </Link>
-          </motion.div>
+                  {/* Features Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                    {features.map((feature, index) => (
+                      <motion.div
+                        key={feature.title}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                        whileHover={{ y: -5, scale: 1.02 }}
+                        className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#009178] hover:shadow-2xl transition-all"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="text-[#009178]">
+                            {feature.icon}
+                          </div>
+                          <h3 className="text-xl font-bold text-[#1f2937]">{feature.title}</h3>
+                        </div>
+                        <p className="text-base text-[#6b7280] leading-relaxed text-left">{feature.description}</p>
+                      </motion.div>
+                    ))}
+                  </div>
         </motion.div>
               </div>
             </SectionWrapper>

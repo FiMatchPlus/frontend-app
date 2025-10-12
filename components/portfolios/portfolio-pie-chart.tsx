@@ -36,7 +36,9 @@ export function PortfolioPieChart({ data, className = "", height = "320px" }: Po
     const option = {
       tooltip: {
         trigger: 'item',
-        formatter: '{b}<br/> {d}%'
+        formatter: (params: any) => {
+          return `${params.name} (${params.percent.toFixed(1)}%)`
+        }
       },
       series: [
         {

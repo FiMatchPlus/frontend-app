@@ -9,11 +9,12 @@ import { useAnalysisCache } from "@/contexts/AnalysisCacheContext"
 
 interface PortfolioDetailPanelProps {
   portfolio: PortfolioWithDetails
+  onPortfolioDeleted?: () => void
 }
 
 type TabType = "holdings" | "backtests" | "analysis"
 
-export function PortfolioDetailPanel({ portfolio }: PortfolioDetailPanelProps) {
+export function PortfolioDetailPanel({ portfolio, onPortfolioDeleted }: PortfolioDetailPanelProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { setAnalysisData } = useAnalysisCache()
@@ -40,7 +41,8 @@ export function PortfolioDetailPanel({ portfolio }: PortfolioDetailPanelProps) {
       <PortfolioDetailHeader 
         portfolio={portfolio} 
         activeTab={activeTab} 
-        onTabChange={handleTabChange} 
+        onTabChange={handleTabChange}
+        onPortfolioDeleted={onPortfolioDeleted}
       />
       <PortfolioTabContent 
         portfolio={portfolio} 

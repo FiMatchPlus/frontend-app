@@ -23,9 +23,12 @@ import { ArrowLeft, Save, Plus, X, ChevronDown, ChevronRight } from "lucide-reac
 import TermHelpButton from "@/components/ui/TermHelpButton"
 import TermChatbot from "@/components/ui/TermChatbot"
 import { CreateBacktestData, StopCondition } from "@/types/portfolio"
-import { createBacktest, transformToBacktestRequest, CreateBacktestResponse } from "@/lib/api/backtests"
-import { fetchPortfolioDetail } from "@/lib/api/portfolios"
-import { useBacktest } from "@/contexts/BacktestContext"
+import { 
+  getBacktestMetadata, 
+  updateBacktest, 
+  transformToBacktestRequest,
+  BacktestMetadataResponse 
+} from "@/lib/api/backtests"
 
 // 중지 조건 타입 옵션
 const STOP_CONDITION_TYPES = [
@@ -38,14 +41,15 @@ const STOP_CONDITION_TYPES = [
 const STOP_LOSS_CRITERIA = ["베타 일정값 초과", "VaR 초과", "MDD 초과", "손실 한계선"]
 const TAKE_PROFIT_CRITERIA = ["단일 종목 목표 수익률 달성"]
 
-export default function CreateBacktestPage() {
+export default function EditBacktestPage() {
   const router = useRouter()
   const params = useParams()
   const portfolioId = params.portfolioId as string
+  const backtestId = params.id as string
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [portfolioDetail, setPortfolioDetail] = useState<any>(null)
   const [selectedBenchmark, setSelectedBenchmark] = useState<string>("")
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
   const [alertDialog, setAlertDialog] = useState<{
     isOpen: boolean
     title: string
@@ -62,9 +66,6 @@ export default function CreateBacktestPage() {
     memo: "",
     stopConditions: []
   })
-
-  // 전역 백테스트 상태 사용
-  const { updateBacktestStatus, startPolling } = useBacktest()
 
   const [newStopCondition, setNewStopCondition] = useState<{
     type: 'stopLoss' | 'takeProfit' | 'period'
@@ -101,39 +102,81 @@ export default function CreateBacktestPage() {
     term: null
   })
 
-  // 포트폴리오 상세 정보 로드
+  // 백테스트 메타데이터 로드 및 폼 채우기
   useEffect(() => {
-    const loadPortfolioDetail = async () => {
+    const loadBacktestMetadata = async () => {
       try {
         setLoading(true)
-        const detail = await fetchPortfolioDetail(portfolioId)
-        
-        if (detail) {
-          setPortfolioDetail(detail)
-          // 포트폴리오의 기본 벤치마크를 설정
-          const defaultBenchmark = detail.rules?.basicBenchmark || "KOSPI"
-          setSelectedBenchmark(defaultBenchmark)
-        } else {
-          // 기본값으로 KOSPI 설정
-          setSelectedBenchmark("KOSPI")
+        const response = await getBacktestMetadata(backtestId)
+        const metadata = response.data
+
+        // 기존 데이터를 폼에 채우기
+        const stopConditions: StopCondition[] = []
+
+        // 기간 조건 추가
+        if (metadata.startAt && metadata.endAt) {
+          // ISO datetime을 date로 변환 (YYYY-MM-DD 형식)
+          const startDate = metadata.startAt.split('T')[0]
+          const endDate = metadata.endAt.split('T')[0]
+          
+          stopConditions.push({
+            id: Date.now().toString(),
+            type: 'period',
+            startDate,
+            endDate
+          })
         }
+
+        // 손절 조건 추가
+        if (metadata.rules?.stopLoss) {
+          metadata.rules.stopLoss.forEach((rule, index) => {
+            stopConditions.push({
+              id: `stopLoss-${index}`,
+              type: 'stopLoss',
+              criteria: rule.category,
+              value: rule.threshold,
+              description: rule.description
+            })
+          })
+        }
+
+        // 익절 조건 추가
+        if (metadata.rules?.takeProfit) {
+          metadata.rules.takeProfit.forEach((rule, index) => {
+            stopConditions.push({
+              id: `takeProfit-${index}`,
+              type: 'takeProfit',
+              criteria: rule.category,
+              value: rule.threshold,
+              description: rule.description
+            })
+          })
+        }
+
+        setFormData({
+          name: metadata.title,
+          memo: metadata.description || metadata.rules?.memo || "",
+          stopConditions
+        })
+
+        setSelectedBenchmark(metadata.benchmarkCode)
       } catch (error) {
-        console.error("Failed to load portfolio detail:", error)
-        // 기본값으로 KOSPI 설정
-        setSelectedBenchmark("KOSPI")
+        console.error("Failed to load backtest metadata:", error)
+        setAlertDialog({
+          isOpen: true,
+          title: '오류',
+          message: error instanceof Error ? error.message : "백테스트 정보를 불러오는데 실패했습니다.",
+          type: 'error'
+        })
       } finally {
         setLoading(false)
       }
     }
 
-    if (portfolioId) {
-      loadPortfolioDetail()
-    } else {
-      // 포트폴리오 ID가 없는 경우에도 기본값 설정
-      setSelectedBenchmark("KOSPI")
-      setLoading(false)
+    if (backtestId) {
+      loadBacktestMetadata()
     }
-  }, [portfolioId])
+  }, [backtestId, router])
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({
@@ -271,18 +314,6 @@ export default function CreateBacktestPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 포트폴리오 ID 유효성 검사
-    if (!portfolioId) {
-      setAlertDialog({
-        isOpen: true,
-        title: '오류',
-        message: '포트폴리오 ID가 필요합니다. 포트폴리오 목록에서 다시 시도해주세요.',
-        type: 'error'
-      })
-      setTimeout(() => router.push("/portfolios"), 1500)
-      return
-    }
-    
     // 유효성 검사
     if (!formData.name.trim()) {
       setAlertDialog({
@@ -317,34 +348,47 @@ export default function CreateBacktestPage() {
       return
     }
 
+    // 확인 다이얼로그 표시
+    setIsConfirmDialogOpen(true)
+  }
+
+  const handleConfirmUpdate = async () => {
+    setIsConfirmDialogOpen(false)
     setSubmitting(true)
+    
     try {
+      console.log("=== 백테스트 수정 폼 데이터 ===")
+      console.log("원본 폼 데이터:", JSON.stringify(formData, null, 2))
+      console.log("포트폴리오 ID:", portfolioId)
+      console.log("백테스트 ID:", backtestId)
+      console.log("선택된 벤치마크:", selectedBenchmark)
+      
       // 폼 데이터를 API 요청 형식으로 변환
       const requestData = transformToBacktestRequest(formData, portfolioId, selectedBenchmark)
       
-      // 백테스트 생성 API 호출 (비동기 작업 큐 방식)
-      const response: CreateBacktestResponse = await createBacktest(portfolioId, requestData)
+      console.log("=== 변환된 API 요청 데이터 ===")
+      console.log(JSON.stringify(requestData, null, 2))
       
-      // 전역 상태에서 CREATED 상태로 업데이트
-      updateBacktestStatus(portfolioId, response.data, 'CREATED')
+      // 백테스트 업데이트 API 호출
+      await updateBacktest(backtestId, requestData)
       
       setAlertDialog({
         isOpen: true,
-        title: '생성 완료',
-        message: `백테스트가 성공적으로 생성되었습니다.\n백테스트를 실행해주세요.\n백테스트 ID: ${response.data}`,
+        title: '수정 완료',
+        message: '백테스트가 성공적으로 수정되었습니다.\n백테스트를 다시 실행해주세요.',
         type: 'success'
       })
       
-      // 잠시 후 포트폴리오 목록으로 이동
+      // 잠시 후 백테스트 상세 페이지로 이동
       setTimeout(() => {
-        router.push("/portfolios")
-      }, 2000)
+        router.push(`/portfolios/backtests/${backtestId}`)
+      }, 1500)
     } catch (error) {
-      console.error("백테스트 요청 실패:", error)
-      const errorMessage = error instanceof Error ? error.message : "백테스트 요청에 실패했습니다."
+      console.error("백테스트 수정 실패:", error)
+      const errorMessage = error instanceof Error ? error.message : "백테스트 수정에 실패했습니다."
       setAlertDialog({
         isOpen: true,
-        title: '생성 실패',
+        title: '수정 실패',
         message: errorMessage,
         type: 'error'
       })
@@ -380,8 +424,8 @@ export default function CreateBacktestPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             뒤로가기
         </Button>
-          <h1 className="text-3xl font-bold text-[#1f2937]">백테스트 생성</h1>
-          <p className="text-[#6b7280] mt-2">중지 조건을 설정하여 백테스트를 실행하세요</p>
+          <h1 className="text-3xl font-bold text-[#1f2937]">백테스트 수정</h1>
+          <p className="text-[#6b7280] mt-2">백테스트 설정을 수정하세요</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-8">
@@ -434,11 +478,6 @@ export default function CreateBacktestPage() {
                     <SelectItem value="KOSDAQ">KOSDAQ</SelectItem>
                   </SelectContent>
                 </Select>
-                {portfolioDetail?.rules?.basicBenchmark && selectedBenchmark === portfolioDetail.rules.basicBenchmark && (
-                  <p className="text-sm text-[#6b7280] mt-1">
-                    포트폴리오 기본 벤치마크 지수로 설정되었습니다.
-                  </p>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -489,7 +528,6 @@ export default function CreateBacktestPage() {
                                 type="date"
                                 value={newStopCondition.type === 'period' ? newStopCondition.startDate || '' : ''}
                                 onChange={(e) => {
-                                  // 기간 설정 섹션에서는 타입 변경 없이 값만 업데이트
                                   setNewStopCondition(prev => ({
                                     ...prev,
                                     type: 'period',
@@ -505,7 +543,6 @@ export default function CreateBacktestPage() {
                                 type="date"
                                 value={newStopCondition.type === 'period' ? newStopCondition.endDate || '' : ''}
                                 onChange={(e) => {
-                                  // 기간 설정 섹션에서는 타입 변경 없이 값만 업데이트
                                   setNewStopCondition(prev => ({
                                     ...prev,
                                     type: 'period',
@@ -823,6 +860,42 @@ export default function CreateBacktestPage() {
           />
         )}
 
+        {/* 수정 확인 다이얼로그 */}
+        <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>백테스트 수정 확인</DialogTitle>
+              <DialogDescription className="pt-2 space-y-2">
+                <p>백테스트를 수정하시겠습니까?</p>
+                <p className="text-amber-600 font-semibold">
+                  ⚠️ 백테스트를 수정하면 기존 결과를 확인할 수 없게 됩니다.
+                </p>
+                <p className="text-sm text-[#6b7280]">
+                  수정 후에는 백테스트를 다시 실행해야 새로운 결과를 확인할 수 있습니다.
+                </p>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsConfirmDialogOpen(false)}
+                disabled={submitting}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirmUpdate}
+                disabled={submitting}
+                className="bg-[#009178] hover:bg-[#004e42]"
+              >
+                {submitting ? "수정 중..." : "수정"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* 알림 모달 */}
         <Dialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, isOpen: open }))}>
           <DialogContent className="sm:max-w-[425px]">
@@ -837,7 +910,13 @@ export default function CreateBacktestPage() {
             <DialogFooter>
               <Button
                 type="button"
-                onClick={() => setAlertDialog(prev => ({ ...prev, isOpen: false }))}
+                onClick={() => {
+                  setAlertDialog(prev => ({ ...prev, isOpen: false }))
+                  // 에러로 인해 로딩 상태가 끝났는데 데이터가 없으면 뒤로가기
+                  if (alertDialog.type === 'error' && !loading && !formData.name) {
+                    router.back()
+                  }
+                }}
                 className={alertDialog.type === 'error' ? '' : 'bg-[#009178] hover:bg-[#004e42]'}
               >
                 확인
@@ -849,5 +928,4 @@ export default function CreateBacktestPage() {
     </div>
   )
 }
-
 

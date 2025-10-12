@@ -45,6 +45,27 @@ export default function PortfoliosPage() {
     setSelectedPortfolio(portfolio)
   }
 
+  const handlePortfolioDeleted = async () => {
+    // 포트폴리오 목록 새로고침
+    try {
+      const portfolioList = await fetchPortfolioList()
+      setPortfolios(portfolioList)
+      
+      // 첫 번째 포트폴리오를 선택 (없으면 null)
+      if (portfolioList.length > 0) {
+        setSelectedPortfolio(portfolioList[0])
+      } else {
+        setSelectedPortfolio(null)
+      }
+
+      // 요약 정보도 새로고침
+      const summaryData = await fetchPortfolioSummary()
+      setPortfolioSummary(summaryData)
+    } catch (error) {
+      console.error("Failed to refresh portfolio data:", error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f0f9f7]">
@@ -99,11 +120,16 @@ export default function PortfoliosPage() {
 
             {/* Portfolio Detail Panel */}
             <section className="xl:col-span-2 animate-in fade-in duration-700 delay-500">
-              {selectedPortfolio && <PortfolioDetailPanel portfolio={selectedPortfolio} />}
+              {selectedPortfolio && (
+                <PortfolioDetailPanel 
+                  portfolio={selectedPortfolio} 
+                  onPortfolioDeleted={handlePortfolioDeleted}
+                />
+              )}
             </section>
           </div>
         ) : (
-          <PortfolioEmptyState />
+          <PortfolioEmptyState onShowAll={() => {}} />
         )}
       </main>
       

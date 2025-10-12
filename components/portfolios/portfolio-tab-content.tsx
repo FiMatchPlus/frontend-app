@@ -1,15 +1,32 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { Calendar, Target, Activity, PieChart, Plus, Loader2, Play, CheckCircle, XCircle, Edit } from "lucide-react"
+import { Calendar, Target, Activity, PieChart, Plus, Loader2, Play, CheckCircle, XCircle, Edit, MoreVertical, Trash2 } from "lucide-react"
 import type { PortfolioWithDetails } from "@/lib/api/portfolios"
 import type { BacktestResponse, BacktestStatus } from "@/types/portfolio"
 import { formatCurrency, formatPercent } from "@/utils/formatters"
 import { PortfolioPieChart } from "./portfolio-pie-chart"
 import { PortfolioAnalysisTab } from "./PortfolioAnalysisTab"
 import { fetchPortfolioBacktests, executeBacktest } from "@/lib/api"
+import { deleteBacktest } from "@/lib/api/backtests"
 import { useBacktest } from "@/contexts/BacktestContext"
 import Link from "next/link"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 interface PortfolioTabContentProps {
   portfolio: PortfolioWithDetails
@@ -21,6 +38,9 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
   const [isLoadingBacktests, setIsLoadingBacktests] = useState(false)
   const [backtestError, setBacktestError] = useState<string | null>(null)
   const [executingBacktests, setExecutingBacktests] = useState<Set<number>>(new Set())
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [backtestToDelete, setBacktestToDelete] = useState<{id: number, name: string} | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   
   // 전역 백테스트 상태 사용
   const { 
@@ -97,6 +117,32 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       })
     }
   }, [portfolio.id, updateBacktestStatus, startPolling])
+
+  // 백테스트 삭제 핸들러
+  const handleDeleteClick = (backtestId: number, backtestName: string) => {
+    setBacktestToDelete({ id: backtestId, name: backtestName })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!backtestToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const success = await deleteBacktest(backtestToDelete.id.toString())
+      if (success) {
+        setDeleteDialogOpen(false)
+        setBacktestToDelete(null)
+        // 백테스트 목록 새로고침
+        await loadBacktests()
+      }
+    } catch (error) {
+      console.error("백테스트 삭제 실패:", error)
+      alert(error instanceof Error ? error.message : "백테스트 삭제에 실패했습니다.")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   // 백테스트 내역을 가져오는 함수
   const loadBacktests = useCallback(async () => {
@@ -289,15 +335,9 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                       <div className="flex items-center gap-3">
                         {/* 액션 버튼 */}
                         <div className="flex items-center gap-2">
-                          {/* CREATED 상태이거나 상태가 없는 경우: 수정 + 실행 버튼 */}
+                          {/* CREATED 상태이거나 상태가 없는 경우: 실행 + 케밥 메뉴 */}
                           {(!displayStatus || displayStatus === 'created') && !isExecuting && (
                             <>
-                              <Link href={`/portfolios/${portfolio.id}/backtests/${bt.id}/edit`}>
-                                <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors">
-                                  <Edit className="w-3 h-3" />
-                                  수정
-                                </button>
-                              </Link>
                               <button
                                 onClick={() => handleExecuteBacktest(bt.id)}
                                 className="flex items-center gap-1 bg-[#009178] text-white px-3 py-1.5 rounded text-sm hover:bg-[#004e42] transition-colors"
@@ -305,29 +345,64 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                                 <Play className="w-3 h-3" />
                                 실행
                               </button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <MoreVertical className="w-4 h-4 text-[#6b7280]" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem asChild className="cursor-pointer">
+                                    <Link href={`/portfolios/${portfolio.id}/backtests/${bt.id}/edit`} className="flex items-center">
+                                      <Edit className="w-4 h-4 mr-2" />
+                                      수정
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteClick(bt.id, bt.name)} 
+                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    삭제
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </>
                           )}
                           
-                          {/* RUNNING 상태: 실행중 표시 */}
+                          {/* RUNNING 상태: 실행중 표시 + 케밥 메뉴 */}
                           {displayStatus === 'running' && (
-                            <div className="flex items-center gap-1 px-3 py-1.5 text-blue-600 text-sm">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              실행중...
-                            </div>
+                            <>
+                              <div className="flex items-center gap-1 px-3 py-1.5 text-blue-600 text-sm">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                실행중...
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <MoreVertical className="w-4 h-4 text-[#6b7280]" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteClick(bt.id, bt.name)} 
+                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    삭제
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </>
                           )}
                           
-                          {/* COMPLETED 상태: 상세보기 + 수정 + 재실행 버튼 */}
+                          {/* COMPLETED 상태: 상세보기 + 재실행 + 케밥 메뉴 */}
                           {displayStatus === 'completed' && (
                             <>
                               <Link href={`/portfolios/backtests/${bt.id}`}>
                                 <button className="px-3 py-1.5 border border-[#009178] text-[#009178] rounded text-sm hover:bg-[#f0f9f7] transition-colors">
                                   상세보기
-                                </button>
-                              </Link>
-                              <Link href={`/portfolios/${portfolio.id}/backtests/${bt.id}/edit`}>
-                                <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors">
-                                  <Edit className="w-3 h-3" />
-                                  수정
                                 </button>
                               </Link>
                               {!isExecuting && (
@@ -345,18 +420,35 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                                   재실행 중...
                                 </div>
                               )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <MoreVertical className="w-4 h-4 text-[#6b7280]" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem asChild className="cursor-pointer">
+                                    <Link href={`/portfolios/${portfolio.id}/backtests/${bt.id}/edit`} className="flex items-center">
+                                      <Edit className="w-4 h-4 mr-2" />
+                                      수정
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteClick(bt.id, bt.name)} 
+                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    삭제
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </>
                           )}
                           
-                          {/* FAILED 상태: 수정 + 재실행 버튼 */}
+                          {/* FAILED 상태: 재실행 + 케밥 메뉴 */}
                           {displayStatus === 'failed' && !isExecuting && (
                             <>
-                              <Link href={`/portfolios/${portfolio.id}/backtests/${bt.id}/edit`}>
-                                <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors">
-                                  <Edit className="w-3 h-3" />
-                                  수정
-                                </button>
-                              </Link>
                               <button
                                 onClick={() => handleExecuteBacktest(bt.id)}
                                 className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded text-sm hover:bg-orange-600 transition-colors"
@@ -364,15 +456,56 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                                 <Play className="w-3 h-3" />
                                 재실행
                               </button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <MoreVertical className="w-4 h-4 text-[#6b7280]" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem asChild className="cursor-pointer">
+                                    <Link href={`/portfolios/${portfolio.id}/backtests/${bt.id}/edit`} className="flex items-center">
+                                      <Edit className="w-4 h-4 mr-2" />
+                                      수정
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteClick(bt.id, bt.name)} 
+                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    삭제
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </>
                           )}
                           
-                          {/* FAILED 상태에서 재실행 중: 스피너 표시 */}
+                          {/* FAILED 상태에서 재실행 중: 스피너 + 케밥 메뉴 */}
                           {displayStatus === 'failed' && isExecuting && (
-                            <div className="flex items-center gap-1 px-3 py-1.5 text-orange-600 text-sm">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              재실행 중...
-                            </div>
+                            <>
+                              <div className="flex items-center gap-1 px-3 py-1.5 text-orange-600 text-sm">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                재실행 중...
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <MoreVertical className="w-4 h-4 text-[#6b7280]" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteClick(bt.id, bt.name)} 
+                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    삭제
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </>
                           )}
                           
                         </div>
@@ -406,6 +539,38 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
           holdings={portfolio.holdingStocks}
         />
       )}
+
+      {/* 백테스트 삭제 확인 모달 */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>백테스트 삭제</DialogTitle>
+            <DialogDescription className="pt-2">
+              정말로 <span className="font-semibold text-[#1f2937]">"{backtestToDelete?.name}"</span> 백테스트를 삭제하시겠습니까?
+              <br />
+              <span className="text-red-600 font-medium">이 작업은 되돌릴 수 없습니다.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              취소
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? "삭제 중..." : "삭제"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

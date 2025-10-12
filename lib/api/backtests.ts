@@ -142,6 +142,28 @@ export interface BacktestDetailResponse {
   }
 }
 
+// 백테스트 메타데이터 조회 API 응답 타입
+export interface BacktestMetadataResponse {
+  success: boolean
+  message: string
+  data: {
+    backtestId: number
+    portfolioId: number
+    title: string
+    description?: string
+    startAt: string // ISO 8601 datetime string
+    endAt: string   // ISO 8601 datetime string
+    createdAt: string
+    benchmarkCode: string
+    status: 'CREATED' | 'RUNNING' | 'COMPLETED' | 'FAILED'
+    rules: {
+      memo?: string
+      stopLoss: RuleItemRequest[]
+      takeProfit: RuleItemRequest[]
+    }
+  }
+}
+
 
 // 백테스트 생성 API 호출 함수 (비동기 작업 큐 방식)
 export async function createBacktest(
@@ -244,6 +266,111 @@ export async function getBacktestDetail(backtestId: string): Promise<BacktestDet
     if (error instanceof Error && error.name === "AbortError") {
       console.error("[Backtest] Detail request timeout after", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 상세 조회 시간이 초과되었습니다.")
+    }
+    
+    throw error
+  }
+}
+
+// 백테스트 메타데이터 조회 API 호출 함수
+export async function getBacktestMetadata(backtestId: string): Promise<BacktestMetadataResponse> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}/metadata`, {
+      method: 'GET',
+      headers: API_CONFIG.headers,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || `백테스트 메타데이터 조회에 실패했습니다. (${response.status})`)
+    }
+
+    const result: BacktestMetadataResponse = await response.json()
+    console.log("[Backtest] 백테스트 메타데이터 조회 성공:", result.data.backtestId)
+    return result
+  } catch (error) {
+    clearTimeout(timeoutId)
+    
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[Backtest] Metadata request timeout after", API_CONFIG.timeout, "ms")
+      throw new Error("백테스트 메타데이터 조회 시간이 초과되었습니다.")
+    }
+    
+    throw error
+  }
+}
+
+// 백테스트 업데이트 API 호출 함수
+export async function updateBacktest(
+  backtestId: string,
+  requestData: CreateBacktestRequest
+): Promise<{ success: boolean; message: string }> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(requestData),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || `백테스트 업데이트에 실패했습니다. (${response.status})`)
+    }
+
+    const result = await response.json()
+    console.log("[Backtest] 백테스트 업데이트 성공:", backtestId)
+    return result
+  } catch (error) {
+    clearTimeout(timeoutId)
+    
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[Backtest] Update request timeout after", API_CONFIG.timeout, "ms")
+      throw new Error("백테스트 업데이트 시간이 초과되었습니다.")
+    }
+    
+    throw error
+  }
+}
+
+// 백테스트 삭제 API 호출 함수
+export async function deleteBacktest(backtestId: string): Promise<boolean> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
+      method: 'DELETE',
+      headers: API_CONFIG.headers,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || `백테스트 삭제에 실패했습니다. (${response.status})`)
+    }
+
+    const result: { status: string; message?: string } = await response.json()
+    return result.status === 'success'
+  } catch (error) {
+    clearTimeout(timeoutId)
+    
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[Backtest] Delete request timeout after", API_CONFIG.timeout, "ms")
+      throw new Error("백테스트 삭제 요청 시간이 초과되었습니다.")
     }
     
     throw error

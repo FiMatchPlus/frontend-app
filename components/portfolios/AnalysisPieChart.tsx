@@ -28,7 +28,9 @@ export function AnalysisPieChart({ data, width = 200, height = 200 }: AnalysisPi
     const option = {
       tooltip: {
         trigger: 'item',
-        formatter: '{a} <br/>{b}: {c}% ({d}%)'
+        formatter: (params: any) => {
+          return `${params.name} (${params.value.toFixed(1)}%)`
+        }
       },
       series: [
         {
@@ -96,3 +98,4 @@ export function AnalysisPieChart({ data, width = 200, height = 200 }: AnalysisPi
     />
   )
 }
+
