@@ -378,3 +378,73 @@ export async function executeBacktest(backtestId: number): Promise<{ success: bo
     }
   }
 }
+
+// 다중 종목 실시간 데이터 타입 정의
+export interface StockMultiData {
+  ticker: string
+  name: string
+  currentPrice: number
+  dailyRate: number
+  dailyChange: number
+  marketCap: number
+  sign: "RISE" | "FALL" | "STEADY"
+}
+
+export interface StockMultiResponse {
+  success: boolean
+  message: string
+  data: {
+    marketStatus: {
+      isOpen: boolean
+      session: string
+      nextClose: string
+    }
+    data: StockMultiData[]
+  }
+}
+
+/**
+ * 여러 종목의 실시간 현재가를 조회하는 함수
+ */
+export async function fetchMultiStockPrices(codes: string[]): Promise<StockMultiData[]> {
+  try {
+    console.log("[API] Fetching multi stock prices for:", codes)
+
+    // Query string 생성: codes=005930&codes=000660&codes=035720
+    const params = codes.map(code => `codes=${code}`).join('&')
+    const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/multi?${params}`
+    console.log("[API] API URL:", apiUrl)
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: API_CONFIG.headers,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    console.log("[API] Response Status:", response.status)
+    console.log("[API] Response OK:", response.ok)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("[API] Error Response:", errorText)
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const result: StockMultiResponse = await response.json()
+    console.log("[API] Response Body:", result)
+
+    if (!result.success) {
+      throw new Error(result.message || "주식 데이터 조회에 실패했습니다.")
+    }
+
+    return result.data.data
+  } catch (error) {
+    console.error("[API] Multi stock fetch error:", error)
+    throw error
+  }
+}
