@@ -110,10 +110,10 @@ export default function EditBacktestPage() {
         const response = await getBacktestMetadata(backtestId)
         const metadata = response.data
 
-        // 기존 데이터를 폼에 채우기
+        // 기존 데이터
         const stopConditions: StopCondition[] = []
 
-        // 기간 조건 추가
+        // 기간 조건
         if (metadata.startAt && metadata.endAt) {
           // ISO datetime을 date로 변환 (YYYY-MM-DD 형식)
           const startDate = metadata.startAt.split('T')[0]
@@ -127,7 +127,7 @@ export default function EditBacktestPage() {
           })
         }
 
-        // 손절 조건 추가
+        // 손절 조건
         if (metadata.rules?.stopLoss) {
           metadata.rules.stopLoss.forEach((rule, index) => {
             stopConditions.push({
@@ -140,7 +140,7 @@ export default function EditBacktestPage() {
           })
         }
 
-        // 익절 조건 추가
+        // 익절 조건
         if (metadata.rules?.takeProfit) {
           metadata.rules.takeProfit.forEach((rule, index) => {
             stopConditions.push({
@@ -868,7 +868,7 @@ export default function EditBacktestPage() {
               <DialogDescription className="pt-2 space-y-2">
                 <p>백테스트를 수정하시겠습니까?</p>
                 <p className="text-amber-600 font-semibold">
-                  ⚠️ 백테스트를 수정하면 기존 결과를 확인할 수 없게 됩니다.
+                   백테스트를 수정하면 기존 결과를 확인할 수 없게 됩니다.
                 </p>
                 <p className="text-sm text-[#6b7280]">
                   수정 후에는 백테스트를 다시 실행해야 새로운 결과를 확인할 수 있습니다.

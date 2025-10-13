@@ -8,7 +8,7 @@ import { getBacktestDetail } from "@/lib/api/backtests"
 import BacktestChart from "@/components/portfolios/BacktestChart"
 import { MarkdownReport } from "@/components/portfolios/MarkdownReport"
 import FloatingChatbot from "@/components/ui/FloatingChatbot"
-import { ArrowLeft, Download, Share2 } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 export default function BacktestDetailClient() {
   const router = useRouter()
@@ -99,16 +99,6 @@ export default function BacktestDetailClient() {
           <Button variant="ghost" onClick={() => router.back()} className="text-[#1f2937] hover:text-[#009178]">
             <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
           </Button>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Share2 className="w-4 h-4" />
-              공유
-            </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              PDF 다운로드
-            </Button>
-          </div>
         </div>
 
         {/* 리포트 헤더 */}
@@ -180,7 +170,7 @@ export default function BacktestDetailClient() {
               {/* 손절 조건 */}
               <div>
                 <h3 className="text-lg font-medium text-[#1f2937] mb-3">손절 조건</h3>
-                {backtestData.rules.stopLoss.length > 0 ? (
+                {backtestData.rules.stopLoss && backtestData.rules.stopLoss.length > 0 ? (
                   <div className="space-y-3">
                     {backtestData.rules.stopLoss.map((rule: any, index: number) => (
                       <div key={index} className="p-3 border border-red-200 bg-red-50 rounded-lg">
@@ -201,7 +191,7 @@ export default function BacktestDetailClient() {
               {/* 익절 조건 */}
               <div>
                 <h3 className="text-lg font-medium text-[#1f2937] mb-3">익절 조건</h3>
-                {backtestData.rules.takeProfit.length > 0 ? (
+                {backtestData.rules.takeProfit && backtestData.rules.takeProfit.length > 0 ? (
                   <div className="space-y-3">
                     {backtestData.rules.takeProfit.map((rule: any, index: number) => (
                       <div key={index} className="p-3 border border-green-200 bg-green-50 rounded-lg">
@@ -222,7 +212,7 @@ export default function BacktestDetailClient() {
               {/* 리밸런싱 조건 */}
               <div>
                 <h3 className="text-lg font-medium text-[#1f2937] mb-3">리밸런싱</h3>
-                {backtestData.rules.rebalance.length > 0 ? (
+                {backtestData.rules.rebalance && backtestData.rules.rebalance.length > 0 ? (
                   <div className="space-y-3">
                     {backtestData.rules.rebalance.map((rule: any, index: number) => (
                       <div key={index} className="p-3 border border-blue-200 bg-blue-50 rounded-lg">

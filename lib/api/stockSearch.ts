@@ -1,7 +1,7 @@
 import type { StockSearchResult } from "@/types/stock"
 import { API_CONFIG } from "../api"
 
-// 기존 API 모듈의 응답 형식에 맞춤
+// API 기본 응답 형식
 interface ApiResponse<T> {
   status: string
   message: string

@@ -96,27 +96,50 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
 
   // 분석 결과를 파이차트 데이터로 변환
   const convertToPieChartData = (result: AnalysisResult) => {
-    const colorMap: Record<string, string> = {}
+    // holdings 배열 [{code, name, weight}]
+    if (Array.isArray(result.holdings)) {
+      return result.holdings.map((holding: any, index: number) => ({
+        name: holding.name,
+        value: holding.weight * 100, // 0.05 -> 5%
+        color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`
+      }))
+    }
     
-    // 기존 보유 종목의 색상 매핑 생성
-    holdings.forEach((holding, index) => {
-      colorMap[holding.ticker] = `hsl(${(index * 137.5) % 360}, 70%, 50%)`
-    })
+    // { "005930": 0.05 }
+    if (typeof result.holdings === 'object' && !Array.isArray(result.holdings)) {
+      const colorMap: Record<string, string> = {}
+      const nameMap: Record<string, string> = {}
+      
+      // 기존 보유 종목의 색상 매핑 및 이름 매핑 생성
+      holdings.forEach((h, idx) => {
+        colorMap[h.ticker] = `hsl(${(idx * 137.5) % 360}, 70%, 50%)`
+        nameMap[h.ticker] = h.name
+      })
 
-    return Object.entries(result.holdings).map(([ticker, weight]) => ({
-      name: getStockName(ticker, portfolioId),
-      value: weight,
-      color: colorMap[ticker] || `hsl(${Math.random() * 360}, 70%, 50%)`
-    }))
+      const tickers = Object.keys(result.holdings).sort()
+      return tickers.map((ticker, index) => ({
+        name: nameMap[ticker] || getStockName(ticker, portfolioId),
+        value: (result.holdings as any)[ticker] * 100,  // 0.05 -> 5%
+        color: colorMap[ticker] || `hsl(${(index * 137.5) % 360}, 70%, 50%)`
+      }))
+    }
+    
+    return []
   }
 
   // 분석 결과 타입을 한글명으로 변환
+  // /api/portfolios/${id}/analysis 는 이미 한글로 제공됨
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
-      case 'user':
+      case '내 포트폴리오':
         return '사용자 지정'
-      case 'min-variance':
+      case '하방위험 최소화':
+      case 'min_variance':
+      case 'min-downside-risk':
+      case 'min_downside_risk':
         return '안정형'
+      case '소르티노 비율 최적화':
+      case 'max_sortino':
       case 'max-sharpe':
         return '공격형'
       default:
@@ -217,7 +240,10 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
   }
 
   // 분석 완료 상태
-  if (analysisData.status === 'COMPLETED' && analysisData.results.length > 0) {
+  // /api/portfolios/${id}/analysis 응답: data.results 사용
+  const results = analysisData.results || analysisData.portfolio_insights || []
+  
+  if (analysisData.status === 'COMPLETED' && results.length > 0) {
     return (
       <div className="bg-[#f0f9f7] rounded-xl p-4">
         <div className="flex items-center gap-2 mb-4">
@@ -227,7 +253,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
         
         {/* 분석 결과 카드들 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {analysisData.results.map((result, index) => {
+          {results.map((result, index) => {
             const pieChartData = convertToPieChartData(result)
             
             return (
@@ -264,7 +290,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
                         <span className="text-[#1f2937] truncate">{item.name}</span>
                       </div>
                       <span className="text-[#6b7280] font-medium">
-                        {(item.value * 100).toFixed(1)}%
+                        {item.value.toFixed(1)}%
                       </span>
                     </div>
                   ))}

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, ArrowLeft, CheckCircle, AlertCircle, Shield, Target, TrendingUp } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle, AlertCircle, Shield, Target, TrendingUp, Calendar } from "lucide-react"
 import Header from "@/components/header"
-import { fetchPortfolioAnalysisDetail, fetchPortfolioList } from "@/lib/api/portfolios"
+import { fetchPortfolioAnalysisDetail } from "@/lib/api/portfolios"
 import { useTickerMapping } from "@/contexts/TickerMappingContext"
 import { PortfolioPieChart } from "@/components/portfolios/portfolio-pie-chart"
 import { RiskEfficiencyChart } from "@/components/portfolios/RiskEfficiencyChart"
@@ -33,26 +33,29 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       setError(null)
       
       try {
-        // 포트폴리오 목록과 분석 상세 데이터를 병렬로 가져오기
-        const [portfolioList, analysisResult] = await Promise.all([
-          fetchPortfolioList(),
-          fetchPortfolioAnalysisDetail(portfolioId)
-        ])
+        // API 응답 구조: data.status, data.portfolioName, data.results 등
+        const data = await fetchPortfolioAnalysisDetail(portfolioId)
         
-        if (!analysisResult) {
+        if (!data) {
           setError("분석 데이터를 불러올 수 없습니다.")
           return
         }
         
-        // 포트폴리오 이름 설정 (API 우선, fallback으로 목록에서 찾기)
-        if (analysisResult.portfolioName) {
-          setPortfolioName(analysisResult.portfolioName)
-        } else {
-          const portfolio = portfolioList.find(p => p.id.toString() === portfolioId)
-          setPortfolioName(portfolio?.name || "포트폴리오 분석")
-        }
+        // 포트폴리오 이름 설정
+        setPortfolioName(data.portfolioName || "포트폴리오 분석")
         
-        setAnalysisData(analysisResult)
+        // API 응답에서 results 직접 사용
+        const resultsData = data.results || data.portfolio_insights || []
+        
+        setAnalysisData({
+          status: data.status,
+          portfolioName: data.portfolioName,
+          analysisDate: data.analysisDate,
+          analysisPeriod: data.analysisPeriod,
+          results: resultsData,
+          comparative_analysis: data.comparative_analysis,
+          personalized_recommendation: data.personalized_recommendation
+        })
       } catch (err) {
         setError(err instanceof Error ? err.message : "분석 데이터를 불러오는데 실패했습니다.")
       } finally {
@@ -73,31 +76,66 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     return colors[level]
   }
 
-  // 분석 타입 라벨
+  // 분석 타입 라벨 (전체 이름)
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
       case 'user':
+      case '내 포트폴리오':
         return '사용자 포트폴리오'
-      case 'min-variance':
+      case 'min_variance':
+      case 'min_downside_risk':
         return '최소분산 포트폴리오'
-      case 'max-sharpe':
-        return '최대샤프 포트폴리오'
+      case 'max_sortino':
+      case '소르티노 비율 최적화':
+        return '소르티노 최적화 포트폴리오'
       default:
         return type
     }
   }
 
-  // 파이차트 데이터 변환 (포트폴리오 상세 페이지와 동일한 색상 방식)
+  // 분석 타입 짧은 이름
+  const getAnalysisTypeShortLabel = (type: string) => {
+    switch (type) {
+      case 'user':
+      case '내 포트폴리오':
+        return '내 포트폴리오'
+      case 'min_variance':
+      case 'min_downside_risk':
+        return '최소분산'
+      case 'max_sortino':
+      case '소르티노 비율 최적화':
+        return '소르티노 최적화'
+      default:
+        return type
+    }
+  }
+
+  // 파이차트 데이터 변환
   const convertToPieChartData = (result: AnalysisResult) => {
-    const tickers = Object.keys(result.holdings).sort() // 일관된 순서를 위해 정렬
+    // API 응답 구조: holdings: [{code, name, weight}]
+    if (Array.isArray(result.holdings)) {
+      return result.holdings.map((holding: any, index: number) => ({
+        name: holding.name,
+        percent: holding.weight * 100, // 0.05 -> 5%
+        trend: 0,
+        color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`,
+        amount: 0
+      }))
+    }
     
-    return tickers.map((ticker, index) => ({
-      name: getStockName(ticker, parseInt(portfolioId)),
-      percent: result.holdings[ticker] * 100,
-      trend: 0,
-      color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`, // 포트폴리오 상세 페이지와 동일
-      amount: 0
-    }))
+    // { "005930": 0.05 }
+    if (typeof result.holdings === 'object' && !Array.isArray(result.holdings)) {
+      const tickers = Object.keys(result.holdings).sort()
+      return tickers.map((ticker, index) => ({
+        name: getStockName(ticker, parseInt(portfolioId)),
+        percent: (result.holdings as any)[ticker] * 100,
+        trend: 0,
+        color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`,
+        amount: 0
+      }))
+    }
+    
+    return []
   }
 
   // 로딩 상태
@@ -143,13 +181,14 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
   }
 
   // 스캐터 차트 데이터 변환
-  const scatterData = analysisData.results.map(result => ({
-    name: getAnalysisTypeLabel(result.type).replace(' 포트폴리오', ''),
+  const scatterData = (analysisData.results || []).map(result => ({
+    name: getAnalysisTypeShortLabel(result.type),
     type: result.type,
     riskLevel: result.riskLevel,
-    // API에서 받은 메트릭 사용 (없으면 기본값)
-    risk: result.metrics?.stdDeviation ?? (result.type === 'user' ? 27.08 : result.type === 'min-variance' ? 6.39 : 8.09),
-    sharpe: result.metrics?.sharpeRatio ?? (result.type === 'user' ? 0.249 : result.type === 'min-variance' ? 10.644 : 9.234),
+    // API에서 받은 메트릭 사용 (하방 표준편차를 백분율로 변환)
+    risk: result.metrics?.downsideStd ? result.metrics.downsideStd * 100 : 0,
+    sortino: result.metrics?.sortinoRatio ?? 0,
+    expectedReturn: result.metrics?.expectedReturn ? result.metrics.expectedReturn * 100 : 0,
     color: getRiskColor(result.riskLevel)
   }))
 
@@ -161,15 +200,15 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
         {/* 차트 영역 (60%) */}
         <div className="lg:col-span-3 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
           <h3 className="text-xl font-bold text-[#1f2937] mb-2">포트폴리오 위험-효율성 분석</h3>
-          <p className="text-[#6b7280] mb-4 text-sm">변동성(위험)과 샤프비율(효율성)로 비교한 포지셔닝</p>
+          <p className="text-[#6b7280] mb-4 text-sm">하방 위험과 소르티노 비율로 비교한 포지셔닝</p>
           
           <RiskEfficiencyChart data={scatterData} />
           
           <div className="mt-4 flex justify-center gap-6">
             {scatterData.map(d => (
               <div key={d.type} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></div>
-                <span className="font-medium text-sm text-[#1f2937]">{d.name}</span>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }}></div>
+                <span className="font-medium text-sm text-[#1f2937] whitespace-nowrap">{d.name}</span>
               </div>
             ))}
           </div>
@@ -180,25 +219,31 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
             <h3 className="text-lg font-bold text-[#1f2937] mb-4">핵심 지표 요약</h3>
             <div className="space-y-3">
-              {analysisData.results.map((result) => (
+              {(analysisData.results || []).map((result) => (
                 <div key={result.type} className="p-3 rounded-lg border-2 hover:shadow-md transition-all" style={{ borderColor: getRiskColor(result.riskLevel) }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-sm text-[#1f2937]">{getAnalysisTypeLabel(result.type).replace(' 포트폴리오', '')}</span>
-                    <Badge className={`text-xs font-medium ${PORTFOLIO_RISK_LEVEL_COLORS[result.riskLevel]}`}>
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <span className="font-semibold text-sm text-[#1f2937] whitespace-nowrap">{getAnalysisTypeShortLabel(result.type)}</span>
+                    <Badge className={`text-xs font-medium flex-shrink-0 ${PORTFOLIO_RISK_LEVEL_COLORS[result.riskLevel]}`}>
                       {PORTFOLIO_RISK_LEVEL_LABELS[result.riskLevel]}
                     </Badge>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <p className="text-xs text-[#6b7280]">변동성</p>
-                      <p className="font-semibold text-base text-[#1f2937]">
+                      <p className="text-xs text-[#6b7280]">기대수익률</p>
+                      <p className="font-semibold text-sm text-[#1f2937]">
+                        {scatterData.find(d => d.type === result.type)?.expectedReturn.toFixed(2)}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#6b7280]">하방위험</p>
+                      <p className="font-semibold text-sm text-[#1f2937]">
                         {scatterData.find(d => d.type === result.type)?.risk.toFixed(2)}%
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#6b7280]">샤프비율</p>
-                      <p className="font-semibold text-base" style={{ color: getRiskColor(result.riskLevel) }}>
-                        {scatterData.find(d => d.type === result.type)?.sharpe.toFixed(3)}
+                      <p className="text-xs text-[#6b7280]">소르티노</p>
+                      <p className="font-semibold text-sm" style={{ color: getRiskColor(result.riskLevel) }}>
+                        {scatterData.find(d => d.type === result.type)?.sortino.toFixed(3)}
                       </p>
                     </div>
                   </div>
@@ -212,28 +257,60 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             <ul className="space-y-2 text-sm text-[#374151]">
               <li className="flex items-start gap-2">
                 <span className="text-[#009178] font-bold">•</span>
-                <span><span className="font-semibold">왼쪽 상단:</span> 낮은 위험 + 높은 효율성</span>
+                <span><span className="font-semibold">왼쪽 상단:</span> 낮은 하방위험 + 높은 효율성</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#009178] font-bold">•</span>
-                <span><span className="font-semibold">오른쪽 하단:</span> 높은 위험 + 낮은 효율성</span>
+                <span><span className="font-semibold">오른쪽 하단:</span> 높은 하방위험 + 낮은 효율성</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#009178] font-bold">•</span>
-                <span><span className="font-semibold">샤프비율:</span> 위험 대비 수익 효율성</span>
+                <span><span className="font-semibold">소르티노 비율:</span> 하방위험 대비 수익 효율성</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#009178] font-bold">•</span>
-                <span><span className="font-semibold">변동성:</span> 투자 위험의 크기</span>
+                <span><span className="font-semibold">하방위험:</span> 손실 발생 시 변동성</span>
               </li>
             </ul>
           </div>
         </div>
       </div>
 
+      {/* 비교 분석 */}
+      {analysisData.comparative_analysis && (
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
+          <div className="flex items-baseline gap-2 mb-6">
+            <h3 className="text-xl font-bold text-[#1f2937]">포트폴리오 비교</h3>
+            <span className="text-xs text-[#6b7280] bg-gray-100 px-2 py-0.5 rounded">현재 평가액 기준</span>
+          </div>
+          
+          {/* 핵심 차별점 */}
+          <div className="mb-6 p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border border-[#009178]">
+            <h4 className="font-semibold text-base text-[#1f2937] mb-2">핵심 차별점</h4>
+            <p className="text-sm text-[#374151]">{analysisData.comparative_analysis.key_differentiator}</p>
+          </div>
+
+          {/* 3가지 관점 비교 */}
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <h4 className="font-semibold text-sm text-blue-900 mb-2">위험 관점</h4>
+              <p className="text-xs text-blue-800 leading-relaxed">{analysisData.comparative_analysis.three_way_comparison.risk_perspective}</p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+              <h4 className="font-semibold text-sm text-purple-900 mb-2">수익 관점</h4>
+              <p className="text-xs text-purple-800 leading-relaxed">{analysisData.comparative_analysis.three_way_comparison.return_perspective}</p>
+            </div>
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <h4 className="font-semibold text-sm text-amber-900 mb-2">효율성 관점</h4>
+              <p className="text-xs text-amber-800 leading-relaxed">{analysisData.comparative_analysis.three_way_comparison.efficiency_perspective}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 3개 포트폴리오 비교 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {analysisData.results.map((result) => {
+        {(analysisData.results || []).map((result) => {
           const pieChartData = convertToPieChartData(result)
           const metrics = scatterData.find(d => d.type === result.type)
           
@@ -250,27 +327,45 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                 {/* 주요 지표 */}
                 <div className="space-y-3 mb-6 pb-6 border-b">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-[#6b7280] font-medium">변동성</span>
+                    <span className="text-sm text-[#6b7280] font-medium">기대수익률</span>
+                    <span className="font-semibold text-base text-[#1f2937]">{metrics?.expectedReturn.toFixed(2)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-[#6b7280] font-medium">하방위험</span>
                     <span className="font-semibold text-base text-[#1f2937]">{metrics?.risk.toFixed(2)}%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-[#6b7280] font-medium">샤프비율</span>
+                    <span className="text-sm text-[#6b7280] font-medium">소르티노 비율</span>
                     <span className="font-semibold text-base" style={{ color: getRiskColor(result.riskLevel) }}>
-                      {metrics?.sharpe.toFixed(3)}
+                      {metrics?.sortino.toFixed(3)}
                     </span>
                   </div>
                 </div>
 
+                {/* 위험 프로필 */}
+                {result.risk_profile && (
+                  <div className="mb-6 p-4 rounded-xl border-2" style={{ borderColor: getRiskColor(result.riskLevel), backgroundColor: `${getRiskColor(result.riskLevel)}10` }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="w-4 h-4" style={{ color: getRiskColor(result.riskLevel) }} />
+                      <h4 className="font-semibold text-sm" style={{ color: getRiskColor(result.riskLevel) }}>
+                        {result.risk_profile.risk_level}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-[#374151] mb-2">{result.risk_profile.suitability}</p>
+                    <p className="text-xs text-[#6b7280] leading-relaxed">{result.risk_profile.interpretation}</p>
+                  </div>
+                )}
+
                 {/* 강점/약점 */}
                 <div className="space-y-4 mb-6">
-                  {(result.strengths && result.strengths.length > 0) && (
+                  {(result.key_strengths && result.key_strengths.length > 0) && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <CheckCircle className="text-green-500" size={18} />
                         <h4 className="font-semibold text-sm text-[#1f2937]">강점</h4>
                       </div>
                       <ul className="space-y-1.5">
-                        {result.strengths.map((strength, idx) => (
+                        {result.key_strengths.map((strength, idx) => (
                           <li key={idx} className="flex gap-2 items-start text-xs text-[#374151]">
                             <span className="text-green-500 font-bold">✓</span>
                             <span>{strength}</span>
@@ -280,14 +375,14 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                     </div>
                   )}
 
-                  {(result.weaknesses && result.weaknesses.length > 0) && (
+                  {(result.key_weaknesses && result.key_weaknesses.length > 0) && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <AlertCircle className="text-red-500" size={18} />
                         <h4 className="font-semibold text-sm text-[#1f2937]">약점</h4>
                       </div>
                       <ul className="space-y-1.5">
-                        {result.weaknesses.map((weakness, idx) => (
+                        {result.key_weaknesses.map((weakness, idx) => (
                           <li key={idx} className="flex gap-2 items-start text-xs text-[#374151]">
                             <span className="text-red-500 font-bold">⚠</span>
                             <span>{weakness}</span>
@@ -298,12 +393,37 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                   )}
 
                   {/* API에서 강점/약점이 없는 경우 기본 메시지 */}
-                  {(!result.strengths || result.strengths.length === 0) && (!result.weaknesses || result.weaknesses.length === 0) && (
+                  {(!result.key_strengths || result.key_strengths.length === 0) && (!result.key_weaknesses || result.key_weaknesses.length === 0) && (
                     <div className="text-center text-[#6b7280] py-3">
                       <p className="text-xs">상세 분석 정보가 준비 중입니다.</p>
                     </div>
                   )}
                 </div>
+
+                {/* 성과 인사이트 */}
+                {result.performance_insight && (
+                  <div className="mb-6 space-y-3">
+                    <h4 className="font-semibold text-sm text-[#1f2937] flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-[#009178]" />
+                      성과 분석
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-xs font-medium text-blue-900 mb-1">위험</p>
+                        <p className="text-xs text-blue-800 leading-relaxed">{result.performance_insight.risk_interpretation}</p>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p className="text-xs font-medium text-purple-900 mb-1">수익</p>
+                        <p className="text-xs text-purple-800 leading-relaxed">{result.performance_insight.return_interpretation}</p>
+                      </div>
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <p className="text-xs font-medium text-amber-900 mb-1">효율성</p>
+                        <p className="text-xs text-amber-800 leading-relaxed">{result.performance_insight.efficiency_interpretation}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
 
                 {/* 종목 구성 - 파이차트 */}
                 <div>
@@ -315,7 +435,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                     />
                   </div>
                   <div className="space-y-2">
-                    {pieChartData.map((item, index) => (
+                    {pieChartData.map((item: any, index: number) => (
                       <div key={index} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
                           <div 
@@ -341,109 +461,203 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
 
   // 추천 탭 컴포넌트
   const RecommendationTab = () => {
-    const recommendations = [
-      { 
-        title: '안정 추구형', 
-        Icon: Shield, 
-        bgColor: 'bg-[#10b981]',
-        lightBg: 'bg-green-50',
-        border: 'border-green-300',
-        textColor: 'text-green-800',
-        portfolio: '최소분산 포트폴리오', 
-        desc: '손실을 최소화하고 안정적인 투자를 원하시나요?', 
-        features: ['변동성 극소화로 안정적 투자', '심리적 안정감 제공', '단기 투자에 적합', '손실 위험 최소화']
-      },
-      { 
-        title: '효율 추구형', 
-        Icon: Target, 
-        bgColor: 'bg-[#f59e0b]',
-        lightBg: 'bg-yellow-50',
-        border: 'border-yellow-300',
-        textColor: 'text-yellow-800',
-        portfolio: '최대샤프 포트폴리오', 
-        desc: '위험 대비 최고의 수익을 원하시나요?', 
-        features: ['최고의 위험 대비 수익', '효율적인 자산 배분', '중기 투자에 적합', '균형잡힌 리스크 관리']
-      },
-      { 
-        title: '수익 추구형', 
-        Icon: TrendingUp, 
-        bgColor: 'bg-[#ef4444]',
-        lightBg: 'bg-red-50',
-        border: 'border-red-300',
-        textColor: 'text-red-800',
-        portfolio: '사용자 포트폴리오', 
-        desc: '높은 수익을 위해 위험을 감수할 수 있나요?', 
-        features: ['높은 수익 가능성', '적극적 포트폴리오 구성', '장기 투자에 적합', '변동성 감수 필요']
-      }
-    ]
+    // API 데이터가 없는 경우 기본 추천 사용
+    if (!analysisData.personalized_recommendation) {
+      const recommendations = [
+        { 
+          title: '안정 추구형', 
+          Icon: Shield, 
+          bgColor: 'bg-[#10b981]',
+          lightBg: 'bg-green-50',
+          border: 'border-green-300',
+          textColor: 'text-green-800',
+          portfolio: '최소 하방위험 포트폴리오', 
+          desc: '손실을 최소화하고 안정적인 투자를 원하시나요?', 
+          features: ['하방위험 극소화로 안정적 투자', '심리적 안정감 제공', '단기 투자에 적합', '손실 위험 최소화']
+        },
+        { 
+          title: '효율 추구형', 
+          Icon: Target, 
+          bgColor: 'bg-[#f59e0b]',
+          lightBg: 'bg-yellow-50',
+          border: 'border-yellow-300',
+          textColor: 'text-yellow-800',
+          portfolio: '소르티노 최적화 포트폴리오', 
+          desc: '하방위험 대비 최고의 수익을 원하시나요?', 
+          features: ['최고의 하방위험 대비 수익', '효율적인 자산 배분', '중기 투자에 적합', '균형잡힌 리스크 관리']
+        },
+        { 
+          title: '수익 추구형', 
+          Icon: TrendingUp, 
+          bgColor: 'bg-[#ef4444]',
+          lightBg: 'bg-red-50',
+          border: 'border-red-300',
+          textColor: 'text-red-800',
+          portfolio: '사용자 포트폴리오', 
+          desc: '높은 수익을 위해 위험을 감수할 수 있나요?', 
+          features: ['높은 수익 가능성', '적극적 포트폴리오 구성', '장기 투자에 적합', '하방위험 감수 필요']
+        }
+      ]
+
+      return (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recommendations.map(({ title, Icon, bgColor, lightBg, border, textColor, portfolio, desc, features }) => (
+              <div key={title} className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-t-4 ${border} hover:shadow-2xl transition-all`}>
+                <div className={`${bgColor} w-12 h-12 rounded-full flex items-center justify-center mb-4`}>
+                  <Icon className="text-white" size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-[#1f2937] mb-3">{title}</h3>
+                <p className="text-sm text-[#6b7280] mb-4 leading-relaxed">{desc}</p>
+                <div className={`${lightBg} p-4 rounded-xl mb-4 border ${border}`}>
+                  <p className={`font-semibold text-sm ${textColor}`}>→ {portfolio}</p>
+                </div>
+                <ul className="text-sm space-y-2 text-[#374151]">
+                  {features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className={`${bgColor} text-white font-semibold text-xs px-1.5 py-0.5 rounded mt-0.5`}>{i + 1}</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // API 데이터 기반 추천
+    const recommendation = analysisData.personalized_recommendation
 
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recommendations.map(({ title, Icon, bgColor, lightBg, border, textColor, portfolio, desc, features }) => (
-            <div key={title} className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-t-4 ${border} hover:shadow-2xl transition-all`}>
-              <div className={`${bgColor} w-12 h-12 rounded-full flex items-center justify-center mb-4`}>
-                <Icon className="text-white" size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-[#1f2937] mb-3">{title}</h3>
-              <p className="text-sm text-[#6b7280] mb-4 leading-relaxed">{desc}</p>
-              <div className={`${lightBg} p-4 rounded-xl mb-4 border ${border}`}>
-                <p className={`font-semibold text-sm ${textColor}`}>→ {portfolio}</p>
-              </div>
-              <ul className="text-sm space-y-2 text-[#374151]">
-                {features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className={`${bgColor} text-white font-semibold text-xs px-1.5 py-0.5 rounded mt-0.5`}>{i + 1}</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        {/* 최종 가이드 */}
+        <div className="bg-gradient-to-br from-[#009178] to-[#004e42] rounded-2xl shadow-xl p-6 text-white">
+          <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+            <Target className="w-6 h-6" />
+            투자 가이드
+          </h3>
+          <p className="text-sm leading-relaxed opacity-95">{recommendation.final_guidance}</p>
         </div>
 
+        {/* 위험 성향별 추천 */}
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
-          <h3 className="text-lg font-bold text-[#1f2937] mb-6 text-center">투자 유형별 가이드</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div className="h-[136px] p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178]">
-                <p className="font-semibold text-base mb-2 text-[#1f2937]">위험 성향 평가</p>
-                <ul className="text-sm text-[#374151] space-y-1.5">
-                  <li><span className="font-semibold">저위험:</span> 손실 최소화, 안정성 우선 → 최소분산</li>
-                  <li><span className="font-semibold">중위험:</span> 효율적 수익과 안정성 균형 → 최대샤프</li>
-                  <li><span className="font-semibold">고위험:</span> 높은 수익 위해 변동성 감수 → 사용자</li>
-                </ul>
+          <h3 className="text-lg font-bold text-[#1f2937] mb-6 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-[#009178]" />
+            위험 성향별 맞춤 추천
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="p-4 bg-green-50 rounded-xl border-2 border-green-300 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="bg-green-500 w-10 h-10 rounded-full flex items-center justify-center">
+                  <Shield className="text-white" size={20} />
+                </div>
+                <h4 className="font-bold text-base text-green-900">저위험 성향</h4>
               </div>
-
-              <div className="h-[136px] p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178]">
-                <p className="font-semibold text-base mb-2 text-[#1f2937]">투자 목표 고려</p>
-                <ul className="text-sm text-[#374151] space-y-1.5">
-                  <li><span className="font-semibold">자산 보존:</span> 안정적 운용이 목표 → 최소분산</li>
-                  <li><span className="font-semibold">균형 성장:</span> 리스크 관리하며 성장 → 최대샤프</li>
-                  <li><span className="font-semibold">적극 성장:</span> 공격적 수익 추구 → 사용자</li>
-                </ul>
-              </div>
+              <p className="text-sm text-green-800 leading-relaxed">{recommendation.risk_tolerance_assessment.low_risk_tolerance}</p>
             </div>
-
-            <div className="space-y-4">
-              <div className="h-[136px] p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178]">
-                <p className="font-semibold text-base mb-2 text-[#1f2937]">투자 기간별 추천</p>
-                <ul className="text-sm text-[#374151] space-y-1.5">
-                  <li><span className="font-semibold">단기 (1년 미만):</span> 최소분산 - 안정적 운용</li>
-                  <li><span className="font-semibold">중기 (1-3년):</span> 최대샤프 - 효율적 성장</li>
-                  <li><span className="font-semibold">장기 (3년 이상):</span> 사용자 - 적극적 투자</li>
-                </ul>
+            
+            <div className="p-4 bg-yellow-50 rounded-xl border-2 border-yellow-300 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center">
+                  <Target className="text-white" size={20} />
+                </div>
+                <h4 className="font-bold text-base text-yellow-900">중위험 성향</h4>
               </div>
-
-              <div className="h-[136px] p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178]">
-                <p className="font-semibold text-base mb-2 text-[#1f2937]">투자 유의사항</p>
-                <p className="text-sm text-[#374151] leading-relaxed">
-                  과거 데이터는 미래 성과를 보장하지 않습니다. 재무 목표, 투자 기간, 위험 감내 수준을 종합적으로 고려하여 신중하게 결정하세요.
-                </p>
+              <p className="text-sm text-yellow-800 leading-relaxed">{recommendation.risk_tolerance_assessment.medium_risk_tolerance}</p>
+            </div>
+            
+            <div className="p-4 bg-red-50 rounded-xl border-2 border-red-300 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="bg-red-500 w-10 h-10 rounded-full flex items-center justify-center">
+                  <TrendingUp className="text-white" size={20} />
+                </div>
+                <h4 className="font-bold text-base text-red-900">고위험 성향</h4>
               </div>
+              <p className="text-sm text-red-800 leading-relaxed">{recommendation.risk_tolerance_assessment.high_risk_tolerance}</p>
             </div>
           </div>
         </div>
+
+        {/* 투자 기간별 추천 */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
+          <h3 className="text-lg font-bold text-[#1f2937] mb-6 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#009178]" />
+            투자 기간별 맞춤 추천
+          </h3>
+          <div className="space-y-4">
+            <div className="p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178] hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="bg-[#009178] text-white text-xs font-bold px-2 py-1 rounded">단기</div>
+                <h4 className="font-semibold text-sm text-[#1f2937]">1년 미만</h4>
+              </div>
+              <p className="text-sm text-[#374151] leading-relaxed">{recommendation.investment_horizon_assessment.short_term}</p>
+            </div>
+            
+            <div className="p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178] hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="bg-[#009178] text-white text-xs font-bold px-2 py-1 rounded">중기</div>
+                <h4 className="font-semibold text-sm text-[#1f2937]">1-3년</h4>
+              </div>
+              <p className="text-sm text-[#374151] leading-relaxed">{recommendation.investment_horizon_assessment.medium_term}</p>
+            </div>
+            
+            <div className="p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border-l-4 border-[#009178] hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="bg-[#009178] text-white text-xs font-bold px-2 py-1 rounded">장기</div>
+                <h4 className="font-semibold text-sm text-[#1f2937]">3년 이상</h4>
+              </div>
+              <p className="text-sm text-[#374151] leading-relaxed">{recommendation.investment_horizon_assessment.long_term}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 의사결정 프레임워크 (comparative_analysis가 있는 경우) */}
+        {analysisData.comparative_analysis && (
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
+            <h3 className="text-lg font-bold text-[#1f2937] mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-[#009178]" />
+              나에게 맞는 포트폴리오 찾기
+            </h3>
+            <p className="text-sm text-[#6b7280] mb-6">각 포트폴리오는 다음과 같은 경우에 적합합니다</p>
+            <div className="grid md:grid-cols-3 gap-4">
+              {Object.entries(analysisData.comparative_analysis.decision_framework).map(([key, conditions]) => {
+                const portfolioName = key.replace('choose_', '').replace('_if', '').replace(/_/g, ' ')
+                const displayInfo = 
+                  portfolioName.includes('user') ? 
+                    { name: '사용자 포트폴리오', icon: TrendingUp, iconBg: 'bg-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-300', textColor: 'text-red-900' } :
+                  portfolioName.includes('min') || portfolioName.includes('downside') ? 
+                    { name: '최소 하방위험', icon: Shield, iconBg: 'bg-green-500', bgColor: 'bg-green-50', borderColor: 'border-green-300', textColor: 'text-green-900' } :
+                    { name: '소르티노 최적화', icon: Target, iconBg: 'bg-yellow-500', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-300', textColor: 'text-yellow-900' }
+                
+                const IconComponent = displayInfo.icon
+                
+                // conditions가 배열인지 확인
+                const conditionsList = Array.isArray(conditions) ? conditions : []
+                
+                return (
+                  <div key={key} className={`p-4 ${displayInfo.bgColor} rounded-xl border-2 ${displayInfo.borderColor} hover:shadow-lg transition-all`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`${displayInfo.iconBg} w-10 h-10 rounded-full flex items-center justify-center`}>
+                        <IconComponent className="text-white" size={20} />
+                      </div>
+                      <h4 className={`font-bold text-sm ${displayInfo.textColor}`}>{displayInfo.name}</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {conditionsList.map((condition: string, idx: number) => (
+                        <li key={idx} className={`text-xs ${displayInfo.textColor} opacity-90 flex gap-2 items-start`}>
+                          <span className="font-bold mt-0.5">✓</span>
+                          <span>{condition}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -463,7 +677,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             돌아가기
           </Button>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               {(portfolioName || analysisData.portfolioName) && (
                 <h1 className="text-2xl font-bold text-[#1f2937] mb-1">
@@ -480,6 +694,36 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                 </p>
               </div>
             )}
+          </div>
+          
+          {/* 투자성향 진단 안내 */}
+          <div className="bg-gradient-to-br from-[#009178] to-[#006d5b] rounded-2xl shadow-xl p-6 text-white">
+            <div className="flex items-start gap-4">
+              <div className="bg-white/20 p-3 rounded-xl">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold mb-2">MPT/CAPM 기반 투자성향 진단</h2>
+                <p className="text-sm leading-relaxed opacity-95 mb-3">
+                  현대 포트폴리오 이론(MPT)과 자본자산가격결정모형(CAPM)을 활용한 과학적 분석으로, 
+                  실제 자산 구성을 바탕으로 귀하의 투자 성향을 객관적으로 진단합니다.
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs">
+                  <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-lg">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>하방위험 기반 분석</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-lg">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>소르티노 비율 최적화</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-lg">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>개인 맞춤형 추천</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

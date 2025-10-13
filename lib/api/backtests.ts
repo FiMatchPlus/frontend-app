@@ -345,12 +345,12 @@ export async function updateBacktest(
 }
 
 // 백테스트 삭제 API 호출 함수
-export async function deleteBacktest(backtestId: string): Promise<boolean> {
+export async function deleteBacktest(backtestId: string, portfolioId: string): Promise<boolean> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
+    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}/portfolio/${portfolioId}`, {
       method: 'DELETE',
       headers: API_CONFIG.headers,
       signal: controller.signal,

@@ -51,7 +51,7 @@ function EditPortfolioContent() {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // 기존 포트폴리오 데이터 로드
+  // 기존 포트폴리오 데이터
   useEffect(() => {
     const loadPortfolioData = async () => {
       setLoading(true)

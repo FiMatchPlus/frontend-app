@@ -304,7 +304,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
 
     window.addEventListener('resize', handleResize)
 
-    // 차트 컨테이너에 휠 이벤트 추가
+    // 차트 컨테이너에 휠 이벤트
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault() // 페이지 스크롤 방지
       

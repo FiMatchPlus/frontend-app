@@ -83,12 +83,10 @@ export function useStockCache(): UseStockCacheReturn {
   const queueStockRequest = useCallback((symbols: string[]) => {
     requestQueueRef.current.push(...symbols)
     
-    // 기존 타이머 취소
     if (requestTimeoutRef.current) {
       clearTimeout(requestTimeoutRef.current)
     }
     
-    // 200ms 후 배치 처리
     requestTimeoutRef.current = setTimeout(() => {
       processBatchRequest()
     }, 200)

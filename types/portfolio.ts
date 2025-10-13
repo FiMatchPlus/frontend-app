@@ -105,29 +105,84 @@ export interface PortfolioMainData {
 
 // 포트폴리오 상세 분석 관련 타입들
 export interface AnalysisMetrics {
-  stdDeviation: number    // 표준편차 (변동성)
-  sharpeRatio: number     // 샤프비율
-  expectedReturn?: number // 기대수익률 (선택적)
+  downsideStd: number      // 하방 표준편차 (하방 위험)
+  sortinoRatio: number     // 소르티노 비율
+  expectedReturn: number   // 기대수익률
 }
 
+export interface RiskProfile {
+  risk_level: string              // 위험도 레벨 (예: "고위험", "중위험", "저위험")
+  suitability: string            // 적합한 투자자 유형
+  interpretation: string         // 위험 프로필 해석
+}
+
+export interface PerformanceInsight {
+  risk_interpretation: string     // 위험 해석
+  return_interpretation: string   // 수익 해석
+  efficiency_interpretation: string // 효율성 해석
+}
+
+export interface HoldingItem {
+  ticker: string    // 종목 코드
+  name: string      // 종목명
+  weight: number    // 비중 (백분율, 예: 27.7036)
+  value?: number    // 종목 가치
+  dailyRate?: number // 일일 수익률
+}
+  
 export interface AnalysisResult {
-  type: 'user' | 'min-variance' | 'max-sharpe'
+  type: string  // API에서 다양한 형태로 전달됨 (예: "user", "min_variance", "max_sortino", "내 포트폴리오" 등)
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
-  holdings: Record<string, number> // ticker -> weight (0-1 사이 비율)
-  metrics?: AnalysisMetrics        // 분석 메트릭 (선택적)
-  strengths?: string[]             // 강점 (선택적)
-  weaknesses?: string[]            // 약점 (선택적)
+  // holdings는 두 가지 형태 지원:
+  // 1. 배열 형태: [{code: string, name: string, weight: number}] (신규 API)
+  // 2. 객체 형태: {ticker: weight} (레거시)
+  holdings: Array<{code: string, name: string, weight: number}> | Record<string, number>
+  metrics?: AnalysisMetrics        // 분석 메트릭
+  key_strengths?: string[]         // 강점
+  key_weaknesses?: string[]        // 약점
+  risk_profile?: RiskProfile       // 위험 프로필
+  performance_insight?: PerformanceInsight // 성과 인사이트
+}
+
+export interface ComparativeAnalysis {
+  decision_framework: {
+    [key: string]: string[]        // 각 포트폴리오를 선택해야 하는 조건들
+  }
+  key_differentiator: string        // 핵심 차별점
+  three_way_comparison: {
+    risk_perspective: string        // 위험 관점 비교
+    return_perspective: string      // 수익 관점 비교
+    efficiency_perspective: string  // 효율성 관점 비교
+  }
+}
+
+export interface PersonalizedRecommendation {
+  final_guidance: string            // 최종 가이드
+  risk_tolerance_assessment: {
+    low_risk_tolerance: string       // 저위험 성향 투자자 추천
+    medium_risk_tolerance: string    // 중위험 성향 투자자 추천
+    high_risk_tolerance: string      // 고위험 성향 투자자 추천
+  }
+  investment_horizon_assessment: {
+    short_term: string              // 단기 투자자 추천
+    medium_term: string             // 중기 투자자 추천
+    long_term: string               // 장기 투자자 추천
+  }
 }
 
 export interface PortfolioAnalysis {
   status: 'COMPLETED' | 'RUNNING' | 'PENDING' | 'FAILED'
-  portfolioName?: string           // 포트폴리오 이름 (선택적)
-  results: AnalysisResult[]
-  analysisDate?: string            // 분석 일시 (선택적)
-  analysisPeriod?: {               // 분석 기간 (선택적)
+  portfolioName?: string           // 포트폴리오 이름
+  holdings?: HoldingItem[]         // 전체 종목 정보 (ticker + name 매핑용)
+  results?: AnalysisResult[]       // 분석 결과 배열 (API 응답에서 직접 제공)
+  portfolio_insights?: AnalysisResult[]
+  analysisDate?: string            // 분석 일시
+  analysisPeriod?: {               // 분석 기간
     startDate: string
     endDate: string
   }
+  comparative_analysis?: ComparativeAnalysis        // 비교 분석
+  personalized_recommendation?: PersonalizedRecommendation // 맞춤 추천
 }
 
 // 위험도 표시를 위한 상수 (products 페이지와 동일)

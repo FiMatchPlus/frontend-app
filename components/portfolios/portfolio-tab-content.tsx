@@ -129,7 +129,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
 
     setIsDeleting(true)
     try {
-      const success = await deleteBacktest(backtestToDelete.id.toString())
+      const success = await deleteBacktest(backtestToDelete.id.toString(), portfolio.id.toString())
       if (success) {
         setDeleteDialogOpen(false)
         setBacktestToDelete(null)

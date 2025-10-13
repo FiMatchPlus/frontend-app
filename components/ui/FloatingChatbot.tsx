@@ -6,6 +6,7 @@ import { MessageCircle, X, Send, Bot, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { sendContextChatMessage } from '@/lib/api/chat'
 
 interface Message {
   id: string
@@ -66,20 +67,35 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
     }
 
     setMessages(prev => [...prev, userMessage])
+    const currentInput = inputValue
     setInputValue('')
     setIsTyping(true)
 
-    // 실제 AI 응답을 위한 시뮬레이션 (나중에 실제 API로 교체)
-    setTimeout(() => {
+    try {
+      // 실제 API 호출
+      const response = await sendContextChatMessage(context, currentInput)
+      
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: getBotResponse(inputValue, context),
+        content: response.answer,
         timestamp: new Date()
       }
       setMessages(prev => [...prev, botResponse])
+    } catch (error) {
+      console.error('챗봇 API 호출 실패:', error)
+      
+      // API 실패 시 폴백 응답
+      const fallbackResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: getBotResponse(currentInput, context),
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, fallbackResponse])
+    } finally {
       setIsTyping(false)
-    }, 1000 + Math.random() * 1000)
+    }
   }
 
   const getBotResponse = (userInput: string, context: string): string => {

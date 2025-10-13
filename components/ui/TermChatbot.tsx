@@ -6,6 +6,7 @@ import { X, Send, Bot, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { sendChatMessage } from '@/lib/api/chat'
 
 interface Message {
   id: string
@@ -122,8 +123,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
     setIsTyping(true)
 
     try {
-      // API 호출 (sendChatMessage 함수 사용)
-      const { sendChatMessage } = await import('@/lib/api/chat')
+      // API 호출
       const response = await sendChatMessage(term, inputValue)
       
       const botResponse: Message = {

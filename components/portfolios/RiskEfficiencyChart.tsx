@@ -8,7 +8,8 @@ interface ScatterDataPoint {
   type: string
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
   risk: number
-  sharpe: number
+  sortino: number
+  expectedReturn: number
   color: string
 }
 
@@ -41,7 +42,7 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
       },
       xAxis: {
         type: 'value',
-        name: '위험도 (변동성 %)',
+        name: '하방위험 (%)',
         nameLocation: 'middle',
         nameGap: 50,
         nameTextStyle: {
@@ -59,7 +60,7 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
       },
       yAxis: {
         type: 'value',
-        name: '효율성 (샤프비율)',
+        name: '효율성 (소르티노 비율)',
         nameLocation: 'middle',
         nameGap: 60,
         nameTextStyle: {
@@ -79,7 +80,7 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
         trigger: 'item',
         formatter: (params: any) => {
           const point = data[params.dataIndex]
-          return `${point.name}<br/>변동성: ${point.risk.toFixed(2)}%<br/>샤프비율: ${point.sharpe.toFixed(2)}`
+          return `${point.name}<br/>기대수익률: ${point.expectedReturn.toFixed(2)}%<br/>하방위험: ${point.risk.toFixed(2)}%<br/>소르티노 비율: ${point.sortino.toFixed(2)}`
         },
         textStyle: {
           fontSize: 16,
@@ -92,7 +93,7 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
           type: 'scatter',
           symbolSize: 30,
           data: data.map(item => ({
-            value: [item.risk, item.sharpe],
+            value: [item.risk, item.sortino],
             itemStyle: {
               color: item.color
             }

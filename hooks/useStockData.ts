@@ -151,7 +151,7 @@ export function useStockData(selectedStock: Stock | null) {
       setChartData(prev => {
         const combined = [...transformedData, ...prev]
         
-        // 디버깅: 새 데이터의 날짜 범위 확인
+        // 새 데이터의 날짜 범위 확인
         if (transformedData.length > 0) {
           const dates = transformedData.map(d => new Date(d.timestamp).toISOString().split('T')[0]).sort()
           console.log("[Data Debug] New data date range:", dates[0], "~", dates[dates.length - 1], `(${dates.length} points)`)
