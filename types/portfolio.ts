@@ -183,6 +183,7 @@ export interface PortfolioAnalysis {
   }
   comparative_analysis?: ComparativeAnalysis        // 비교 분석
   personalized_recommendation?: PersonalizedRecommendation // 맞춤 추천
+  execution_time?: number          // 분석 실행 시간 (초 단위)
 }
 
 // 위험도 표시를 위한 상수 (products 페이지와 동일)

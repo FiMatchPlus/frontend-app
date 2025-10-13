@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, ArrowLeft, CheckCircle, AlertCircle, Shield, Target, TrendingUp, Calendar } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle, AlertCircle, Shield, Target, TrendingUp, Calendar, Clock } from "lucide-react"
 import Header from "@/components/header"
 import { fetchPortfolioAnalysisDetail } from "@/lib/api/portfolios"
 import { useTickerMapping } from "@/contexts/TickerMappingContext"
@@ -26,6 +26,21 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
   const [activeTab, setActiveTab] = useState<'analysis' | 'recommendation'>('analysis')
   
   const { getStockName } = useTickerMapping()
+
+  // 실행 시간 포맷팅 함수 (초 단위를 적절한 형식으로 변환)
+  const formatExecutionTime = (seconds?: number): string => {
+    if (!seconds) return '-'
+    
+    if (seconds < 1) {
+      return `${(seconds * 1000).toFixed(0)}ms`
+    } else if (seconds < 60) {
+      return `${seconds.toFixed(2)}초`
+    } else {
+      const minutes = Math.floor(seconds / 60)
+      const remainingSeconds = (seconds % 60).toFixed(0)
+      return `${minutes}분 ${remainingSeconds}초`
+    }
+  }
 
   useEffect(() => {
     const loadAnalysis = async () => {
@@ -686,14 +701,27 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
               )}
               <p className="text-base text-[#6b7280]">KOSPI 벤치마크 기준 | 3년 롤링 윈도우 최적화 분석</p>
             </div>
-            {analysisData.analysisPeriod && (
-              <div className="text-right">
-                <p className="text-sm text-[#6b7280]">분석 기간</p>
-                <p className="text-base font-semibold text-[#1f2937]">
-                  {analysisData.analysisPeriod.startDate} ~ {analysisData.analysisPeriod.endDate}
-                </p>
-              </div>
-            )}
+            <div className="text-right space-y-3">
+              {analysisData.analysisPeriod && (
+                <div>
+                  <p className="text-sm text-[#6b7280]">분석 기간</p>
+                  <p className="text-base font-semibold text-[#1f2937]">
+                    {analysisData.analysisPeriod.startDate} ~ {analysisData.analysisPeriod.endDate}
+                  </p>
+                </div>
+              )}
+              {analysisData.execution_time !== undefined && (
+                <div className="flex items-center justify-end gap-2">
+                  <Clock className="w-4 h-4 text-[#009178]" />
+                  <div>
+                    <span className="text-sm text-[#6b7280]">분석 시간: </span>
+                    <span className="text-sm font-semibold text-[#009178]">
+                      {formatExecutionTime(analysisData.execution_time)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* 투자성향 진단 안내 */}

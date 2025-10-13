@@ -130,10 +130,10 @@ export default function ProductDetailPage() {
           <PortfolioHoldings holdings={product.holdings} />
         </div>
 
-        {/* History Chart */}
-        <div className="mt-10">
+        {/* History Chart - 임시로 숨김 */}
+        {/* <div className="mt-10">
           <ProductHistoryChart dailyHistory={product.dailyHistory} />
-        </div>
+        </div> */}
       </motion.div>
     </PageLayout>
   )

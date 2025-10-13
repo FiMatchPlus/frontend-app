@@ -18,7 +18,7 @@ interface PortfolioHoldingsProps {
 interface EnrichedHolding extends PortfolioHolding {
   livePrice?: number
   liveChangePercent?: number
-  liveSign?: "RISE" | "FALL" | "STEADY"
+  liveSign?: string  // "2" (상승), "5" (하락), "3" (보합)
 }
 
 export function PortfolioHoldings({ holdings }: PortfolioHoldingsProps) {
@@ -31,22 +31,31 @@ export function PortfolioHoldings({ holdings }: PortfolioHoldingsProps) {
     try {
       setError(null)
       const codes = holdings.map(h => h.symbol)
+      console.log("[PortfolioHoldings] Fetching live data for codes:", codes)
+      
       const liveData = await fetchMultiStockPrices(codes)
+      console.log("[PortfolioHoldings] Live data received:", liveData)
       
       // 실시간 데이터를 holdings에 병합
       const enriched: EnrichedHolding[] = holdings.map(holding => {
         const liveStock = liveData.find(stock => stock.ticker === holding.symbol)
+        console.log(`[PortfolioHoldings] Matching ${holding.symbol}:`, liveStock)
+        
         if (liveStock) {
-          return {
+          const enrichedHolding = {
             ...holding,
             livePrice: liveStock.currentPrice,
             liveChangePercent: liveStock.dailyRate,
             liveSign: liveStock.sign
           }
+          console.log(`[PortfolioHoldings] Enriched ${holding.symbol}:`, enrichedHolding)
+          return enrichedHolding
         }
+        console.log(`[PortfolioHoldings] No match for ${holding.symbol}, using original data`)
         return holding
       })
       
+      console.log("[PortfolioHoldings] Final enriched holdings:", enriched)
       setEnrichedHoldings(enriched)
     } catch (err) {
       console.error("Failed to fetch live stock data:", err)
@@ -60,6 +69,7 @@ export function PortfolioHoldings({ holdings }: PortfolioHoldingsProps) {
 
   useEffect(() => {
     fetchLiveData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdings])
 
   const handleRefresh = () => {
@@ -106,6 +116,15 @@ export function PortfolioHoldings({ holdings }: PortfolioHoldingsProps) {
                 const price = holding.livePrice ?? holding.price
                 const changePercent = holding.liveChangePercent ?? holding.changePercent
                 const isPositive = changePercent >= 0
+                
+                console.log(`[PortfolioHoldings] Rendering ${holding.symbol}:`, {
+                  livePrice: holding.livePrice,
+                  originalPrice: holding.price,
+                  displayPrice: price,
+                  liveChangePercent: holding.liveChangePercent,
+                  originalChangePercent: holding.changePercent,
+                  displayChangePercent: changePercent
+                })
                 
                 return (
                   <motion.div

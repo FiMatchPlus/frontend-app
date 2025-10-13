@@ -387,12 +387,13 @@ export interface StockMultiData {
   dailyRate: number
   dailyChange: number
   marketCap: number
-  sign: "RISE" | "FALL" | "STEADY"
+  sign: string  // "2" (상승), "5" (하락), "3" (보합) 등의 숫자 문자열
 }
 
 export interface StockMultiResponse {
-  success: boolean
+  status: string  // "success"
   message: string
+  timestamp: string
   data: {
     marketStatus: {
       isOpen: boolean
@@ -438,10 +439,11 @@ export async function fetchMultiStockPrices(codes: string[]): Promise<StockMulti
     const result: StockMultiResponse = await response.json()
     console.log("[API] Response Body:", result)
 
-    if (!result.success) {
+    if (result.status !== "success") {
       throw new Error(result.message || "주식 데이터 조회에 실패했습니다.")
     }
 
+    console.log("[API] Stock data array:", result.data.data)
     return result.data.data
   } catch (error) {
     console.error("[API] Multi stock fetch error:", error)
