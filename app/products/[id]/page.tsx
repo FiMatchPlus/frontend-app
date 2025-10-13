@@ -11,16 +11,19 @@ import {
   PortfolioHoldings
 } from "@/components/products"
 import { getProductById } from "@/data/mockProductData"
-import { ModelPortfolio } from "@/types/product"
+import { ModelPortfolio, PortfolioHolding } from "@/types/product"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Copy } from "lucide-react"
+import { fetchMultiStockPrices } from "@/lib/api"
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const [product, setProduct] = useState<ModelPortfolio | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [liveHoldings, setLiveHoldings] = useState<PortfolioHolding[]>([])
+  const [isLoadingLive, setIsLoadingLive] = useState(false)
 
   useEffect(() => {
     const productId = params.id as string
@@ -28,9 +31,47 @@ export default function ProductDetailPage() {
     
     if (foundProduct) {
       setProduct(foundProduct)
+      setLiveHoldings(foundProduct.holdings)
     }
     setIsLoading(false)
   }, [params.id])
+
+  // 실시간 데이터 가져오기
+  useEffect(() => {
+    const fetchLiveData = async () => {
+      if (!product) return
+      
+      try {
+        setIsLoadingLive(true)
+        const codes = product.holdings.map(h => h.symbol)
+        const liveData = await fetchMultiStockPrices(codes)
+        
+        // 실시간 데이터를 holdings에 병합
+        const enriched: PortfolioHolding[] = product.holdings.map(holding => {
+          const liveStock = liveData.find(stock => stock.ticker === holding.symbol)
+          if (liveStock) {
+            return {
+              ...holding,
+              price: liveStock.currentPrice,
+              changePercent: liveStock.dailyRate,
+              change: liveStock.dailyChange
+            }
+          }
+          return holding
+        })
+        
+        setLiveHoldings(enriched)
+      } catch (err) {
+        console.error("Failed to fetch live data:", err)
+        // 에러 시 원본 데이터 사용
+        setLiveHoldings(product.holdings)
+      } finally {
+        setIsLoadingLive(false)
+      }
+    }
+
+    fetchLiveData()
+  }, [product])
 
   if (isLoading) {
     return (
@@ -86,11 +127,11 @@ export default function ProductDetailPage() {
           <Button
             onClick={() => {
               if (product) {
-                // ModelPortfolio 데이터를 CreatePortfolioData 형식으로 변환
+                // 실시간 데이터가 반영된 liveHoldings 사용
                 const portfolioData = {
                   name: `${product.name} - 커스텀`,
                   description: product.description,
-                  holdings: product.holdings.map(holding => ({
+                  holdings: liveHoldings.map(holding => ({
                     symbol: holding.symbol,
                     name: holding.name,
                     weight: holding.weight,
@@ -100,6 +141,8 @@ export default function ProductDetailPage() {
                     sector: holding.sector
                   }))
                 }
+                
+                console.log("[ProductDetail] Sending portfolio data with live prices:", portfolioData)
                 
                 // Query string으로 데이터 전달
                 const queryParams = new URLSearchParams({
