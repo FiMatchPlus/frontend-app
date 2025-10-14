@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import { Target, Loader2, RefreshCw, ExternalLink, AlertTriangle } from "lucide-react"
-import { fetchPortfolioAnalysis } from "@/lib/api/portfolios"
+import { fetchPortfolioAnalysis, fetchAnalysisStatus } from "@/lib/api/portfolios"
 import { useTickerMapping } from "@/contexts/TickerMappingContext"
 import { useAnalysisCache } from "@/contexts/AnalysisCacheContext"
 import { AnalysisPieChart } from "./AnalysisPieChart"
@@ -93,6 +93,40 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
   useEffect(() => {
     loadAnalysisData()
   }, [portfolioId]) // loadAnalysisData 대신 portfolioId 직접 사용
+
+  // RUNNING 상태일 때 30초마다 폴링
+  useEffect(() => {
+    // RUNNING 상태가 아니면 폴링 안 함
+    if (!analysisData || (analysisData.status !== 'RUNNING' && analysisData.status !== 'PENDING')) {
+      return
+    }
+
+    console.log(`[분석 폴링] 포트폴리오 ${portfolioId} 분석 상태 폴링 시작 (30초 간격)`)
+
+    const pollInterval = setInterval(async () => {
+      console.log(`[분석 폴링] 포트폴리오 ${portfolioId} 상태 확인 중...`)
+      
+      const statusData = await fetchAnalysisStatus(portfolioId.toString())
+      
+      if (!statusData) {
+        console.log(`[분석 폴링] 상태 조회 실패`)
+        return
+      }
+
+      console.log(`[분석 폴링] 현재 상태: ${statusData.status}`)
+
+      // 상태가 변경되었으면 전체 분석 데이터 다시 로드
+      if (statusData.status === 'COMPLETED' || statusData.status === 'FAILED') {
+        console.log(`[분석 폴링] 분석 완료 또는 실패 - 전체 데이터 새로고침`)
+        await handleRetry()
+      }
+    }, 30000) // 30초
+
+    return () => {
+      console.log(`[분석 폴링] 포트폴리오 ${portfolioId} 폴링 중지`)
+      clearInterval(pollInterval)
+    }
+  }, [portfolioId, analysisData?.status, handleRetry])
 
   // 분석 결과를 파이차트 데이터로 변환
   const convertToPieChartData = (result: AnalysisResult) => {

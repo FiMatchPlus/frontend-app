@@ -420,3 +420,52 @@ export async function updatePortfolio(portfolioId: number, portfolioData: any): 
     throw new Error("알 수 없는 오류가 발생했습니다")
   }
 }
+
+// 포트폴리오 분석 상태를 확인하는 함수 (폴링용)
+export interface AnalysisStatusData {
+  portfolio_id: number
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
+  error_message?: string | null
+}
+
+export async function fetchAnalysisStatus(portfolioId: string): Promise<AnalysisStatusData | null> {
+  const apiUrl = `${API_CONFIG.baseUrl}/api/portfolio-analysis/${portfolioId}/status`
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        ...API_CONFIG.headers,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      try {
+        const text = await response.text()
+      } catch (_) {
+        // ignore
+      }
+      return null
+    }
+
+    const result: ApiResponse<AnalysisStatusData> = await response.json()
+    
+    if (result.status !== "success") {
+      return null
+    }
+
+    return result.data
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      // Request timeout
+    }
+    return null
+  }
+}

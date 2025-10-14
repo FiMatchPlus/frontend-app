@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import type { Stock, StockChartData, TimeFrame } from "@/types/stock"
-import { generateMockChartData } from "@/data/mockStockData"
 import { fetchChartData, transformChartData } from "@/lib/api"
 
 // 타임프레임에 따른 기본 날짜 범위 계산
@@ -71,43 +70,18 @@ export function useStockData(selectedStock: Stock | null) {
     setError(null)
 
     try {
-      console.log("[v0] Starting API call for stock:", stock.symbol, "timeframe:", timeframe, "range:", startDate, "~", endDate)
+      console.log("Starting API call for stock:", stock.symbol, "timeframe:", timeframe, "range:", startDate, "~", endDate)
 
       // 실제 API 호출 (날짜 범위 포함)
       const apiData = await fetchChartData(stock.symbol, timeframe, startDate, endDate)
       const transformedData = transformChartData(apiData)
       setChartData(transformedData)
 
-      console.log("[v0] Successfully fetched and transformed data:", transformedData.length, "points")
+      console.log("Successfully fetched and transformed data:", transformedData.length, "points")
     } catch (err) {
-      console.warn("[v0] API 호출 실패, mock 데이터 사용:", err)
-
-      // Check if it's a configuration error
-      if (err instanceof Error && err.message.includes("API_BASE_URL not configured")) {
-        console.log("[v0] Using mock data due to missing API configuration")
-      }
-
-      try {
-        // Generate mock data based on timeframe
-        const days =
-          {
-            "1m": 1,
-            "1D": 1,
-            "1W": 7,
-            "1M": 30,
-            "1Y": 365,
-          }[timeframe] || 30
-
-        console.log("[v0] Generating mock data for", days, "days")
-        const data = generateMockChartData(stock.symbol, days)
-        setChartData(data)
-        console.log("[v0] Mock data generated successfully:", data.length, "points")
-
-        setError("서버에 연결할 수 없어 샘플 데이터를 표시합니다.")
-      } catch (mockErr) {
-        console.error("[v0] Mock data generation failed:", mockErr)
-        setError("차트 데이터를 불러오는데 실패했습니다.")
-      }
+      console.error("API 호출 실패:", err)
+      setChartData([])
+      setError("차트 데이터를 불러오는데 실패했습니다.")
     } finally {
       setIsLoading(false)
     }
@@ -175,7 +149,7 @@ export function useStockData(selectedStock: Stock | null) {
       })
       setLoadedDateRange(prev => prev ? { ...prev, start: newStartDateStr } : null)
     } catch (err) {
-      console.error("[v0] Failed to load more past data:", err)
+      console.error("Failed to load more past data:", err)
     } finally {
       setIsLoadingMore(false)
     }
