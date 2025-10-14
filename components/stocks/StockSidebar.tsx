@@ -4,8 +4,7 @@ import { useState } from "react"
 import { X, Menu } from "lucide-react"
 import { StockSearch } from "./StockSearch"
 import { StockList } from "./StockList"
-import { mockStocks, mockPortfolio } from "@/data/mockStockData"
-import { useRecentStocks } from "@/contexts/StockContext"
+import { useRecentStocks, usePortfolioStocks } from "@/contexts/StockContext"
 import type { Stock } from "@/types/stock"
 import { cn } from "@/lib/utils"
 
@@ -18,9 +17,10 @@ interface StockSidebarProps {
 export function StockSidebar({ selectedStock, onSelectStock, className }: StockSidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const recentStocks = useRecentStocks()
+  const portfolioStocks = usePortfolioStocks()
 
-  // Get portfolio stocks from mock data
-  const portfolioStocksList = mockPortfolio.map((p) => mockStocks.find((s) => s.symbol === p.symbol)!).filter(Boolean)
+  // Portfolio stocks list is now from context (empty for now)
+  const portfolioStocksList: Stock[] = []
 
   const handleSelectStock = (stock: Stock) => {
     onSelectStock(stock)
@@ -73,7 +73,7 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
               <StockList
                 title="내 포트폴리오"
                 stocks={portfolioStocksList}
-                portfolioStocks={mockPortfolio}
+                portfolioStocks={portfolioStocks}
                 onSelectStock={handleSelectStock}
               />
             )}

@@ -67,14 +67,6 @@ export function ProductListCard({ product }: ProductListCardProps) {
                 </div>
               </div>
 
-              {/* 금액 */}
-              <div className="text-right">
-                <div className="text-sm text-gray-600 mb-1">금액</div>
-                <div className="text-base font-semibold text-gray-900">
-                  {(product.totalValue / 100000000).toFixed(1)}억원
-                </div>
-              </div>
-
               {/* 최소 투자금액 */}
               <div className="text-right">
                 <div className="text-sm text-gray-600 mb-1">최소 투자</div>

@@ -1,48 +1,46 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ProductList, ProductSearch, ProductFilterButtons, ProductPagination } from "@/components/products"
-import { mockProducts, searchProducts, getProductsByRiskLevel } from "@/data/mockProductData"
+import { fetchProducts } from "@/lib/api/products"
 import { ProductListCard as ProductListCardType } from "@/types/product"
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [products, setProducts] = useState<ProductListCardType[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const itemsPerPage = 5
 
-  const filteredProducts = useMemo(() => {
-    let products = mockProducts
-
-    // Apply risk level filter
-    if (selectedRiskLevel) {
-      products = getProductsByRiskLevel(selectedRiskLevel)
+  // API에서 상품 목록 가져오기
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const data = await fetchProducts(selectedRiskLevel || undefined, searchQuery || undefined)
+        setProducts(data)
+      } catch (err) {
+        console.error('Failed to load products:', err)
+        setError('상품 목록을 불러오는데 실패했습니다.')
+        setProducts([])
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      products = searchProducts(searchQuery)
-    }
-
-    // Convert to ProductListCard format
-    return products.map(product => ({
-      id: product.id,
-      name: product.name,
-      riskLevel: product.riskLevel,
-      keywords: product.keywords,
-      oneYearReturn: product.oneYearReturn,
-      totalValue: product.totalValue,
-      minInvestment: product.minInvestment
-    }))
+    loadProducts()
   }, [searchQuery, selectedRiskLevel])
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
+  const totalPages = Math.ceil(products.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
+  const paginatedProducts = products.slice(startIndex, endIndex)
 
   // Reset to first page when filters change
   const handleSearch = (query: string) => {
@@ -87,22 +85,28 @@ export default function ProductsPage() {
 
           {/* Results Summary */}
           <div className="text-base text-gray-600">
-            총 <span className="font-semibold text-[#006b6c]">{filteredProducts.length}</span>개의 상품이 있습니다
-            {searchQuery && (
-              <span> (검색어: "{searchQuery}")</span>
-            )}
-            {selectedRiskLevel && (
-              <span> (위험도: {selectedRiskLevel})</span>
-            )}
-            {totalPages > 1 && (
-              <span> (페이지 {currentPage} / {totalPages})</span>
+            {error ? (
+              <span className="text-red-600">{error}</span>
+            ) : (
+              <>
+                총 <span className="font-semibold text-[#006b6c]">{products.length}</span>개의 상품이 있습니다
+                {searchQuery && (
+                  <span> (검색어: "{searchQuery}")</span>
+                )}
+                {selectedRiskLevel && (
+                  <span> (위험도: {selectedRiskLevel})</span>
+                )}
+                {totalPages > 1 && (
+                  <span> (페이지 {currentPage} / {totalPages})</span>
+                )}
+              </>
             )}
           </div>
         </div>
 
         {/* Product List Container with Fixed Height */}
         <div className="min-h-[600px] flex flex-col">
-          <ProductList products={paginatedProducts} />
+          <ProductList products={paginatedProducts} isLoading={isLoading} />
           
           {/* Spacer to push pagination to bottom */}
           <div className="flex-1"></div>

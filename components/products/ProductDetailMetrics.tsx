@@ -2,11 +2,16 @@
 
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Product } from "@/types/product"
 import { TrendingUp, TrendingDown, AlertTriangle, BarChart3, Shield, Target } from "lucide-react"
 
 interface ProductDetailMetricsProps {
-  product: Product
+  product: {
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH'
+    volatilityIndex: number
+    oneYearReturn: number
+    mdd: number
+    sharpeRatio: number
+  }
 }
 
 export function ProductDetailMetrics({ product }: ProductDetailMetricsProps) {

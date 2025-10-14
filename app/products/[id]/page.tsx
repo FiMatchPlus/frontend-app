@@ -10,33 +10,79 @@ import {
   ProductDetailMetrics,
   PortfolioHoldings
 } from "@/components/products"
-import { getProductById } from "@/data/mockProductData"
-import { ModelPortfolio, PortfolioHolding } from "@/types/product"
+import { fetchProductDetail } from "@/lib/api/products"
+import { fetchMultiStockPrices } from "@/lib/api"
+import { PortfolioHolding } from "@/types/product"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Copy } from "lucide-react"
-import { fetchMultiStockPrices } from "@/lib/api"
+
+// ProductDetail 타입 (API 응답)
+interface ProductDetailData {
+  id: number
+  name: string
+  description: string
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH'
+  volatilityIndex: number
+  oneYearReturn: number
+  mdd: number
+  sharpeRatio: number
+  keywords: string[]
+  minInvestment: number
+  holdings: {
+    symbol: string
+    name: string
+    weight: number
+    sector: string
+  }[]
+}
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [product, setProduct] = useState<ModelPortfolio | null>(null)
+  const [product, setProduct] = useState<ProductDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [liveHoldings, setLiveHoldings] = useState<PortfolioHolding[]>([])
   const [isLoadingLive, setIsLoadingLive] = useState(false)
 
+  // 상품 상세 정보 가져오기
   useEffect(() => {
-    const productId = params.id as string
-    const foundProduct = getProductById(productId)
-    
-    if (foundProduct) {
-      setProduct(foundProduct)
-      setLiveHoldings(foundProduct.holdings)
+    const loadProduct = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const productId = parseInt(params.id as string)
+        
+        if (isNaN(productId)) {
+          setError('잘못된 상품 ID입니다.')
+          setIsLoading(false)
+          return
+        }
+
+        const data = await fetchProductDetail(productId)
+        setProduct(data)
+        
+        // holdings를 PortfolioHolding 형식으로 변환 (초기값)
+        setLiveHoldings(data.holdings.map(h => ({
+          ...h,
+          price: 0,
+          change: 0,
+          changePercent: 0
+        })))
+      } catch (err) {
+        console.error('Failed to load product:', err)
+        setError('상품 정보를 불러오는데 실패했습니다.')
+        setProduct(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
-    setIsLoading(false)
+
+    loadProduct()
   }, [params.id])
 
-  // 실시간 데이터 가져오기
+  // 실시간 주가 데이터 가져오기
   useEffect(() => {
     const fetchLiveData = async () => {
       if (!product) return
@@ -57,14 +103,24 @@ export default function ProductDetailPage() {
               change: liveStock.dailyChange
             }
           }
-          return holding
+          return {
+            ...holding,
+            price: 0,
+            change: 0,
+            changePercent: 0
+          }
         })
         
         setLiveHoldings(enriched)
       } catch (err) {
         console.error("Failed to fetch live data:", err)
-        // 에러 시 원본 데이터 사용
-        setLiveHoldings(product.holdings)
+        // 에러 시 기본값 사용
+        setLiveHoldings(product.holdings.map(h => ({
+          ...h,
+          price: 0,
+          change: 0,
+          changePercent: 0
+        })))
       } finally {
         setIsLoadingLive(false)
       }
@@ -83,12 +139,12 @@ export default function ProductDetailPage() {
     )
   }
 
-  if (!product) {
+  if (error || (!isLoading && !product)) {
     return (
       <PageLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">상품을 찾을 수 없습니다</h1>
-          <p className="text-gray-600 mb-6">요청하신 상품이 존재하지 않거나 삭제되었습니다.</p>
+          <p className="text-gray-600 mb-6">{error || '요청하신 상품이 존재하지 않거나 삭제되었습니다.'}</p>
           <Button 
             onClick={() => router.push('/products')}
             className="bg-[#009178] hover:bg-[#004e42]"
@@ -99,6 +155,9 @@ export default function ProductDetailPage() {
       </PageLayout>
     )
   }
+
+  // 이 시점에서 product는 null이 아님이 보장됨
+  if (!product) return null
 
   return (
     <PageLayout>
@@ -142,8 +201,6 @@ export default function ProductDetailPage() {
                   }))
                 }
                 
-                console.log("[ProductDetail] Sending portfolio data with live prices:", portfolioData)
-                
                 // Query string으로 데이터 전달
                 const queryParams = new URLSearchParams({
                   template: 'true',
@@ -170,13 +227,8 @@ export default function ProductDetailPage() {
 
         {/* Portfolio Holdings */}
         <div className="mt-10">
-          <PortfolioHoldings holdings={product.holdings} />
+          <PortfolioHoldings holdings={liveHoldings} />
         </div>
-
-        {/* History Chart - 임시로 숨김 */}
-        {/* <div className="mt-10">
-          <ProductHistoryChart dailyHistory={product.dailyHistory} />
-        </div> */}
       </motion.div>
     </PageLayout>
   )

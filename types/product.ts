@@ -1,7 +1,7 @@
 // Model Portfolio type definitions for Fi-Match⁺
 
 export interface ModelPortfolio {
-  id: string
+  id: number
   name: string
   description: string
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH'
@@ -33,12 +33,11 @@ export interface PortfolioDailyHistory {
 }
 
 export interface ProductListCard {
-  id: string
+  id: number
   name: string
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH'
   keywords: string[]
   oneYearReturn: number
-  totalValue: number
   minInvestment: number
 }
 

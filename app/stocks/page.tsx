@@ -7,18 +7,17 @@ import { StockChart } from "@/components/stocks/StockChart"
 import { StockInfo } from "@/components/stocks/StockInfo"
 import { StockErrorBoundary } from "@/components/stocks/ErrorBoundary"
 import { useStock, useSelectedStock } from "@/contexts/StockContext"
-import { popularStocks } from "@/data/mockStockData"
 
 export default function StocksPage() {
-  const { actions } = useStock()
+  const { state, actions } = useStock()
   const selectedStock = useSelectedStock()
 
   // Initialize with first popular stock if none selected
   useEffect(() => {
-    if (!selectedStock && popularStocks.length > 0) {
-      actions.selectStock(popularStocks[0])
+    if (!selectedStock && state.popularStocks.length > 0) {
+      actions.selectStock(state.popularStocks[0])
     }
-  }, [selectedStock, actions])
+  }, [selectedStock, state.popularStocks, actions])
 
   return (
     <PageLayout>

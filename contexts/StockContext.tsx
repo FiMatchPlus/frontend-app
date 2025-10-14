@@ -4,7 +4,7 @@ import type React from "react"
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
 import type { Stock, StockState } from "@/types/stock"
-import { mockPortfolio, popularStocks } from "@/data/mockStockData"
+import { getPopularStocks } from "@/lib/api/stockSearch"
 
 // Action types for reducer
 type StockAction =
@@ -14,13 +14,14 @@ type StockAction =
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "CLEAR_ERROR" }
   | { type: "INITIALIZE_DATA" }
+  | { type: "SET_POPULAR_STOCKS"; payload: Stock[] }
 
 // Initial state
 const initialState: StockState = {
   selectedStock: null,
   recentlyViewed: [],
-  portfolioStocks: mockPortfolio,
-  popularStocks: popularStocks,
+  portfolioStocks: [],
+  popularStocks: [],
   searchResults: [],
   isLoading: false,
   error: null,
@@ -69,7 +70,13 @@ function stockReducer(state: StockState, action: StockAction): StockState {
 
       return {
         ...state,
-        recentlyViewed: savedRecent.length > 0 ? savedRecent : popularStocks.slice(0, 3),
+        recentlyViewed: savedRecent.length > 0 ? savedRecent : state.popularStocks.slice(0, 3),
+      }
+
+    case "SET_POPULAR_STOCKS":
+      return {
+        ...state,
+        popularStocks: action.payload,
       }
 
     default:
@@ -97,6 +104,20 @@ interface StockProviderProps {
 
 export function StockProvider({ children }: StockProviderProps) {
   const [state, dispatch] = useReducer(stockReducer, initialState)
+
+  // Load popular stocks from API
+  useEffect(() => {
+    const loadPopularStocks = async () => {
+      try {
+        const stocks = await getPopularStocks()
+        dispatch({ type: "SET_POPULAR_STOCKS", payload: stocks })
+      } catch (error) {
+        console.error("Failed to load popular stocks:", error)
+      }
+    }
+
+    loadPopularStocks()
+  }, [])
 
   // Initialize data on mount
   useEffect(() => {

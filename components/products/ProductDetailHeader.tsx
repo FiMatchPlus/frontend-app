@@ -3,11 +3,20 @@
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { ModelPortfolio, RISK_LEVEL_LABELS, RISK_LEVEL_COLORS } from "@/types/product"
+import { RISK_LEVEL_LABELS, RISK_LEVEL_COLORS } from "@/types/product"
 import { TrendingUp, TrendingDown, AlertTriangle } from "lucide-react"
 
 interface ProductDetailHeaderProps {
-  product: ModelPortfolio
+  product: {
+    name: string
+    description: string
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH'
+    volatilityIndex: number
+    oneYearReturn: number
+    mdd: number
+    sharpeRatio: number
+    keywords: string[]
+  }
 }
 
 export function ProductDetailHeader({ product }: ProductDetailHeaderProps) {
