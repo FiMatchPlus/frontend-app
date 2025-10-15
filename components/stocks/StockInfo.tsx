@@ -13,6 +13,7 @@ interface StockInfoProps {
 }
 
 export function StockInfo({ selectedStock, className }: StockInfoProps) {
+  const { getStockPrice } = useStockCacheContext()
 
   if (!selectedStock) {
     return (
@@ -25,7 +26,13 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
     )
   }
 
-  const currentStock = selectedStock
+  const realTimeData = getStockPrice(selectedStock.symbol)
+  const currentStock = realTimeData ? {
+    ...selectedStock,
+    price: realTimeData.price,
+    change: realTimeData.change,
+    changePercent: realTimeData.changePercent
+  } : selectedStock
 
   const infoItems = [
     {
