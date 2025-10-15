@@ -27,7 +27,6 @@ export default function PortfoliosPage() {
         setPortfolioSummary(summaryData)
         setPortfolios(portfolioList)
         
-        // 첫 번째 포트폴리오를 기본 선택
         if (portfolioList.length > 0) {
           setSelectedPortfolio(portfolioList[0])
         }
@@ -46,19 +45,16 @@ export default function PortfoliosPage() {
   }
 
   const handlePortfolioDeleted = async () => {
-    // 포트폴리오 목록 새로고침
     try {
       const portfolioList = await fetchPortfolioList()
       setPortfolios(portfolioList)
       
-      // 첫 번째 포트폴리오를 선택 (없으면 null)
       if (portfolioList.length > 0) {
         setSelectedPortfolio(portfolioList[0])
       } else {
         setSelectedPortfolio(null)
       }
 
-      // 요약 정보도 새로고침
       const summaryData = await fetchPortfolioSummary()
       setPortfolioSummary(summaryData)
     } catch (error) {
@@ -89,7 +85,7 @@ export default function PortfoliosPage() {
 
         {portfolios.length > 0 ? (
           <div className="flex flex-col xl:flex-row gap-6 h-full">
-            {/* Portfolio List */}
+            
             <section className="xl:w-1/3 flex flex-col h-full mx-2 animate-in fade-in duration-700 delay-300">
               <h2 className="text-xl font-bold text-[#1f2937] mb-4 flex-shrink-0">포트폴리오 목록</h2>
               <div className="space-y-4 overflow-y-auto pr-2 pb-6 flex-1 min-h-0">
@@ -120,7 +116,7 @@ export default function PortfoliosPage() {
               </div>
             </section>
 
-            {/* Portfolio Detail Panel */}
+            
             <section className="xl:flex-1 h-full animate-in fade-in duration-700 delay-500">
               {selectedPortfolio && (
                 <PortfolioDetailPanel 
@@ -135,7 +131,7 @@ export default function PortfoliosPage() {
         )}
       </main>
       
-      {/* 플로팅 챗봇 */}
+      
       <FloatingChatbot context="portfolio" />
     </div>
   )

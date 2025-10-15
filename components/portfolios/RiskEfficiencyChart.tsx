@@ -24,15 +24,12 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
   useEffect(() => {
     if (!data || data.length === 0 || !chartRef.current) return
 
-    // 기존 차트 인스턴스 정리
     if (chartInstance.current) {
       chartInstance.current.dispose()
     }
 
-    // 새 차트 인스턴스 생성
     chartInstance.current = echarts.init(chartRef.current)
 
-    // ECharts 옵션 설정
     const option = {
       grid: {
         top: 60,
@@ -111,10 +108,8 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
       ]
     }
 
-    // 차트 옵션 설정
     chartInstance.current.setOption(option)
 
-    // 리사이즈 이벤트 리스너
     const handleResize = () => {
       if (chartInstance.current) {
         chartInstance.current.resize()
@@ -123,7 +118,6 @@ export function RiskEfficiencyChart({ data }: RiskEfficiencyChartProps) {
 
     window.addEventListener('resize', handleResize)
 
-    // 정리 함수
     return () => {
       window.removeEventListener('resize', handleResize)
       if (chartInstance.current) {

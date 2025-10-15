@@ -4,19 +4,14 @@ import { useState, useEffect, useRef } from "react"
 import type { StockSearchResult } from "@/types/stock"
 import { searchStocks } from "@/lib/api/stockSearch"
 
-/**
- * Custom hook for stock search functionality with debouncing and API integration
- */
 export function useStockSearch() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<StockSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // AbortController for canceling previous requests
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  // Debounced search effect with API call
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([])
@@ -25,7 +20,6 @@ export function useStockSearch() {
       return
     }
 
-    // Cancel previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
@@ -35,7 +29,6 @@ export function useStockSearch() {
 
     const timeoutId = setTimeout(async () => {
       try {
-        // Create new AbortController for this request
         abortControllerRef.current = new AbortController()
         
         const results = await searchStocks(searchQuery)
@@ -43,7 +36,6 @@ export function useStockSearch() {
         setError(null)
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
-          // Request was cancelled, don't update state
           return
         }
         console.error('Search error:', error)
@@ -62,7 +54,6 @@ export function useStockSearch() {
     }
   }, [searchQuery])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {

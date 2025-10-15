@@ -1,4 +1,3 @@
-// Model Portfolio type definitions for Fi-Match⁺
 
 export interface ModelPortfolio {
   id: number

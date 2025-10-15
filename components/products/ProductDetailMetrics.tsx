@@ -72,7 +72,7 @@ export function ProductDetailMetrics({ product }: ProductDetailMetricsProps) {
       transition={{ duration: 0.6, delay: 0.1 }}
       className="space-y-6"
     >
-      {/* Risk Level Card */}
+      
       <Card className="border-0 shadow-lg max-w-6xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl font-semibold text-gray-900">
@@ -95,7 +95,7 @@ export function ProductDetailMetrics({ product }: ProductDetailMetricsProps) {
         </CardContent>
       </Card>
 
-      {/* Metrics Grid - PC 최적화된 2열 레이아웃 */}
+      
       <div className="grid grid-cols-2 gap-6 max-w-6xl mx-auto">
         {metrics.map((metric, index) => {
           const IconComponent = metric.icon

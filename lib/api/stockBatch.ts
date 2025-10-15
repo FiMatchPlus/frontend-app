@@ -1,6 +1,5 @@
 import { API_CONFIG } from "../api"
 
-// 배치 조회 API 응답 타입
 interface BatchStockResponse {
   status: string
   message: string
@@ -35,9 +34,6 @@ export interface StockPriceData {
   lastUpdated: number
 }
 
-/**
- * 여러 종목의 현재가를 한 번에 조회하는 API
- */
 export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPriceData[]> {
   if (!codes.length) {
     return []
@@ -77,7 +73,6 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
       throw new Error(result.message || 'API 요청이 실패했습니다.')
     }
 
-    // API 응답을 내부 형식으로 변환
     const stockData: StockPriceData[] = result.data.data.map(item => ({
       symbol: item.ticker,
       name: item.name,
@@ -100,14 +95,10 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
       console.error("[BatchStock] Batch stock API error:", error)
     }
     
-    // 에러 발생 시 빈 배열 반환 (UI가 깨지지 않도록)
     return []
   }
 }
 
-/**
- * 단일 종목 조회를 위한 래퍼 함수 (기존 API와 호환성)
- */
 export async function fetchSingleStockPrice(code: string): Promise<StockPriceData | null> {
   const results = await fetchMultipleStockPrices([code])
   return results.length > 0 ? results[0] : null

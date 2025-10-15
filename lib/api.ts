@@ -1,10 +1,5 @@
-/**
- * API configuration and service functions
- */
-
 import type { BacktestResponse, PortfolioMainData } from "@/types/portfolio"
 
-// API 기본 설정
 export const API_CONFIG = {
   baseUrl: "https://fi-match.shop",
   timeout: 10000,
@@ -15,14 +10,9 @@ export const API_CONFIG = {
 }
 
 const TIMEFRAME_MAPPING: Record<string, string> = {
-  "1m": "1m",
   "1D": "1d",
-  "1W": "1w",
-  "1M": "1M",
-  "1Y": "1y",
 }
 
-// API 응답 타입 정의
 interface ApiResponse<T> {
   status: string
   message: string
@@ -30,7 +20,6 @@ interface ApiResponse<T> {
   data: T
 }
 
-// 차트 데이터 API 응답 타입
 interface ChartDataResponse {
   timestamp: string
   open: number
@@ -40,9 +29,6 @@ interface ChartDataResponse {
   volume: number
 }
 
-/**
- * 차트 데이터를 서버에서 가져오는 함수
- */
 export async function fetchChartData(
   symbol: string, 
   timeFrame: string, 
@@ -50,11 +36,10 @@ export async function fetchChartData(
   endDate?: string
 ): Promise<ChartDataResponse[]> {
   try {
-    console.log("[v0] Fetching chart data for:", symbol, "timeframe:", timeFrame, "range:", startDate, "~", endDate)
+    console.log("Fetching chart data for:", symbol, "timeframe:", timeFrame, "range:", startDate, "~", endDate)
 
     const mappedInterval = TIMEFRAME_MAPPING[timeFrame] || timeFrame.toLowerCase()
     
-    // 기본 URL에 파라미터 추가
     const params = new URLSearchParams({
       stockId: symbol,
       interval: mappedInterval
@@ -64,9 +49,9 @@ export async function fetchChartData(
     if (endDate) params.append('endDate', endDate)
     
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/chart?${params.toString()}`
-    console.log("[v0] API URL:", apiUrl)
+    console.log("API URL:", apiUrl)
 
-    console.log("[v0] Request headers:", API_CONFIG.headers)
+    console.log("Request headers:", API_CONFIG.headers)
 
     let response: Response
     try {
@@ -82,10 +67,10 @@ export async function fetchChartData(
       clearTimeout(timeoutId)
     } catch (fetchError: unknown) {
       if (fetchError instanceof TypeError) {
-        console.error("[v0] Network connection failed - Mixed Content or CORS issue")
-        console.error("[v0] HTTPS environment cannot connect to HTTP localhost")
-        console.error("[v0] Server URL:", API_CONFIG.baseUrl)
-        console.error("[v0] Client Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
+        console.error("Network connection failed - Mixed Content or CORS issue")
+        console.error("HTTPS environment cannot connect to HTTP localhost")
+        console.error("Server URL:", API_CONFIG.baseUrl)
+        console.error("Client Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
         throw new Error("네트워크 연결 실패: HTTPS 환경에서 HTTP localhost 연결 불가")
       } else if (
         typeof fetchError === "object" &&
@@ -93,10 +78,10 @@ export async function fetchChartData(
         "name" in fetchError &&
         (fetchError as { name?: string }).name === "AbortError"
       ) {
-        console.error("[v0] Request timeout after", API_CONFIG.timeout, "ms")
+        console.error("Request timeout after", API_CONFIG.timeout, "ms")
         throw new Error("요청 시간 초과")
       } else {
-        console.error("[v0] Unexpected fetch error:", fetchError)
+        console.error("Unexpected fetch error:", fetchError)
         throw new Error("네트워크 요청 실패")
       }
     }
@@ -112,7 +97,6 @@ export async function fetchChartData(
     const responseHeaders = Object.fromEntries(response.headers.entries())
     console.log("All Response Headers:", responseHeaders)
 
-    // CORS 관련 헤더들 개별 확인
     const corsHeaders = {
       "access-control-allow-origin": response.headers.get("access-control-allow-origin"),
       "access-control-allow-methods": response.headers.get("access-control-allow-methods"),
@@ -153,9 +137,6 @@ export async function fetchChartData(
   }
 }
 
-/**
- * API 응답 데이터를 차트 데이터 형식으로 변환
- */
 export function transformChartData(apiData: ChartDataResponse[]) {
   return apiData.map((item) => ({
     timestamp: new Date(item.timestamp).getTime(),
@@ -167,7 +148,6 @@ export function transformChartData(apiData: ChartDataResponse[]) {
   }))
 }
 
-// 포트폴리오 생성 API 응답 타입
 interface CreatePortfolioResponse {
   id: string
   name: string
@@ -179,9 +159,6 @@ interface CreatePortfolioResponse {
   updatedAt: string
 }
 
-/**
- * 포트폴리오를 생성하는 함수
- */
 export async function createPortfolio(portfolioData: any): Promise<CreatePortfolioResponse> {
   try {
     console.log("[API] Creating portfolio:", portfolioData)
@@ -192,13 +169,11 @@ export async function createPortfolio(portfolioData: any): Promise<CreatePortfol
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    // Map client keys to server-expected keys
     const requestBody = {
       ...portfolioData,
       holdings: portfolioData.stockHoldings,
       rules: portfolioData.rule,
     }
-    // Remove client-only keys to avoid ambiguity
     delete (requestBody as any).stockHoldings
     delete (requestBody as any).rule
 
@@ -234,9 +209,6 @@ export async function createPortfolio(portfolioData: any): Promise<CreatePortfol
   }
 }
 
-/**
- * 포트폴리오의 백테스트 내역을 가져오는 함수
- */
 export async function fetchPortfolioBacktests(portfolioId: string): Promise<BacktestResponse[]> {
   try {
     console.log("[API] Fetching backtests for portfolio:", portfolioId)
@@ -283,9 +255,6 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
   }
 }
 
-/**
- * 메인 포트폴리오 정보를 가져오는 함수
- */
 export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
   try {
     console.log("[API] Fetching main portfolio data")
@@ -322,15 +291,10 @@ export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
 
     return result.data
   } catch (error) {
-    // Silenced detailed console error for portfolio main fetch
     throw error
   }
 }
 
-/**
- * 백테스트를 실행하는 함수 (비동기 작업 큐 방식)
- * 즉시 응답을 받고 백테스트는 백그라운드에서 실행됨
- */
 export async function executeBacktest(backtestId: number): Promise<{ success: boolean; message?: string; backtestId?: string }> {
   try {
     console.log("[API] Executing backtest:", backtestId)
@@ -361,8 +325,6 @@ export async function executeBacktest(backtestId: number): Promise<{ success: bo
     const result = await response.json()
     console.log("[API] Execute backtest result:", result)
 
-    // 비동기 작업 큐 방식: 즉시 응답 받음
-    // 응답 형태: { "status": "success", "message": "백테스트 실행이 시작되었습니다", "data": "123" }
     return { 
       success: true, 
       message: result.message || "백테스트 실행이 시작되었습니다",
@@ -379,7 +341,6 @@ export async function executeBacktest(backtestId: number): Promise<{ success: bo
   }
 }
 
-// 다중 종목 실시간 데이터 타입 정의
 export interface StockMultiData {
   ticker: string
   name: string
@@ -387,11 +348,11 @@ export interface StockMultiData {
   dailyRate: number
   dailyChange: number
   marketCap: number
-  sign: string  // "2" (상승), "5" (하락), "3" (보합) 등의 숫자 문자열
+  sign: string
 }
 
 export interface StockMultiResponse {
-  status: string  // "success"
+  status: string
   message: string
   timestamp: string
   data: {
@@ -404,14 +365,10 @@ export interface StockMultiResponse {
   }
 }
 
-/**
- * 여러 종목의 실시간 현재가를 조회하는 함수
- */
 export async function fetchMultiStockPrices(codes: string[]): Promise<StockMultiData[]> {
   try {
     console.log("[API] Fetching multi stock prices for:", codes)
 
-    // Query string 생성: codes=005930&codes=000660&codes=035720
     const params = codes.map(code => `codes=${code}`).join('&')
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/multi?${params}`
     console.log("[API] API URL:", apiUrl)

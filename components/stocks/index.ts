@@ -1,4 +1,3 @@
-// Stock components exports
 export { StockSearch } from "./StockSearch"
 export { StockList } from "./StockList"
 export { StockSidebar } from "./StockSidebar"

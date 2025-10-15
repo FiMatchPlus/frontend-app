@@ -1,7 +1,3 @@
-/**
- * 챗봇 API 통신 함수
- */
-
 import { API_CONFIG } from '@/lib/api'
 
 export interface ChatResponse {
@@ -10,9 +6,6 @@ export interface ChatResponse {
   error?: string
 }
 
-/**
- * 챗봇 API 데이터 구조
- */
 export interface ChatApiData {
   category: string
   categoryDescription: string
@@ -20,9 +13,6 @@ export interface ChatApiData {
   answer: string
 }
 
-/**
- * 챗봇 API 응답 구조
- */
 export interface ChatApiResponse {
   status: string
   message: string
@@ -30,12 +20,6 @@ export interface ChatApiResponse {
   data: ChatApiData
 }
 
-/**
- * 챗봇에게 질문을 전송하고 답변을 받아오는 함수
- * @param category - 챗봇 카테고리 ('loss', 'profit', 또는 'benchmark')
- * @param question - 사용자 질문
- * @returns Promise<ChatResponse>
- */
 export async function sendChatMessage(category: 'loss' | 'profit' | 'benchmark', question: string): Promise<ChatResponse> {
   try {
     const response = await fetch(`${API_CONFIG.baseUrl}/api/chat/${category}?question=${encodeURIComponent(question)}`, {
@@ -68,13 +52,6 @@ export async function sendChatMessage(category: 'loss' | 'profit' | 'benchmark',
   }
 }
 
-/**
- * POST 방식으로 챗봇에게 질문을 전송하는 함수 (향후 확장용)
- * @param category - 챗봇 카테고리 ('loss', 'profit', 또는 'benchmark')  
- * @param question - 사용자 질문
- * @param context - 추가 컨텍스트 정보 (옵션)
- * @returns Promise<ChatResponse>
- */
 export async function sendChatMessagePost(
   category: 'loss' | 'profit' | 'benchmark', 
   question: string, 
@@ -115,12 +92,6 @@ export async function sendChatMessagePost(
   }
 }
 
-/**
- * 컨텍스트 기반 챗봇에게 질문을 전송하는 함수
- * @param context - 챗봇 컨텍스트 ('portfolio', 'backtest', 또는 'create-portfolio')
- * @param question - 사용자 질문
- * @returns Promise<ChatResponse>
- */
 export async function sendContextChatMessage(
   context: 'portfolio' | 'backtest' | 'create-portfolio',
   question: string

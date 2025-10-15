@@ -1,10 +1,6 @@
-/**
- * Model Portfolio Products API functions
- */
 
 import { API_CONFIG } from '../api'
 
-// API 응답 타입 정의
 interface ApiResponse<T> {
   status: string
   message: string
@@ -12,7 +8,6 @@ interface ApiResponse<T> {
   data: T
 }
 
-// 상품 목록 조회 API 응답 데이터
 export interface ProductListItem {
   id: number
   name: string
@@ -22,7 +17,6 @@ export interface ProductListItem {
   minInvestment: number
 }
 
-// 상품 상세 조회 API 응답 데이터
 export interface ProductDetail {
   id: number
   name: string
@@ -42,9 +36,6 @@ export interface ProductDetail {
   }[]
 }
 
-/**
- * 모델 포트폴리오 상품 목록 조회
- */
 export async function fetchProducts(
   riskLevel?: string,
   search?: string
@@ -52,7 +43,6 @@ export async function fetchProducts(
   try {
     console.log('[API] Fetching products', { riskLevel, search })
 
-    // Query parameters 구성
     const params = new URLSearchParams()
     if (riskLevel) params.append('riskLevel', riskLevel)
     if (search) params.append('search', search)
@@ -95,9 +85,6 @@ export async function fetchProducts(
   }
 }
 
-/**
- * 모델 포트폴리오 상품 상세 조회
- */
 export async function fetchProductDetail(productId: number): Promise<ProductDetail> {
   try {
     console.log('[API] Fetching product detail:', productId)

@@ -10,7 +10,6 @@ import type { Stock } from "@/types/stock"
 interface StockSearchProps {
   onSelectStock: (stock: Stock) => void
   className?: string
-  // Deprecated: price/change preview removed from dropdown
   showPriceChange?: boolean
 }
 
@@ -20,7 +19,6 @@ export function StockSearch({ onSelectStock, className, showPriceChange = true }
 
 
   const handleSelectStock = (result: any) => {
-    // Convert search result back to full stock object
     const fullStock: Stock = {
       symbol: result.symbol,
       name: result.name,
@@ -49,7 +47,7 @@ export function StockSearch({ onSelectStock, className, showPriceChange = true }
           className="mb-2"
         />
 
-        {/* Search Results Dropdown */}
+        
         {searchQuery && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto rounded-lg border border-border bg-background/95 backdrop-blur-sm shadow-lg">
             {isSearching ? (
@@ -76,7 +74,7 @@ export function StockSearch({ onSelectStock, className, showPriceChange = true }
                           {result.symbol} • {result.sector}
                         </div>
                       </div>
-                      {/* price/change preview removed per requirement */}
+                      
                     </div>
                   </button>
                 ))}

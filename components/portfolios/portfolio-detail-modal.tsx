@@ -93,7 +93,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+          
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -102,14 +102,14 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
 
-          {/* Modal */}
+          
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="relative w-full max-w-6xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden"
           >
-            {/* Header */}
+            
             <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-[#f0f9f7]">
               <div>
                 <h2 className="text-2xl font-bold text-[#1f2937]">{portfolio.name}</h2>
@@ -120,7 +120,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
               </button>
             </div>
 
-            {/* Tabs */}
+            
             <div className="flex border-b border-gray-200 bg-white px-6">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -141,11 +141,11 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
               })}
             </div>
 
-            {/* Content */}
+            
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               {activeTab === "overview" && (
                 <div className="space-y-6">
-                  {/* Summary Stats */}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-[#f0f9f7] rounded-xl p-4">
                       <div className="text-sm text-[#6b7280] mb-1">총 자산</div>
@@ -169,7 +169,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                     </div>
                   </div>
 
-                  {/* Pie Chart */}
+                  
                   <div className="bg-white rounded-xl border border-[#009178] p-6">
                     <h3 className="text-lg font-semibold text-[#1f2937] mb-4">포트폴리오 구성</h3>
                     <PortfolioPieChart data={portfolio.holdings.map((h) => ({ ...h, trend: h.change }))} />

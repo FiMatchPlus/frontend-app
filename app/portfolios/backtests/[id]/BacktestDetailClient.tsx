@@ -80,7 +80,6 @@ export default function BacktestDetailClient() {
           </div>
         </main>
         
-        {/* 플로팅 챗봇 */}
         <FloatingChatbot context="backtest" />
       </div>
     )
@@ -94,14 +93,13 @@ export default function BacktestDetailClient() {
     <div className="min-h-screen bg-[#f0f9f7]">
       <Header />
       <main className="max-w-6xl mx-auto pt-8 px-4 pb-10 space-y-8">
-        {/* 헤더 */}
+        
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => router.back()} className="text-[#1f2937] hover:text-[#009178]">
             <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
           </Button>
         </div>
 
-        {/* 리포트 헤더 */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-[#1f2937]">{backtestData.name}</h1>
@@ -112,7 +110,6 @@ export default function BacktestDetailClient() {
             </div>
           </div>
           
-          {/* 핵심 지표 요약 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-[#f0f9f7] rounded-lg">
               <div className="text-sm text-[#6b7280] mb-1">총 수익률</div>
@@ -141,7 +138,6 @@ export default function BacktestDetailClient() {
           </div>
         </div>
 
-        {/* 누적 평가액 차트 (벤치마크 포함) */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-[#1f2937] mb-4">누적 평가액</h2>
           <BacktestChart 
@@ -153,12 +149,10 @@ export default function BacktestDetailClient() {
           />
         </div>
 
-        {/* 룰 정보 */}
         {backtestData.rules ? (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-[#1f2937] mb-4">매매기준</h2>
             
-            {/* 룰 메모 */}
             {backtestData.rules.memo && (
               <div className="mb-6 p-4 bg-[#f0f9f7] rounded-lg">
                 <h3 className="text-sm font-medium text-[#6b7280] mb-1">메모</h3>
@@ -167,7 +161,6 @@ export default function BacktestDetailClient() {
             )}
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* 손절 조건 */}
               <div>
                 <h3 className="text-lg font-medium text-[#1f2937] mb-3">손절 조건</h3>
                 {backtestData.rules.stopLoss && backtestData.rules.stopLoss.length > 0 ? (
@@ -188,7 +181,6 @@ export default function BacktestDetailClient() {
                 )}
               </div>
 
-              {/* 익절 조건 */}
               <div>
                 <h3 className="text-lg font-medium text-[#1f2937] mb-3">익절 조건</h3>
                 {backtestData.rules.takeProfit && backtestData.rules.takeProfit.length > 0 ? (
@@ -209,7 +201,6 @@ export default function BacktestDetailClient() {
                 )}
               </div>
 
-              {/* 리밸런싱 조건 */}
               <div>
                 <h3 className="text-lg font-medium text-[#1f2937] mb-3">리밸런싱</h3>
                 {backtestData.rules.rebalance && backtestData.rules.rebalance.length > 0 ? (
@@ -231,7 +222,6 @@ export default function BacktestDetailClient() {
               </div>
             </div>
 
-            {/* 벤치마크 정보 */}
             {backtestData.rules.basicBenchmark && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="text-sm font-medium text-[#6b7280] mb-1">기본 벤치마크</h3>
@@ -248,7 +238,6 @@ export default function BacktestDetailClient() {
           </div>
         )}
 
-        {/* 마크다운 레포트 (API 응답 기반) */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-[#1f2937] mb-4">백테스트 분석 리포트</h2>
           {backtestData.report ? (
@@ -267,7 +256,6 @@ export default function BacktestDetailClient() {
         </div>
       </main>
       
-      {/* 플로팅 챗봇 */}
       <FloatingChatbot context="backtest" />
     </div>
   )

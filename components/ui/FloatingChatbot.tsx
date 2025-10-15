@@ -47,7 +47,6 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
     scrollToBottom()
   }, [messages])
 
-  // 툴팁을 5초 후에 자동으로 숨김
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowTooltip(false)
@@ -72,7 +71,6 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
     setIsTyping(true)
 
     try {
-      // 실제 API 호출
       const response = await sendContextChatMessage(context, currentInput)
       
       const botResponse: Message = {
@@ -85,7 +83,6 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
     } catch (error) {
       console.error('챗봇 API 호출 실패:', error)
       
-      // API 실패 시 폴백 응답
       const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
@@ -152,7 +149,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
 
   return (
     <>
-      {/* 플로팅 버튼 */}
+      
       <motion.div
         className={`fixed bottom-6 right-3 md:right-6 z-50 ${className}`}
         initial={{ scale: 0 }}
@@ -168,7 +165,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
               transition={{ duration: 0.2 }}
               className="relative"
             >
-              {/* 말풍선 툴팁 */}
+              
               <AnimatePresence>
                 {showTooltip && (
                   <motion.div
@@ -187,7 +184,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                           : '✨ 포트폴리오 생성 도움이 필요하세요?'
                         }
                       </div>
-                      {/* 말풍선 꼬리 */}
+                      
                       <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-[#1f2937]"></div>
                     </div>
                   </motion.div>
@@ -211,7 +208,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
         </AnimatePresence>
       </motion.div>
 
-      {/* 채팅 창 */}
+      
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -240,7 +237,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
               </CardHeader>
 
               <CardContent className="flex flex-col h-full p-0">
-                {/* 메시지 영역 */}
+                
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   {messages.map((message) => (
                     <div
@@ -275,7 +272,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                     </div>
                   ))}
                   
-                  {/* 타이핑 인디케이터 */}
+                  
                   {isTyping && (
                     <div className="flex justify-start">
                       <div className="flex gap-2 max-w-[80%]">
@@ -295,7 +292,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* 입력 영역 */}
+                
                 <div className="border-t p-4">
                   <div className="flex gap-2">
                     <Input

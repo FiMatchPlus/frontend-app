@@ -1,7 +1,6 @@
 import type { StockSearchResult } from "@/types/stock"
 import { API_CONFIG } from "../api"
 
-// API 기본 응답 형식
 interface ApiResponse<T> {
   status: string
   message: string
@@ -19,9 +18,6 @@ export interface StockSearchAPIResponse {
   }
 }
 
-/**
- * 종목 검색 API 호출
- */
 export async function searchStocks(query: string): Promise<StockSearchResult[]> {
   if (!query.trim()) {
     return []
@@ -54,13 +50,11 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
     }
 
     const data: StockSearchAPIResponse = await response.json()
-    // console.log("[StockSearch] Response Body:", data)
     
     if (data.status !== 'success') {
       throw new Error(data.message || 'API 요청이 실패했습니다.')
     }
     
-    // price, changePercent 제거하여 반환
     const sanitized = (data.data.results || []).map(r => ({
       symbol: r.symbol,
       name: r.name,
@@ -78,15 +72,10 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
       console.error("[StockSearch] Stock search API error:", error)
     }
     
-    // 에러 발생 시 빈 배열 반환 (UI가 깨지지 않도록)
     return []
   }
 }
 
-/**
- * 인기 종목 조회 API
- * TODO: 인기 종목 API의 응답 형식에 따라 수정 필요
- */
 export async function getPopularStocks(): Promise<StockSearchResult[]> {
   try {
     console.log("[StockSearch] Fetching popular stocks")
@@ -115,7 +104,6 @@ export async function getPopularStocks(): Promise<StockSearchResult[]> {
     }
 
     const data: StockSearchAPIResponse = await response.json()
-    // console.log("[StockSearch] Response Body:", data)
     
     if (data.status !== 'success') {
       throw new Error(data.message || 'API 요청이 실패했습니다.')

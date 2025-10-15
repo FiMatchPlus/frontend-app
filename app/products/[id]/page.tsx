@@ -17,7 +17,6 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Copy } from "lucide-react"
 
-// ProductDetail 타입 (API 응답)
 interface ProductDetailData {
   id: number
   name: string
@@ -46,7 +45,6 @@ export default function ProductDetailPage() {
   const [liveHoldings, setLiveHoldings] = useState<PortfolioHolding[]>([])
   const [isLoadingLive, setIsLoadingLive] = useState(false)
 
-  // 상품 상세 정보 가져오기
   useEffect(() => {
     const loadProduct = async () => {
       try {
@@ -63,7 +61,6 @@ export default function ProductDetailPage() {
         const data = await fetchProductDetail(productId)
         setProduct(data)
         
-        // holdings를 PortfolioHolding 형식으로 변환 (초기값)
         setLiveHoldings(data.holdings.map(h => ({
           ...h,
           price: 0,
@@ -82,7 +79,6 @@ export default function ProductDetailPage() {
     loadProduct()
   }, [params.id])
 
-  // 실시간 주가 데이터 가져오기
   useEffect(() => {
     const fetchLiveData = async () => {
       if (!product) return
@@ -92,7 +88,6 @@ export default function ProductDetailPage() {
         const codes = product.holdings.map(h => h.symbol)
         const liveData = await fetchMultiStockPrices(codes)
         
-        // 실시간 데이터를 holdings에 병합
         const enriched: PortfolioHolding[] = product.holdings.map(holding => {
           const liveStock = liveData.find(stock => stock.ticker === holding.symbol)
           if (liveStock) {
@@ -114,7 +109,6 @@ export default function ProductDetailPage() {
         setLiveHoldings(enriched)
       } catch (err) {
         console.error("Failed to fetch live data:", err)
-        // 에러 시 기본값 사용
         setLiveHoldings(product.holdings.map(h => ({
           ...h,
           price: 0,
@@ -156,7 +150,6 @@ export default function ProductDetailPage() {
     )
   }
 
-  // 이 시점에서 product는 null이 아님이 보장됨
   if (!product) return null
 
   return (
@@ -167,7 +160,7 @@ export default function ProductDetailPage() {
         transition={{ duration: 0.6 }}
         className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
       >
-        {/* Back Button and Action Button */}
+        
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -186,7 +179,6 @@ export default function ProductDetailPage() {
           <Button
             onClick={() => {
               if (product) {
-                // 실시간 데이터가 반영된 liveHoldings 사용
                 const portfolioData = {
                   name: `${product.name} - 커스텀`,
                   description: product.description,
@@ -201,7 +193,6 @@ export default function ProductDetailPage() {
                   }))
                 }
                 
-                // Query string으로 데이터 전달
                 const queryParams = new URLSearchParams({
                   template: 'true',
                   data: JSON.stringify(portfolioData)
@@ -217,15 +208,15 @@ export default function ProductDetailPage() {
           </Button>
         </motion.div>
 
-        {/* Product Detail Header */}
+        
         <ProductDetailHeader product={product} />
 
-        {/* Product Metrics */}
+        
         <div className="mt-10">
           <ProductDetailMetrics product={product} />
         </div>
 
-        {/* Portfolio Holdings */}
+        
         <div className="mt-10">
           <PortfolioHoldings holdings={liveHoldings} />
         </div>

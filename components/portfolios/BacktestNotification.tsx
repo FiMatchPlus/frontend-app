@@ -20,19 +20,15 @@ export function BacktestNotification({ portfolioId }: BacktestNotificationProps)
     timestamp: number
   }>>([])
 
-  // 백테스트 상태 변경 감지
   useEffect(() => {
     const portfolioStates = state.backtestStates[portfolioId]
     if (!portfolioStates) return
 
-    // 완료 또는 실패 상태로 변경된 백테스트 감지
     Object.entries(portfolioStates).forEach(([backtestId, backtestState]) => {
       if (backtestState.status === 'COMPLETED' || backtestState.status === 'FAILED') {
-        // 이미 알림을 보낸 백테스트인지 확인
         const existingNotification = notifications.find(n => n.backtestId === backtestId)
         
         if (!existingNotification) {
-          // 새로운 알림 추가
           const newNotification = {
             id: `${portfolioId}-${backtestId}-${Date.now()}`,
             backtestId,
@@ -42,7 +38,6 @@ export function BacktestNotification({ portfolioId }: BacktestNotificationProps)
           
           setNotifications(prev => [...prev, newNotification])
           
-          // 5초 후 알림 자동 제거
           setTimeout(() => {
             setNotifications(prev => prev.filter(n => n.id !== newNotification.id))
           }, 5000)
@@ -51,15 +46,12 @@ export function BacktestNotification({ portfolioId }: BacktestNotificationProps)
     })
   }, [state.backtestStates, portfolioId, notifications])
 
-  // 알림 제거 함수
   const removeNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
   }
 
-  // 백테스트 상세 페이지로 이동 (선택적)
   const goToBacktestDetail = (backtestId: string) => {
     router.push(`/portfolios/backtests/${backtestId}`)
-    // 알림은 제거하지 않음 - 사용자가 직접 닫을 때까지 유지
   }
 
   return (

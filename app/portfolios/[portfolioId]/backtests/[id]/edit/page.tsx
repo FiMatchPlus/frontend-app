@@ -30,14 +30,12 @@ import {
   BacktestMetadataResponse 
 } from "@/lib/api/backtests"
 
-// 중지 조건 타입 옵션
 const STOP_CONDITION_TYPES = [
   { value: 'stopLoss', label: '손절', description: '손실 한계선 설정' },
   { value: 'takeProfit', label: '익절', description: '수익 목표 달성' },
   { value: 'period', label: '기간 설정', description: '시작일과 종료일 설정' }
 ] as const
 
-// 손절/익절 기준 옵션 (포트폴리오 생성 폼과 동일)
 const STOP_LOSS_CRITERIA = ["베타 일정값 초과", "VaR 초과", "MDD 초과", "손실 한계선"]
 const TAKE_PROFIT_CRITERIA = ["단일 종목 목표 수익률 달성"]
 
@@ -93,7 +91,6 @@ export default function EditBacktestPage() {
     period: true // 기간 설정은 기본으로 열어둠
   })
 
-  // 챗봇 상태
   const [chatbotOpen, setChatbotOpen] = useState<{
     isOpen: boolean
     term: 'loss' | 'profit' | 'benchmark' | null
@@ -102,7 +99,6 @@ export default function EditBacktestPage() {
     term: null
   })
 
-  // 백테스트 메타데이터 로드 및 폼 채우기
   useEffect(() => {
     const loadBacktestMetadata = async () => {
       try {
@@ -110,12 +106,9 @@ export default function EditBacktestPage() {
         const response = await getBacktestMetadata(backtestId)
         const metadata = response.data
 
-        // 기존 데이터
         const stopConditions: StopCondition[] = []
 
-        // 기간 조건
         if (metadata.startAt && metadata.endAt) {
-          // ISO datetime을 date로 변환 (YYYY-MM-DD 형식)
           const startDate = metadata.startAt.split('T')[0]
           const endDate = metadata.endAt.split('T')[0]
           
@@ -127,7 +120,6 @@ export default function EditBacktestPage() {
           })
         }
 
-        // 손절 조건
         if (metadata.rules?.stopLoss) {
           metadata.rules.stopLoss.forEach((rule, index) => {
             stopConditions.push({
@@ -140,7 +132,6 @@ export default function EditBacktestPage() {
           })
         }
 
-        // 익절 조건
         if (metadata.rules?.takeProfit) {
           metadata.rules.takeProfit.forEach((rule, index) => {
             stopConditions.push({
@@ -185,7 +176,6 @@ export default function EditBacktestPage() {
     }))
   }
 
-  // 챗봇 열기/닫기 함수
   const openChatbot = (term: 'loss' | 'profit' | 'benchmark') => {
     setChatbotOpen({
       isOpen: true,
@@ -216,7 +206,6 @@ export default function EditBacktestPage() {
 
   const handleStopConditionTypeChange = (type: 'stopLoss' | 'takeProfit' | 'period') => {
     setNewStopCondition(prev => {
-      // 이미 같은 타입이면 초기화하지 않음
       if (prev.type === type) {
         return prev
       }
@@ -234,7 +223,6 @@ export default function EditBacktestPage() {
   }
 
   const addStopCondition = () => {
-    // 기간 설정의 경우 시작일과 종료일 검증
     if (newStopCondition.type === 'period') {
       if (!newStopCondition.startDate || !newStopCondition.endDate) {
         setAlertDialog({
@@ -256,7 +244,6 @@ export default function EditBacktestPage() {
       }
     }
 
-    // 손절/익절의 경우 기준과 값 검증
     if (newStopCondition.type === 'stopLoss' || newStopCondition.type === 'takeProfit') {
       if (!newStopCondition.criteria?.trim()) {
         setAlertDialog({
@@ -293,7 +280,6 @@ export default function EditBacktestPage() {
       stopConditions: [...prev.stopConditions, stopCondition]
     }))
 
-    // 폼 초기화
     setNewStopCondition({
       type: 'period',
       criteria: '',
@@ -314,7 +300,6 @@ export default function EditBacktestPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 유효성 검사
     if (!formData.name.trim()) {
       setAlertDialog({
         isOpen: true,
@@ -325,7 +310,6 @@ export default function EditBacktestPage() {
       return
     }
 
-    // 기간 설정이 최소 하나는 있어야 함
     const hasPeriodCondition = formData.stopConditions.some(condition => condition.type === 'period')
     if (!hasPeriodCondition) {
       setAlertDialog({
@@ -337,7 +321,6 @@ export default function EditBacktestPage() {
       return
     }
 
-    // 벤치마크 코드 검증
     if (!selectedBenchmark) {
       setAlertDialog({
         isOpen: true,
@@ -348,7 +331,6 @@ export default function EditBacktestPage() {
       return
     }
 
-    // 확인 다이얼로그 표시
     setIsConfirmDialogOpen(true)
   }
 
@@ -363,13 +345,11 @@ export default function EditBacktestPage() {
       console.log("백테스트 ID:", backtestId)
       console.log("선택된 벤치마크:", selectedBenchmark)
       
-      // 폼 데이터를 API 요청 형식으로 변환
       const requestData = transformToBacktestRequest(formData, portfolioId, selectedBenchmark)
       
       console.log("=== 변환된 API 요청 데이터 ===")
       console.log(JSON.stringify(requestData, null, 2))
       
-      // 백테스트 업데이트 API 호출
       await updateBacktest(backtestId, requestData)
       
       setAlertDialog({
@@ -379,7 +359,6 @@ export default function EditBacktestPage() {
         type: 'success'
       })
       
-      // 잠시 후 백테스트 상세 페이지로 이동
       setTimeout(() => {
         router.push(`/portfolios/backtests/${backtestId}`)
       }, 1500)
@@ -429,7 +408,7 @@ export default function EditBacktestPage() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-8">
-          {/* 기본 정보 */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">기본 정보</CardTitle>
@@ -456,7 +435,7 @@ export default function EditBacktestPage() {
                 />
               </div>
               
-              {/* 벤치마크 지수 선택 */}
+              
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Label htmlFor="benchmark">벤치마크 지수</Label>
@@ -482,14 +461,14 @@ export default function EditBacktestPage() {
             </CardContent>
           </Card>
 
-          {/* 중지 조건 설정 */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">중지 조건 설정</CardTitle>
               <p className="text-sm text-[#6b7280]">기간 설정은 필수이며, 손절/익절은 선택사항입니다.</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* 기간 설정 (필수) */}
+              
               <div>
                 <div className="flex items-center gap-2">
                   <Button 
@@ -573,7 +552,7 @@ export default function EditBacktestPage() {
                 </AnimatePresence>
               </div>
 
-              {/* 손절 (선택) */}
+              
               <div>
                 <div className="flex items-center gap-2">
                   <Button 
@@ -682,7 +661,7 @@ export default function EditBacktestPage() {
                 </AnimatePresence>
               </div>
 
-              {/* 익절 (선택) */}
+              
               <div>
                 <div className="flex items-center gap-2">
                   <Button 
@@ -791,7 +770,7 @@ export default function EditBacktestPage() {
                 </AnimatePresence>
               </div>
 
-              {/* 추가된 중지 조건들 */}
+              
               {formData.stopConditions.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-[#1f2937]">추가된 중지 조건</h4>
@@ -829,7 +808,7 @@ export default function EditBacktestPage() {
             </CardContent>
           </Card>
 
-          {/* 제출 버튼 */}
+          
           <div className="flex justify-end gap-4">
             <Button
               type="button"
@@ -851,7 +830,7 @@ export default function EditBacktestPage() {
           </div>
         </form>
 
-        {/* 용어 설명 챗봇 */}
+        
         {chatbotOpen.isOpen && chatbotOpen.term && (
           <TermChatbot
             isOpen={chatbotOpen.isOpen}
@@ -860,7 +839,7 @@ export default function EditBacktestPage() {
           />
         )}
 
-        {/* 수정 확인 다이얼로그 */}
+        
         <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -896,7 +875,7 @@ export default function EditBacktestPage() {
           </DialogContent>
         </Dialog>
 
-        {/* 알림 모달 */}
+        
         <Dialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, isOpen: open }))}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -912,7 +891,6 @@ export default function EditBacktestPage() {
                 type="button"
                 onClick={() => {
                   setAlertDialog(prev => ({ ...prev, isOpen: false }))
-                  // 에러로 인해 로딩 상태가 끝났는데 데이터가 없으면 뒤로가기
                   if (alertDialog.type === 'error' && !loading && !formData.name) {
                     router.back()
                   }

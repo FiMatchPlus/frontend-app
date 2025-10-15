@@ -23,23 +23,17 @@ interface MarkdownReportProps {
 }
 
 export function MarkdownReport({ report, metrics, testMode = false }: MarkdownReportProps) {
-  // 간단한 마크다운 파싱 함수 (헤더/강조/구분선/줄바꿈만 처리)
   const parseMarkdown = (text: string) => {
     return text
-      // 헤더 처리
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-medium text-[#1f2937] mb-2 mt-4">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold text-[#1f2937] mb-3 mt-5">$1</h2>')
       .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-[#1f2937] mb-4 mt-6">$1</h1>')
-      // 강조 표시
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-[#1f2937]">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic text-[#374151]">$1</em>')
-      // 구분선
       .replace(/^---$/gm, '<hr class="my-6 border-gray-300"/>')
-      // 줄바꿈을 <br>로 변환
       .replace(/\n/g, '<br/>')
   }
 
-  // 지표를 기반으로 한 동적 레포트 생성
   const generateDynamicReport = () => {
     const totalReturnPercent = (metrics.totalReturn * 100).toFixed(1)
     const benchmarkReturnPercent = metrics.benchmarkReturn ? (metrics.benchmarkReturn * 100).toFixed(1) : 'N/A'
@@ -104,7 +98,6 @@ ${profitLossRatio < 1.5 ? `- 손익비 ${profitLossRatio}로 개선 여지 있�
     `
   }
 
-  // 테스트 모드에서 사용할 마크다운 리포트
   const testReport = `
 [사용자 지정 포트폴리오] 백테스팅 성과 분석 보고서
 
@@ -155,8 +148,6 @@ ${profitLossRatio < 1.5 ? `- 손익비 ${profitLossRatio}로 개선 여지 있�
 이 보고서는 과거의 데이터를 바탕으로 작성되었으므로, 미래의 성과를 보장하지는 않습니다. 하지만 나의 매매 전략이 어떤 상황에서 어떻게 작동하는지 이해하는 데 큰 도움이 될 것입니다.
   `
 
-  // 서버에서 제공된 레포트가 있으면 사용하고, 없으면 동적으로 생성
-  // 테스트 모드에서는 테스트 리포트 사용
   const reportContent = testMode ? testReport : (report || generateDynamicReport())
 
   return (

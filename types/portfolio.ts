@@ -1,4 +1,3 @@
-// Portfolio creation types
 
 export interface StockHolding {
   symbol: string
@@ -32,7 +31,6 @@ export interface CreatePortfolioData {
   rule: Rule
 }
 
-// Backtest types
 export interface BacktestMetrics {
   total_return: number
   annualized_return: number
@@ -72,7 +70,6 @@ export interface BacktestResponse {
   }>  // 실행 완료된 경우에만 존재
 }
 
-// Backtest creation types
 export interface StopCondition {
   id: string
   type: 'stopLoss' | 'takeProfit' | 'period'
@@ -89,7 +86,6 @@ export interface CreateBacktestData {
   stopConditions: StopCondition[]
 }
 
-// Portfolio main data types
 export interface HoldingSummary {
   name: string
   weight: number
@@ -103,7 +99,6 @@ export interface PortfolioMainData {
   dailySum: number
 }
 
-// 포트폴리오 상세 분석 관련 타입들
 export interface AnalysisMetrics {
   downsideStd: number      // 하방 표준편차 (하방 위험)
   sortinoRatio: number     // 소르티노 비율
@@ -133,9 +128,6 @@ export interface HoldingItem {
 export interface AnalysisResult {
   type: string  // API에서 다양한 형태로 전달됨 (예: "user", "min_variance", "max_sortino", "내 포트폴리오" 등)
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
-  // holdings는 두 가지 형태 지원:
-  // 1. 배열 형태: [{code: string, name: string, weight: number}] (신규 API)
-  // 2. 객체 형태: {ticker: weight} (레거시)
   holdings: Array<{code: string, name: string, weight: number}> | Record<string, number>
   metrics?: AnalysisMetrics        // 분석 메트릭
   key_strengths?: string[]         // 강점
@@ -186,7 +178,6 @@ export interface PortfolioAnalysis {
   execution_time?: number          // 분석 실행 시간 (초 단위)
 }
 
-// 위험도 표시를 위한 상수 (products 페이지와 동일)
 export const PORTFOLIO_RISK_LEVEL_LABELS = {
   LOW: '위험도 낮음',
   MEDIUM: '위험도 보통', 

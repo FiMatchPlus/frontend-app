@@ -31,7 +31,7 @@ export function ProductDetailHeader({ product }: ProductDetailHeaderProps) {
       <Card className="border-0 shadow-lg max-w-6xl mx-auto">
         <CardContent className="p-8">
           <div className="space-y-6">
-            {/* Product Name and Risk Level */}
+            
             <div className="flex items-center justify-between gap-6">
               <h1 className="text-3xl font-bold text-gray-900 flex-1">
                 {product.name}
@@ -44,12 +44,12 @@ export function ProductDetailHeader({ product }: ProductDetailHeaderProps) {
               </Badge>
             </div>
 
-            {/* Description */}
+            
             <p className="text-gray-700 text-lg leading-relaxed">
               {product.description}
             </p>
 
-            {/* Key Metrics - PC 최적화된 4열 레이아웃 */}
+            
             <div className="grid grid-cols-4 gap-6">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900 mb-1">
@@ -87,7 +87,7 @@ export function ProductDetailHeader({ product }: ProductDetailHeaderProps) {
               </div>
             </div>
 
-            {/* Keywords */}
+            
             <div className="flex flex-wrap gap-2">
               {product.keywords.map((keyword: string, index: number) => (
                 <Badge 

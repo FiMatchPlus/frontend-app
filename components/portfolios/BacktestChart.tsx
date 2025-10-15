@@ -26,7 +26,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
   const chartRef = useRef<HTMLDivElement>(null)
   const chartInstance = useRef<echarts.ECharts | null>(null)
 
-  // 데이터가 없으면 빈 차트 반환
   if (!data || data.length === 0) {
     return (
       <div className={`flex items-center justify-center h-96 ${className}`}>
@@ -35,7 +34,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     )
   }
 
-  // 예쁜 색상 팔레트 (먼저 정의)
   const colors = [
     '#6366f1', // 인디고
     '#ec4899', // 핑크
@@ -45,22 +43,17 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     '#ef4444', // 로즈
   ]
 
-  // 주식명 추출 - 두 가지 방법 시도
   const stockNamesFromData = Object.keys(data[0]?.stocks || {})
   const stockNamesFromHoldings = holdings.map(h => h.stockName)
   
-  // 더 많은 종목이 있는 것을 선택
   const stockNames = stockNamesFromData.length > stockNamesFromHoldings.length 
     ? stockNamesFromData 
     : stockNamesFromHoldings
   
-  // ECharts용 데이터 변환 - 비중 바차트 + 포트폴리오/벤치마크 선차트
   const dates = data.map(d => d.date)
   
-  // 총합 계산
   const totalValues = data.map(d => Object.values(d.stocks).reduce((sum, val) => sum + (val || 0), 0))
   
-  // 비중 데이터 (0~1 범위) - y축 없이 범례만으로 구분
   const ratioSeriesData = stockNames.map((stockName, index) => {
     const stockData = data.map(d => {
       const total = Object.values(d.stocks).reduce((sum, val) => sum + (val || 0), 0)
@@ -89,7 +82,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     }
   })
   
-  // 포트폴리오 총자산 선차트 데이터
   const portfolioSeriesData = {
     name: '포트폴리오',
     type: 'line',
@@ -119,20 +111,17 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     }
   }
 
-  // 벤치마크 데이터 처리
   let benchmarkSeriesData = null
   let benchmarkMin = 0
   let benchmarkMax = 0
   
   if (benchmarkData && benchmarkData.length > 0) {
-    // 벤치마크 데이터를 포트폴리오와 같은 날짜 범위로 맞춤
     const benchmarkValues = dates.map(date => {
       const benchmarkPoint = benchmarkData.find(b => b.date === date)
       return benchmarkPoint ? benchmarkPoint.value : null
     }).filter(val => val !== null)
 
     if (benchmarkValues.length > 0) {
-      // 벤치마크의 최솟값과 최댓값 계산 (여유분 추가)
       benchmarkMin = Math.min(...benchmarkValues) * 0.95 // 5% 여유
       benchmarkMax = Math.max(...benchmarkValues) * 1.02 // 2% 여유
       
@@ -155,7 +144,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     }
   }
 
-  // 완전한 옵션
   const option = {
     tooltip: {
       trigger: 'axis',
@@ -169,7 +157,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
         const date = params[0].axisValue
         let result = `<div style="font-weight: bold; margin-bottom: 8px;">${date}</div>`
         
-        // 해당 날짜의 실제 총합 찾기 - 원본 데이터에서 직접 계산
         const originalDate = date.replace(/(\d{2})\/(\d{2})/, (match: string, month: string, day: string) => {
           const year = new Date().getFullYear()
           return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
@@ -186,7 +173,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
           let displayText = ''
           let percentage = ''
           
-          // 바 차트인 경우 절대값으로 변환해서 표시
           if (param.seriesType === 'bar') {
             const absoluteValue = param.value * dailyTotal
             displayValue = absoluteValue
@@ -194,12 +180,10 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
             total += absoluteValue
             percentage = dailyTotal > 0 ? ((displayValue / dailyTotal) * 100).toFixed(1) + '%' : '0%'
           } else if (param.seriesType === 'line') {
-            // 벤치마크인지 포트폴리오인지 구분
             if (param.seriesName === benchmarkName) {
               displayText = displayValue.toFixed(1) // 벤치마크 지수는 소수점 1자리
               percentage = ''
             } else {
-              // 포트폴리오 총 자산
               displayText = formatCurrency(displayValue)
               total = displayValue
               percentage = ''
@@ -363,31 +347,24 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
   }
   
 
-  // 차트 초기화 및 업데이트
   useEffect(() => {
     if (!chartRef.current) {
       return
     }
 
-    // 기존 차트 인스턴스 정리
     if (chartInstance.current) {
       chartInstance.current.dispose()
     }
 
-    // 새 차트 인스턴스 생성
     chartInstance.current = echarts.init(chartRef.current)
 
-    // 차트 옵션 설정
     chartInstance.current.setOption(option)
 
-    // 스크롤 중 애니메이션 제어
     chartInstance.current.on('dataZoom', function (params: any) {
-      // 스크롤 중에는 애니메이션 비활성화
       chartInstance.current?.setOption({
         animation: false
       }, false)
       
-      // 스크롤 완료 후 애니메이션 재활성화 (짧은 지연 후)
       setTimeout(() => {
         chartInstance.current?.setOption({
           animation: true,
@@ -397,7 +374,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     })
 
 
-    // 리사이즈 이벤트 리스너
     const handleResize = () => {
       if (chartInstance.current) {
         chartInstance.current.resize()
@@ -406,7 +382,6 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
 
     window.addEventListener('resize', handleResize)
 
-    // 정리 함수
     return () => {
       window.removeEventListener('resize', handleResize)
       if (chartInstance.current) {
@@ -418,7 +393,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
 
   return (
     <div className={`relative ${className}`}>
-      {/* Legend를 차트 외부에 고정 */}
+      
       <div className="flex flex-wrap gap-4 mb-4 px-2">
         {stockNames.map((stockName, index) => (
           <div key={stockName} className="flex items-center gap-2">
@@ -447,7 +422,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
         )}
       </div>
       
-      {/* 차트 영역 - dataZoom으로 스크롤 처리 */}
+      
       <div className="h-96">
         <div 
           ref={chartRef} 

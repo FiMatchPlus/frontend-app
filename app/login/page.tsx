@@ -67,21 +67,17 @@ export default function LoginPage() {
     loadPortfolioData()
   }, [])
 
-  // 파이 차트 초기화
   useEffect(() => {
     if (!portfolioData || !pieChartRef.current) return
 
-    // 기존 차트 인스턴스 정리
     if (pieChartInstance.current) {
       pieChartInstance.current.dispose()
     }
 
-    // 새 차트 인스턴스 생성
     pieChartInstance.current = echarts.init(pieChartRef.current)
 
     const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
 
-    // ECharts 옵션 설정
     const option = {
       tooltip: {
         trigger: 'item',
@@ -122,10 +118,8 @@ export default function LoginPage() {
       ]
     }
 
-    // 차트 옵션 설정
     pieChartInstance.current.setOption(option)
 
-    // 리사이즈 이벤트 리스너
     const handleResize = () => {
       if (pieChartInstance.current) {
         pieChartInstance.current.resize()
@@ -134,7 +128,6 @@ export default function LoginPage() {
 
     window.addEventListener('resize', handleResize)
 
-    // 정리 함수
     return () => {
       window.removeEventListener('resize', handleResize)
       if (pieChartInstance.current) {
@@ -148,7 +141,7 @@ export default function LoginPage() {
       <Header />
 
       <main className="max-w-6xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Ranking Section */}
+        
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -188,7 +181,7 @@ export default function LoginPage() {
           </ul>
         </motion.section>
 
-        {/* Portfolio Section */}
+        
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -231,7 +224,7 @@ export default function LoginPage() {
                 />
               </motion.div>
 
-              {/* Chart Legend */}
+              
               <div className="flex-1 w-full">
                 {portfolioData.holdings.map((holding, index) => {
                   const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
@@ -288,9 +281,9 @@ export default function LoginPage() {
           </Link>
         </motion.section>
 
-        {/* Bottom Section */}
+        
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Market Status Card */}
+          
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -320,7 +313,7 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Investment Insights Card */}
+          
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -344,7 +337,7 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Service Introduction Card */}
+          
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}

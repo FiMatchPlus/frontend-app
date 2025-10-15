@@ -42,7 +42,6 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
   const [backtestToDelete, setBacktestToDelete] = useState<{id: number, name: string} | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   
-  // 전역 백테스트 상태 사용
   const { 
     getBacktestStatus, 
     hasRunningBacktests, 
@@ -51,7 +50,6 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     updateBacktestStatus 
   } = useBacktest()
 
-  // 날짜 포맷팅 함수
   const formatDateTime = (dateString: string) => {
     try {
       const date = new Date(dateString)
@@ -70,25 +68,20 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     }
   }
 
-  // 백테스트 실행 상태 가져오기 (전역 상태 우선, 서버 상태 fallback)
   const getBacktestDisplayStatus = useCallback((backtest: BacktestResponse): BacktestStatus => {
-    // 전역 상태에서 먼저 확인
     const globalStatus = getBacktestStatus(portfolio.id.toString(), backtest.id.toString())
     if (globalStatus) {
       return globalStatus.toLowerCase() as BacktestStatus
     }
     
-    // 전역 상태가 없으면 서버 상태 사용
     const serverStatus = backtest.status?.toLowerCase()
     if (serverStatus === 'completed' || serverStatus === 'failed' || serverStatus === 'running' || serverStatus === 'created') {
       return serverStatus as BacktestStatus
     }
     
-    // 기본값
     return 'created'
   }, [getBacktestStatus, portfolio.id])
 
-  // 백테스트 실행 함수
   const handleExecuteBacktest = useCallback(async (backtestId: number) => {
     setExecutingBacktests(prev => new Set([...prev, backtestId]))
     
@@ -98,16 +91,13 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       
       console.log(`[UI] 백테스트 실행 응답 받음:`, result)
       
-      // 전역 상태에서 RUNNING 상태로 업데이트
       updateBacktestStatus(portfolio.id.toString(), backtestId.toString(), 'RUNNING')
       
-      // 폴링 시작 (실행 중인 백테스트가 있으면 자동으로 폴링됨)
       startPolling(portfolio.id.toString())
       
     } catch (error) {
       console.error("[UI] 백테스트 실행 실패:", error)
       
-      // 에러 알림 (간단한 alert 사용, 추후 토스트로 변경 가능)
       alert(error instanceof Error ? error.message : "백테스트 실행에 실패했습니다.")
     } finally {
       setExecutingBacktests(prev => {
@@ -118,7 +108,6 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     }
   }, [portfolio.id, updateBacktestStatus, startPolling])
 
-  // 백테스트 삭제 핸들러
   const handleDeleteClick = (backtestId: number, backtestName: string) => {
     setBacktestToDelete({ id: backtestId, name: backtestName })
     setDeleteDialogOpen(true)
@@ -133,7 +122,6 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       if (success) {
         setDeleteDialogOpen(false)
         setBacktestToDelete(null)
-        // 백테스트 목록 새로고침
         await loadBacktests()
       }
     } catch (error) {
@@ -144,7 +132,6 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     }
   }
 
-  // 백테스트 내역을 가져오는 함수
   const loadBacktests = useCallback(async () => {
     if (isLoadingBacktests) return
     
@@ -155,7 +142,6 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       const backtestData = await fetchPortfolioBacktests(portfolio.id.toString())
       setBacktests(backtestData)
       
-      // 실행 중인 백테스트가 있으면 폴링 시작
       const hasRunning = backtestData.some(bt => {
         const status = bt.status?.toLowerCase()
         return status === 'running'
@@ -173,14 +159,12 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     }
   }, [portfolio.id, startPolling])
 
-  // 백테스트 탭이 활성화될 때 또는 포트폴리오가 변경될 때 데이터 로드
   useEffect(() => {
     if (activeTab === "backtests" && !isLoadingBacktests) {
       loadBacktests()
     }
   }, [activeTab, portfolio.id, loadBacktests])
 
-  // 실행 중인 백테스트가 있으면 폴링 시작 (전역 상태에서 자동 관리됨)
   useEffect(() => {
     if (activeTab === "backtests" && backtests.length > 0) {
       const hasRunning = backtests.some(bt => getBacktestDisplayStatus(bt) === 'running')
@@ -202,7 +186,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
           <h3 className="text-lg font-semibold text-[#1f2937] mb-4">자산 구성 및 보유 종목</h3>
 
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Pie Chart - Visual only */}
+            
             <div className="lg:w-1/3 flex-shrink-0 flex items-center justify-center py-4">
               <PortfolioPieChart
                 data={portfolio.holdingStocks.map((stock, index) => ({
@@ -216,7 +200,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
               />
             </div>
 
-            {/* Holdings List with detailed information */}
+            
             <div className="lg:w-2/3 space-y-3">
               {portfolio.holdingStocks.map((stock, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
@@ -303,7 +287,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <div className="font-medium text-[#1f2937]">{bt.name}</div>
-                          {/* 상태 표시 */}
+                          
                           {displayStatus === 'running' && (
                             <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
                               실행중
@@ -333,9 +317,9 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                       </div>
                       
                       <div className="flex items-center gap-3">
-                        {/* 액션 버튼 */}
+                        
                         <div className="flex items-center gap-2">
-                          {/* CREATED 상태이거나 상태가 없는 경우: 실행 + 케밥 메뉴 */}
+                          
                           {(!displayStatus || displayStatus === 'created') && !isExecuting && (
                             <>
                               <button
@@ -371,7 +355,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                             </>
                           )}
                           
-                          {/* RUNNING 상태: 실행중 표시 + 케밥 메뉴 */}
+                          
                           {displayStatus === 'running' && (
                             <>
                               <div className="flex items-center gap-1 px-3 py-1.5 text-blue-600 text-sm">
@@ -397,7 +381,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                             </>
                           )}
                           
-                          {/* COMPLETED 상태: 상세보기 + 재실행 + 케밥 메뉴 */}
+                          
                           {displayStatus === 'completed' && (
                             <>
                               <Link href={`/portfolios/backtests/${bt.id}`}>
@@ -446,7 +430,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                             </>
                           )}
                           
-                          {/* FAILED 상태: 재실행 + 케밥 메뉴 */}
+                          
                           {displayStatus === 'failed' && !isExecuting && (
                             <>
                               <button
@@ -482,7 +466,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
                             </>
                           )}
                           
-                          {/* FAILED 상태에서 재실행 중: 스피너 + 케밥 메뉴 */}
+                          
                           {displayStatus === 'failed' && isExecuting && (
                             <>
                               <div className="flex items-center gap-1 px-3 py-1.5 text-orange-600 text-sm">
@@ -540,7 +524,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
         />
       )}
 
-      {/* 백테스트 삭제 확인 모달 */}
+      
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

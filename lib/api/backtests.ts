@@ -1,7 +1,6 @@
 import { CreateBacktestData } from '@/types/portfolio'
 import { API_CONFIG } from '@/lib/api'
 
-// API 요청 타입 정의
 export interface CreateBacktestRequest {
   title: string
   description?: string
@@ -23,20 +22,17 @@ export interface RuleItemRequest {
   description?: string
 }
 
-// 폼 데이터를 API 요청 형식으로 변환하는 함수
 export function transformToBacktestRequest(
   formData: CreateBacktestData,
   portfolioId: string,
   benchmarkCode: string
 ): CreateBacktestRequest {
-  // 기간 조건에서 시작일과 종료일 추출
   const periodCondition = formData.stopConditions.find(condition => condition.type === 'period')
   
   if (!periodCondition?.startDate || !periodCondition?.endDate) {
     throw new Error('기간 설정은 필수입니다.')
   }
 
-  // 손절 조건들 변환
   const stopLoss: RuleItemRequest[] = formData.stopConditions
     .filter(condition => condition.type === 'stopLoss')
     .map(condition => ({
@@ -45,7 +41,6 @@ export function transformToBacktestRequest(
       description: condition.description
     }))
 
-  // 익절 조건들 변환
   const takeProfit: RuleItemRequest[] = formData.stopConditions
     .filter(condition => condition.type === 'takeProfit')
     .map(condition => ({
@@ -68,7 +63,6 @@ export function transformToBacktestRequest(
   }
 }
 
-// 백테스트 생성 API 응답 타입
 export interface CreateBacktestResponse {
   status: string
   message: string
@@ -76,7 +70,6 @@ export interface CreateBacktestResponse {
   data: string // 백테스트 ID
 }
 
-// 백테스트 상태 목록 조회 API 응답 타입
 export interface BacktestStatusListResponse {
   status: string
   message: string
@@ -84,7 +77,6 @@ export interface BacktestStatusListResponse {
   data: Record<string, 'CREATED' | 'RUNNING' | 'COMPLETED' | 'FAILED'>
 }
 
-// 백테스트 상세 조회 API 응답 타입
 export interface BacktestDetailResponse {
   status: string
   message: string
@@ -142,7 +134,6 @@ export interface BacktestDetailResponse {
   }
 }
 
-// 백테스트 메타데이터 조회 API 응답 타입
 export interface BacktestMetadataResponse {
   success: boolean
   message: string
@@ -165,12 +156,10 @@ export interface BacktestMetadataResponse {
 }
 
 
-// 백테스트 생성 API 호출 함수 (비동기 작업 큐 방식)
 export async function createBacktest(
   portfolioId: string,
   requestData: CreateBacktestRequest
 ): Promise<CreateBacktestResponse> {
-  // 백테스트 요청은 즉시 응답하므로 기본 타임아웃 사용
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
@@ -204,7 +193,6 @@ export async function createBacktest(
   }
 }
 
-// 포트폴리오의 백테스트 상태 목록 조회 API 호출 함수 (효율적인 상태 동기화용)
 export async function getPortfolioBacktestStatuses(portfolioId: string): Promise<Record<string, 'CREATED' | 'RUNNING' | 'COMPLETED' | 'FAILED'>> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -238,7 +226,6 @@ export async function getPortfolioBacktestStatuses(portfolioId: string): Promise
   }
 }
 
-// 백테스트 상세 조회 API 호출 함수
 export async function getBacktestDetail(backtestId: string): Promise<BacktestDetailResponse> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -272,7 +259,6 @@ export async function getBacktestDetail(backtestId: string): Promise<BacktestDet
   }
 }
 
-// 백테스트 메타데이터 조회 API 호출 함수
 export async function getBacktestMetadata(backtestId: string): Promise<BacktestMetadataResponse> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -306,7 +292,6 @@ export async function getBacktestMetadata(backtestId: string): Promise<BacktestM
   }
 }
 
-// 백테스트 업데이트 API 호출 함수
 export async function updateBacktest(
   backtestId: string,
   requestData: CreateBacktestRequest
@@ -344,7 +329,6 @@ export async function updateBacktest(
   }
 }
 
-// 백테스트 삭제 API 호출 함수
 export async function deleteBacktest(backtestId: string, portfolioId: string): Promise<boolean> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)

@@ -20,7 +20,6 @@ export function AnalysisPieChart({ data, width = 200, height = 200 }: AnalysisPi
   useEffect(() => {
     if (!chartRef.current) return
 
-    // 차트 인스턴스 생성
     if (!chartInstanceRef.current) {
       chartInstanceRef.current = echarts.init(chartRef.current)
     }
@@ -68,7 +67,6 @@ export function AnalysisPieChart({ data, width = 200, height = 200 }: AnalysisPi
 
     chartInstanceRef.current.setOption(option)
 
-    // 리사이즈 핸들러
     const handleResize = () => {
       chartInstanceRef.current?.resize()
     }
@@ -80,7 +78,6 @@ export function AnalysisPieChart({ data, width = 200, height = 200 }: AnalysisPi
     }
   }, [data])
 
-  // 컴포넌트 언마운트 시 차트 인스턴스 정리
   useEffect(() => {
     return () => {
       if (chartInstanceRef.current) {

@@ -27,7 +27,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
   
   const { getStockName } = useTickerMapping()
 
-  // 실행 시간 포맷팅 함수 (초 단위를 적절한 형식으로 변환)
   const formatExecutionTime = (seconds?: number): string => {
     if (!seconds) return '-'
     
@@ -48,7 +47,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       setError(null)
       
       try {
-        // API 응답 구조: data.status, data.portfolioName, data.results 등
         const data = await fetchPortfolioAnalysisDetail(portfolioId)
         
         if (!data) {
@@ -56,10 +54,8 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           return
         }
         
-        // 포트폴리오 이름 설정
         setPortfolioName(data.portfolioName || "포트폴리오 분석")
         
-        // API 응답에서 results 직접 사용
         const resultsData = data.results || data.portfolio_insights || []
         
         setAnalysisData({
@@ -81,7 +77,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     loadAnalysis()
   }, [portfolioId])
 
-  // 위험도에 따른 색상 가져오기
   const getRiskColor = (level: 'LOW' | 'MEDIUM' | 'HIGH') => {
     const colors = {
       LOW: '#10b981',
@@ -91,7 +86,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     return colors[level]
   }
 
-  // 분석 타입 라벨 (전체 이름)
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
       case 'user':
@@ -108,7 +102,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     }
   }
 
-  // 분석 타입 짧은 이름
   const getAnalysisTypeShortLabel = (type: string) => {
     switch (type) {
       case 'user':
@@ -125,9 +118,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     }
   }
 
-  // 파이차트 데이터 변환
   const convertToPieChartData = (result: AnalysisResult) => {
-    // API 응답 구조: holdings: [{code, name, weight}]
     if (Array.isArray(result.holdings)) {
       return result.holdings.map((holding: any, index: number) => ({
         name: holding.name,
@@ -138,7 +129,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       }))
     }
     
-    // { "005930": 0.05 }
     if (typeof result.holdings === 'object' && !Array.isArray(result.holdings)) {
       const tickers = Object.keys(result.holdings).sort()
       return tickers.map((ticker, index) => ({
@@ -153,7 +143,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     return []
   }
 
-  // 로딩 상태
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f0f9f7]">
@@ -170,7 +159,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     )
   }
 
-  // 에러 상태
   if (error || !analysisData) {
     return (
       <div className="min-h-screen bg-[#f0f9f7]">
@@ -195,24 +183,21 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     )
   }
 
-  // 스캐터 차트 데이터 변환
   const scatterData = (analysisData.results || []).map(result => ({
     name: getAnalysisTypeShortLabel(result.type),
     type: result.type,
     riskLevel: result.riskLevel,
-    // API에서 받은 메트릭 사용 (하방 표준편차를 백분율로 변환)
     risk: result.metrics?.downsideStd ? result.metrics.downsideStd * 100 : 0,
     sortino: result.metrics?.sortinoRatio ?? 0,
     expectedReturn: result.metrics?.expectedReturn ? result.metrics.expectedReturn * 100 : 0,
     color: getRiskColor(result.riskLevel)
   }))
 
-  // 분석 탭 컴포넌트
   const AnalysisTab = () => (
     <div className="space-y-6">
-      {/* 위험-효율성 차트 + 요약 */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* 차트 영역 (60%) */}
+        
         <div className="lg:col-span-3 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
           <h3 className="text-xl font-bold text-[#1f2937] mb-2">포트폴리오 위험-효율성 분석</h3>
           <p className="text-[#6b7280] mb-4 text-sm">하방 위험과 소르티노 비율로 비교한 포지셔닝</p>
@@ -229,7 +214,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           </div>
         </div>
 
-        {/* 요약 정보 영역 (40%) */}
+        
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
             <h3 className="text-lg font-bold text-[#1f2937] mb-4">핵심 지표 요약</h3>
@@ -291,7 +276,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
         </div>
       </div>
 
-      {/* 비교 분석 */}
+      
       {analysisData.comparative_analysis && (
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
           <div className="flex items-baseline gap-2 mb-6">
@@ -299,13 +284,13 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             <span className="text-xs text-[#6b7280] bg-gray-100 px-2 py-0.5 rounded">현재 평가액 기준</span>
           </div>
           
-          {/* 핵심 차별점 */}
+          
           <div className="mb-6 p-4 bg-gradient-to-br from-[#d1f0eb] to-[#e8f5f3] rounded-xl border border-[#009178]">
             <h4 className="font-semibold text-base text-[#1f2937] mb-2">핵심 차별점</h4>
             <p className="text-sm text-[#374151]">{analysisData.comparative_analysis.key_differentiator}</p>
           </div>
 
-          {/* 3가지 관점 비교 */}
+          
           <div className="grid md:grid-cols-3 gap-4 mb-6">
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
               <h4 className="font-semibold text-sm text-blue-900 mb-2">위험 관점</h4>
@@ -323,7 +308,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
         </div>
       )}
 
-      {/* 3개 포트폴리오 비교 */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {(analysisData.results || []).map((result) => {
           const pieChartData = convertToPieChartData(result)
@@ -339,7 +324,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                   </Badge>
                 </div>
 
-                {/* 주요 지표 */}
+                
                 <div className="space-y-3 mb-6 pb-6 border-b">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-[#6b7280] font-medium">기대수익률</span>
@@ -357,7 +342,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                   </div>
                 </div>
 
-                {/* 위험 프로필 */}
+                
                 {result.risk_profile && (
                   <div className="mb-6 p-4 rounded-xl border-2" style={{ borderColor: getRiskColor(result.riskLevel), backgroundColor: `${getRiskColor(result.riskLevel)}10` }}>
                     <div className="flex items-center gap-2 mb-2">
@@ -371,7 +356,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                   </div>
                 )}
 
-                {/* 강점/약점 */}
+                
                 <div className="space-y-4 mb-6">
                   {(result.key_strengths && result.key_strengths.length > 0) && (
                     <div>
@@ -407,7 +392,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                     </div>
                   )}
 
-                  {/* API에서 강점/약점이 없는 경우 기본 메시지 */}
+                  
                   {(!result.key_strengths || result.key_strengths.length === 0) && (!result.key_weaknesses || result.key_weaknesses.length === 0) && (
                     <div className="text-center text-[#6b7280] py-3">
                       <p className="text-xs">상세 분석 정보가 준비 중입니다.</p>
@@ -415,7 +400,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                   )}
                 </div>
 
-                {/* 성과 인사이트 */}
+                
                 {result.performance_insight && (
                   <div className="mb-6 space-y-3">
                     <h4 className="font-semibold text-sm text-[#1f2937] flex items-center gap-2">
@@ -440,7 +425,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                 )}
 
 
-                {/* 종목 구성 - 파이차트 */}
+                
                 <div>
                   <h4 className="font-semibold text-sm text-[#1f2937] mb-3">종목 구성</h4>
                   <div className="flex justify-center mb-3">
@@ -474,9 +459,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     </div>
   )
 
-  // 추천 탭 컴포넌트
   const RecommendationTab = () => {
-    // API 데이터가 없는 경우 기본 추천 사용
     if (!analysisData.personalized_recommendation) {
       const recommendations = [
         { 
@@ -542,12 +525,11 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       )
     }
 
-    // API 데이터 기반 추천
     const recommendation = analysisData.personalized_recommendation
 
     return (
       <div className="space-y-6">
-        {/* 최종 가이드 */}
+        
         <div className="bg-gradient-to-br from-[#009178] to-[#004e42] rounded-2xl shadow-xl p-6 text-white">
           <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
             <Target className="w-6 h-6" />
@@ -556,7 +538,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           <p className="text-sm leading-relaxed opacity-95">{recommendation.final_guidance}</p>
         </div>
 
-        {/* 위험 성향별 추천 */}
+        
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
           <h3 className="text-lg font-bold text-[#1f2937] mb-6 flex items-center gap-2">
             <Shield className="w-5 h-5 text-[#009178]" />
@@ -595,7 +577,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           </div>
         </div>
 
-        {/* 투자 기간별 추천 */}
+        
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
           <h3 className="text-lg font-bold text-[#1f2937] mb-6 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-[#009178]" />
@@ -628,7 +610,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           </div>
         </div>
 
-        {/* 의사결정 프레임워크 (comparative_analysis가 있는 경우) */}
+        
         {analysisData.comparative_analysis && (
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
             <h3 className="text-lg font-bold text-[#1f2937] mb-4 flex items-center gap-2">
@@ -648,7 +630,6 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                 
                 const IconComponent = displayInfo.icon
                 
-                // conditions가 배열인지 확인
                 const conditionsList = Array.isArray(conditions) ? conditions : []
                 
                 return (
@@ -724,7 +705,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             </div>
           </div>
           
-          {/* 투자성향 진단 안내 */}
+          
           <div className="bg-gradient-to-br from-[#009178] to-[#006d5b] rounded-2xl shadow-xl p-6 text-white">
             <div className="flex items-start gap-4">
               <div className="bg-white/20 p-3 rounded-xl">

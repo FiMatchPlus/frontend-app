@@ -19,18 +19,16 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
   const recentStocks = useRecentStocks()
   const portfolioStocks = usePortfolioStocks()
 
-  // Portfolio stocks list is now from context (empty for now)
   const portfolioStocksList: Stock[] = []
 
   const handleSelectStock = (stock: Stock) => {
     onSelectStock(stock)
-    // Close mobile sidebar
     setIsOpen(false)
   }
 
   return (
     <>
-      {/* Mobile Toggle Button */}
+      
       <button
         onClick={() => setIsOpen(true)}
         className="fixed top-20 left-4 z-40 lg:hidden rounded-lg bg-background/80 backdrop-blur-sm border border-border p-2 shadow-lg"
@@ -38,7 +36,7 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Mobile Overlay */}
+      
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
@@ -46,7 +44,7 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
         />
       )}
 
-      {/* Sidebar */}
+      
       <div
         className={cn(
           "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-80 transform transition-transform duration-300 lg:relative lg:top-0 lg:z-0 lg:translate-x-0",
@@ -55,7 +53,7 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
         )}
       >
         <div className="h-full bg-green-50/30 backdrop-blur-sm overflow-hidden">
-          {/* Mobile Close Button */}
+          
           <div className="flex items-center justify-between p-4 border-b border-border lg:hidden">
             <h2 className="font-semibold text-foreground">종목 검색</h2>
             <button onClick={() => setIsOpen(false)} className="rounded-lg p-1 hover:bg-accent/50 transition-colors">
@@ -63,12 +61,12 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
             </button>
           </div>
 
-          {/* Sidebar Content */}
+          
           <div className="h-full overflow-y-auto p-4 space-y-6">
-            {/* Search */}
+            
             <StockSearch onSelectStock={handleSelectStock} />
 
-            {/* Portfolio Stocks */}
+            
             {portfolioStocksList.length > 0 && (
               <StockList
                 title="내 포트폴리오"
@@ -78,13 +76,13 @@ export function StockSidebar({ selectedStock, onSelectStock, className }: StockS
               />
             )}
 
-            {/* Recent Stocks */}
+            
             {recentStocks.length > 0 && (
               <StockList title="최근 조회" stocks={recentStocks} onSelectStock={handleSelectStock} />
             )}
           </div>
         </div>
-        {/* Added border separately to the sidebar content */}
+        
         <div className="border-r border-border"></div>
       </div>
     </>

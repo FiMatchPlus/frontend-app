@@ -51,7 +51,6 @@ function EditPortfolioContent() {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // 기존 포트폴리오 데이터
   useEffect(() => {
     const loadPortfolioData = async () => {
       setLoading(true)
@@ -64,7 +63,6 @@ function EditPortfolioContent() {
           return
         }
 
-        // holdings 데이터를 StockHolding 형식으로 변환
         const stockHoldings: StockHolding[] = data.holdings.map((holding: any) => ({
           symbol: holding.ticker,
           name: holding.name,
@@ -78,7 +76,6 @@ function EditPortfolioContent() {
 
         const totalValue = stockHoldings.reduce((sum, holding) => sum + holding.totalValue, 0)
 
-        // rules 데이터 변환
         const rule: Rule = {
           memo: data.rules?.memo || "",
           rebalance: data.rules?.rebalance || [],
@@ -352,7 +349,7 @@ function EditPortfolioContent() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">기본 정보</CardTitle>
@@ -382,13 +379,13 @@ function EditPortfolioContent() {
             </CardContent>
           </Card>
 
-          {/* Stock Holdings */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">보유 종목</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Add New Stock */}
+              
               <div className="p-4 bg-[#f8fafc] rounded-lg space-y-4">
                 <div>
                   <Label className="text-base font-medium">종목 검색</Label>
@@ -475,7 +472,7 @@ function EditPortfolioContent() {
                 )}
               </div>
 
-              {/* Portfolio Summary */}
+              
               <div className="p-4 bg-[#f9fafb] rounded-lg border">
                 <div className="flex justify-between items-center">
                   <div className="text-lg font-semibold text-[#1f2937]">
@@ -487,7 +484,7 @@ function EditPortfolioContent() {
                 </div>
               </div>
 
-              {/* Stock List */}
+              
               {formData.stockHoldings.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-[#1f2937]">추가된 종목</h4>
@@ -527,7 +524,7 @@ function EditPortfolioContent() {
             </CardContent>
           </Card>
 
-          {/* Submit Buttons */}
+          
           <div className="flex justify-end gap-4">
             <Button
               type="button"
@@ -549,7 +546,7 @@ function EditPortfolioContent() {
         </form>
       </main>
       
-      {/* 플로팅 챗봇 */}
+      
       <FloatingChatbot context="portfolio" />
     </div>
   )

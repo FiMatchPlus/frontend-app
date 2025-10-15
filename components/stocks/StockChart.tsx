@@ -17,9 +17,6 @@ interface StockChartProps {
 
 const timeFrameOptions: { value: TimeFrame; label: string }[] = [
   { value: "1D", label: "1일" },
-  { value: "1W", label: "1주" },
-  { value: "1M", label: "1개월" },
-  { value: "1Y", label: "1년" },
 ]
 
 const chartTypeOptions = [
@@ -36,7 +33,6 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
     chartType: "candlestick",
   })
 
-  // 실시간 가격 데이터 조회
   const realTimeData = selectedStock ? getStockPrice(selectedStock.symbol) : null
   const currentStock = realTimeData ? {
     ...selectedStock,
@@ -49,34 +45,30 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
   const chartInstance = useRef<echarts.ECharts | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // ECharts 차트 업데이트
   useEffect(() => {
     if (!chartData.length || !chartRef.current) return
 
-    // 기존 차트 인스턴스 정리
     if (chartInstance.current) {
       chartInstance.current.dispose()
     }
 
-    // 새 차트 인스턴스 생성
     chartInstance.current = echarts.init(chartRef.current)
 
-    // 데이터 변환 및 날짜순 정렬
     const convertedData = chartData
       .map(item => ({
         date: new Date(item.timestamp).toISOString().split('T')[0],
-        timestamp: new Date(item.timestamp).getTime(), // 밀리초 타임스탬프로 변환
+        timestamp: new Date(item.timestamp).getTime(),
         open: item.open,
         high: item.high,
         low: item.low,
         close: item.close,
         volume: item.volume
       }))
-      .sort((a, b) => a.timestamp - b.timestamp) // 오래된 날짜부터 최신 날짜 순으로 정렬
+      .sort((a, b) => a.timestamp - b.timestamp)
 
-    // ECharts 옵션 설정
+
     const option = {
-      animation: false, // 애니메이션 비활성화로 부드러운 스크롤
+      animation: false,
       title: {
         text: `${selectedStock?.name} (${selectedStock?.symbol})`,
         left: 'center',
@@ -87,16 +79,15 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       },
       dataZoom: [
         {
-          type: 'inside', // 마우스 드래그로 스크롤 가능
+          type: 'inside',
           xAxisIndex: 0,
-          zoomLock: true, // 줌 비활성화
-          disabled: false, // 드래그 활성화
-          moveOnMouseMove: true, // 마우스 드래그로 이동 가능
-          moveOnMouseWheel: false, // 커스텀 휠 이벤트 사용하므로 비활성화
-          preventDefaultMouseMove: false, // 기본 동작 허용
-          startValue: Math.max(0, convertedData.length - 45), // 절대 인덱스: 최근 45개
-          endValue: Math.max(44, convertedData.length - 1), // 절대 인덱스: 45개 윈도우 끝
-          // 스크롤 이벤트 감지
+          zoomLock: true,
+          disabled: false,
+          moveOnMouseMove: true,
+          moveOnMouseWheel: false,
+          preventDefaultMouseMove: false,
+          startValue: Math.max(0, convertedData.length - 45),
+          endValue: Math.max(44, convertedData.length - 1),
           onDataZoom: function(params: any) {
             console.log('[Chart] Inside DataZoom event:', params)
             if (params && typeof params.startValue === 'number') {
@@ -110,9 +101,9 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
           show: true,
           height: 20,
           bottom: 40,
-          zoomLock: true, // 줌 비활성화, 스크롤만 가능
-          startValue: Math.max(0, convertedData.length - 45), // 절대 인덱스: 최근 45개
-          endValue: Math.max(44, convertedData.length - 1), // 절대 인덱스: 45개 윈도우 끝
+          zoomLock: true,
+          startValue: Math.max(0, convertedData.length - 45),
+          endValue: Math.max(44, convertedData.length - 1),
           handleStyle: {
             color: '#6366f1',
             borderWidth: 1,
@@ -167,13 +158,13 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       grid: {
         left: '3%',
         right: '4%',
-        bottom: '20%', // 슬라이더 공간 확보
+        bottom: '20%',
         top: '15%',
         containLabel: true
       },
       xAxis: {
-        type: 'category', // category 축으로 복원
-        data: convertedData.map(d => d.date), // 실제 거래일만 포함된 데이터
+        type: 'category',
+        data: convertedData.map(d => d.date),
         axisLine: {
           lineStyle: {
             color: '#e5e7eb'
@@ -188,18 +179,15 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
             const month = date.getMonth() + 1
             const day = date.getDate()
             
-            // 첫 번째 라벨에는 항상 연도 표시
             if (index === 0) {
               return `${month}/${day}\n'${year.toString().slice(-2)}`
             }
             
-            // 1월 1일이거나 연도가 바뀌는 지점에서 연도 표시
-            if (month === 1 && day <= 7) { // 1월 첫 주
+            if (month === 1 && day <= 7) {
               return `${month}/${day}\n'${year.toString().slice(-2)}`
             }
             
-            // 월이 바뀌는 지점에서는 월만 강조
-            if (day <= 3) { // 월 초
+            if (day <= 3) {
               return `${month}/${day}`
             }
             
@@ -215,7 +203,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       yAxis: {
         type: 'value',
         position: 'right',
-        scale: true, // 데이터 범위에 맞게 스케일 조정
+        scale: true, 
         axisLine: {
           lineStyle: {
             color: '#e5e7eb'
@@ -242,10 +230,10 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
               type: 'candlestick',
               data: convertedData.map(d => [d.open, d.close, d.low, d.high]),
               itemStyle: {
-                color: '#dc2626', // 상승: 빨간색 (red-600)
-                color0: '#2563eb', // 하락: 파란색 (blue-600)
-                borderColor: '#dc2626', // 상승 테두리: 빨간색
-                borderColor0: '#2563eb' // 하락 테두리: 파란색
+                color: '#dc2626',
+                color0: '#2563eb',
+                borderColor: '#dc2626',
+                borderColor0: '#2563eb'
               }
             },
             ...(chartConfig.showVolume ? [{
@@ -257,7 +245,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
                 color: function(params: any) {
                   const dataIndex = params.dataIndex
                   const candleData = convertedData[dataIndex]
-                  return candleData.close >= candleData.open ? '#dc2626' : '#2563eb' // 상승: 빨간색, 하락: 파란색
+                  return candleData.close >= candleData.open ? '#dc2626' : '#2563eb'
                 },
                 opacity: 0.3
               }
@@ -292,10 +280,9 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
           ]
     }
 
-    // 차트 옵션 설정
     chartInstance.current.setOption(option)
 
-    // 리사이즈 이벤트 리스너
+
     const handleResize = () => {
       if (chartInstance.current) {
         chartInstance.current.resize()
@@ -304,9 +291,8 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
 
     window.addEventListener('resize', handleResize)
 
-    // 차트 컨테이너에 휠 이벤트
     const handleWheel = (event: WheelEvent) => {
-      event.preventDefault() // 페이지 스크롤 방지
+      event.preventDefault()
       
       if (chartInstance.current) {
         const chart = chartInstance.current
@@ -315,15 +301,13 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
         if (dataZoom && dataZoom[0]) {
           const currentStartValue = dataZoom[0].startValue || 0
           const currentEndValue = dataZoom[0].endValue || 44
-          const WINDOW_SIZE = 45 // 고정 윈도우 사이즈
+          const WINDOW_SIZE = 45
           
-          // 휠 방향에 따라 인덱스 이동 (속도 줄임)
-          const delta = event.deltaY > 0 ? 3 : -3 // 3개 캔들씩 이동
+          const delta = event.deltaY > 0 ? 3 : -3
           
           let newStartValue = currentStartValue + delta
-          let newEndValue = newStartValue + WINDOW_SIZE - 1 // 45개 윈도우 유지
+          let newEndValue = newStartValue + WINDOW_SIZE - 1
           
-          // 경계 처리 - 데이터 범위 내에서만 이동
           if (newStartValue < 0) {
             newStartValue = 0
             newEndValue = WINDOW_SIZE - 1
@@ -333,7 +317,6 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
             newStartValue = Math.max(0, newEndValue - WINDOW_SIZE + 1)
           }
           
-          // dataZoom 업데이트 - 절대 인덱스로 처리
           chart.setOption({
             dataZoom: [{
               startValue: newStartValue,
@@ -346,7 +329,6 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
             lazyUpdate: false
           })
           
-          // 경계 감지해서 추가 데이터 로드 (시작점이 전체의 10% 미만일 때)
           if (newStartValue < convertedData.length * 0.1) {
             handleScrollBoundary(newStartValue, convertedData.length)
           }
@@ -354,12 +336,10 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
       }
     }
     
-    // 차트 컨테이너에 휠 이벤트 등록
     if (containerRef.current) {
       containerRef.current.addEventListener('wheel', handleWheel, { passive: false })
     }
 
-    // 정리 함수
     return () => {
       window.removeEventListener('resize', handleResize)
       if (containerRef.current) {
@@ -385,7 +365,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
 
   return (
     <div ref={containerRef} className={cn("bg-background/50 backdrop-blur-sm rounded-lg border border-border", className)}>
-      {/* Chart Header */}
+      
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -413,9 +393,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
           </div>
         </div>
 
-        {/* Controls */}
         <div className="flex flex-wrap items-center gap-4">
-          {/* Time Frame Selector */}
           <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
             {timeFrameOptions.map((option) => (
               <button
@@ -433,7 +411,6 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
             ))}
           </div>
 
-          {/* Chart Type Selector */}
           <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
             {chartTypeOptions.map((option) => {
               const Icon = option.icon
@@ -455,7 +432,6 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
             })}
           </div>
 
-          {/* Volume Toggle */}
           <button
             onClick={() => setChartConfig((prev) => ({ ...prev, showVolume: !prev.showVolume }))}
             className={cn(
@@ -470,9 +446,7 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
         </div>
       </div>
 
-      {/* Chart Content */}
       <div className="px-4 py-4">
-        {/* 추가 데이터 로딩 표시 */}
         {isLoadingMore && (
           <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-background/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-border shadow-sm">
             <LoadingSpinner size="sm" />

@@ -16,7 +16,6 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null)
   const itemsPerPage = 5
 
-  // API에서 상품 목록 가져오기
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -36,13 +35,11 @@ export default function ProductsPage() {
     loadProducts()
   }, [searchQuery, selectedRiskLevel])
 
-  // Pagination logic
   const totalPages = Math.ceil(products.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedProducts = products.slice(startIndex, endIndex)
 
-  // Reset to first page when filters change
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     setCurrentPage(1)
@@ -65,7 +62,7 @@ export default function ProductsPage() {
         transition={{ duration: 0.6 }}
         className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
       >
-        {/* Page Header */}
+        
         <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">투자 상품</h1>
           <p className="text-gray-600 text-xl">
@@ -73,7 +70,7 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        {/* Search and Filter Section */}
+        
         <div className="mb-6 space-y-6">
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
             <ProductSearch onSearch={handleSearch} />
@@ -83,7 +80,7 @@ export default function ProductsPage() {
             />
           </div>
 
-          {/* Results Summary */}
+          
           <div className="text-base text-gray-600">
             {error ? (
               <span className="text-red-600">{error}</span>
@@ -104,14 +101,14 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Product List Container with Fixed Height */}
+        
         <div className="min-h-[600px] flex flex-col">
           <ProductList products={paginatedProducts} isLoading={isLoading} />
           
-          {/* Spacer to push pagination to bottom */}
+          
           <div className="flex-1"></div>
           
-          {/* Pagination */}
+          
           <ProductPagination
             currentPage={currentPage}
             totalPages={totalPages}

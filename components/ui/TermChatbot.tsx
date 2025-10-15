@@ -21,7 +21,6 @@ interface TermChatbotProps {
   term: 'loss' | 'profit' | 'benchmark'
 }
 
-// 손절/익절 관련 초기 설명
 const TERM_EXPLANATIONS = {
   loss: {
     title: '손절 (Stop Loss)',
@@ -86,7 +85,6 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // 챗봇이 열릴 때 초기 설명 메시지 설정
   useEffect(() => {
     if (isOpen) {
       const termData = TERM_EXPLANATIONS[term]
@@ -123,7 +121,6 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
     setIsTyping(true)
 
     try {
-      // API 호출
       const response = await sendChatMessage(term, inputValue)
       
       const botResponse: Message = {
@@ -137,7 +134,6 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
     } catch (error) {
       console.error('챗봇 API 오류:', error)
       
-      // API 오류 시 임시 응답
       const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
@@ -151,7 +147,6 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
     }
   }
 
-  // API 실패 시 임시 응답
   const getFallbackResponse = (userInput: string, termType: string): string => {
     const input = userInput.toLowerCase()
     
@@ -242,7 +237,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
             </CardHeader>
 
             <CardContent className="flex flex-col h-full p-0">
-              {/* 메시지 영역 */}
+              
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((message) => (
                   <div
@@ -279,7 +274,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
                   </div>
                 ))}
                 
-                {/* 타이핑 인디케이터 */}
+                
                 {isTyping && (
                   <div className="flex justify-start">
                     <div className="flex gap-2 max-w-[85%]">
@@ -299,7 +294,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* 입력 영역 */}
+              
               <div className="border-t p-4">
                 <div className="flex gap-2">
                   <Input

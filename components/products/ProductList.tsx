@@ -31,7 +31,7 @@ export function ProductList({ products, isLoading = false }: ProductListProps) {
   return (
     <Card className="border-0 shadow-lg">
       <CardContent className="p-0">
-        {/* Product List */}
+        
         <div className="divide-y divide-gray-200">
           {products.map((product) => (
             <ProductListCard key={product.id} product={product} />

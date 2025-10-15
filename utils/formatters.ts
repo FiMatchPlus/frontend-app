@@ -1,8 +1,4 @@
-// Data formatting utilities for Fi-Match⁺
 
-/**
- * Format number as Korean Won currency
- */
 export const formatCurrency = (amount: number): string => {
   if (amount >= 100000000) {
     return `${(amount / 10000).toLocaleString()}만원`
@@ -11,9 +7,6 @@ export const formatCurrency = (amount: number): string => {
   }
 }
 
-/**
- * Format percentage with sign and color indication
- */
 export const formatPercent = (value: number, showSign = true): string => {
   const formatted = new Intl.NumberFormat("ko-KR", {
     style: "percent",
@@ -25,9 +18,6 @@ export const formatPercent = (value: number, showSign = true): string => {
   return formatted
 }
 
-/**
- * Format large numbers with Korean units
- */
 export const formatNumber = (num: number): string => {
   if (num >= 100000000) {
     return `${(num / 100000000).toFixed(1)}억`
@@ -38,18 +28,12 @@ export const formatNumber = (num: number): string => {
   }
 }
 
-/**
- * Get color class based on change value
- */
 export const getChangeColor = (change: number): string => {
   if (change > 0) return "text-red-500"    // 상승: 빨강
   if (change < 0) return "text-blue-500"   // 하강: 파랑
   return "text-gray-500"
 }
 
-/**
- * Format timestamp to readable date
- */
 export const formatDate = (timestamp: number, format: "short" | "long" = "short"): string => {
   const date = new Date(timestamp)
 
@@ -68,9 +52,6 @@ export const formatDate = (timestamp: number, format: "short" | "long" = "short"
   })
 }
 
-/**
- * Format time to HH:MM
- */
 export const formatTime = (timestamp: number): string => {
   return new Date(timestamp).toLocaleTimeString("ko-KR", {
     hour: "2-digit",

@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic'
 import { notFound } from 'next/navigation'
 
-// 클라이언트에서만 렌더링되는 백테스트 컴포넌트
 const BacktestDetailClient = dynamic(() => import('./BacktestDetailClient'), {
   ssr: false,
   loading: () => (

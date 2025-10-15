@@ -89,13 +89,13 @@ export default function SectionedReport({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
+      
       <div className="px-6 pt-6 pb-4 border-b border-gray-200 bg-gradient-to-r from-[#f0f9f7] to-white">
         <h2 className="text-2xl font-bold text-[#1f2937] mb-1">{title} 백테스팅 성과 분석</h2>
         <div className="text-sm text-[#6b7280]">기간: {period}{benchmarkName ? ` · 벤치마크: ${benchmarkName}` : ''}</div>
       </div>
 
-      {/* Overview */}
+      
       <div className="px-6 py-5">
         <h3 className="text-lg font-semibold text-[#1f2937] mb-2">개요</h3>
         <p className="text-[#374151] leading-7">
@@ -103,7 +103,7 @@ export default function SectionedReport({
         </p>
       </div>
 
-      {/* KPI Grid */}
+      
       <div className="px-6 pb-2">
         <h3 className="text-lg font-semibold text-[#1f2937] mb-3">주요 성과 지표</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -130,7 +130,7 @@ export default function SectionedReport({
         </div>
       </div>
 
-      {/* Benchmark Comparison */}
+      
       {(metrics.alpha !== undefined || metrics.benchmarkReturn !== undefined) && (
         <div className="px-6 py-5">
           <h3 className="text-lg font-semibold text-[#1f2937] mb-2">벤치마크 대비 성과</h3>
@@ -154,7 +154,7 @@ export default function SectionedReport({
         </div>
       )}
 
-      {/* Timeline */}
+      
       {timelineToRender.length > 0 && (
         <div className="px-6 py-5">
           <h3 className="text-lg font-semibold text-[#1f2937] mb-3">거래 타임라인</h3>
@@ -181,7 +181,7 @@ export default function SectionedReport({
         </div>
       )}
 
-      {/* Conclusion */}
+      
       <div className="px-6 py-5 border-t border-gray-100 bg-[#fcfdfd]">
         <h3 className="text-lg font-semibold text-[#1f2937] mb-2">결론 및 유의사항</h3>
         <p className="text-[#374151] leading-7">

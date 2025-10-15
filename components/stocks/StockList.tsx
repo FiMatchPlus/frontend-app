@@ -16,7 +16,6 @@ interface StockListProps {
 export function StockList({ title, stocks, portfolioStocks, onSelectStock, className }: StockListProps) {
   const { getMultipleStockPrices } = useStockCacheContext()
   
-  // 모든 종목의 실시간 가격 조회 - useMemo로 최적화
   const stockSymbols = useMemo(() => stocks.map(stock => stock.symbol), [stocks])
   const realTimePrices = useMemo(() => getMultipleStockPrices(stockSymbols), [getMultipleStockPrices, stockSymbols])
 
@@ -28,7 +27,6 @@ export function StockList({ title, stocks, portfolioStocks, onSelectStock, class
           const portfolioStock = portfolioStocks?.find((p) => p.symbol === stock.symbol)
           const realTimeData = realTimePrices[index]
           
-          // 실시간 데이터가 있으면 사용, 없으면 기본 데이터 사용
           const currentStock = realTimeData ? {
             ...stock,
             price: realTimeData.price,
@@ -42,7 +40,7 @@ export function StockList({ title, stocks, portfolioStocks, onSelectStock, class
               className="w-full rounded-lg p-3 text-left hover:bg-accent/50 transition-all duration-200 border border-transparent hover:border-border/50"
             >
               <div className="flex items-center gap-3">
-                {/* Stock Info */}
+                
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <div className="truncate">

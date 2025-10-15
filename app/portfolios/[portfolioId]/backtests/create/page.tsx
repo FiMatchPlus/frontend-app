@@ -27,14 +27,12 @@ import { createBacktest, transformToBacktestRequest, CreateBacktestResponse } fr
 import { fetchPortfolioDetail } from "@/lib/api/portfolios"
 import { useBacktest } from "@/contexts/BacktestContext"
 
-// 중지 조건 타입 옵션
 const STOP_CONDITION_TYPES = [
   { value: 'stopLoss', label: '손절', description: '손실 한계선 설정' },
   { value: 'takeProfit', label: '익절', description: '수익 목표 달성' },
   { value: 'period', label: '기간 설정', description: '시작일과 종료일 설정' }
 ] as const
 
-// 손절/익절 기준 옵션 (포트폴리오 생성 폼과 동일)
 const STOP_LOSS_CRITERIA = ["베타 일정값 초과", "VaR 초과", "MDD 초과", "손실 한계선"]
 const TAKE_PROFIT_CRITERIA = ["단일 종목 목표 수익률 달성"]
 
@@ -63,7 +61,6 @@ export default function CreateBacktestPage() {
     stopConditions: []
   })
 
-  // 전역 백테스트 상태 사용
   const { updateBacktestStatus, startPolling } = useBacktest()
 
   const [newStopCondition, setNewStopCondition] = useState<{
@@ -92,7 +89,6 @@ export default function CreateBacktestPage() {
     period: true // 기간 설정은 기본으로 열어둠
   })
 
-  // 챗봇 상태
   const [chatbotOpen, setChatbotOpen] = useState<{
     isOpen: boolean
     term: 'loss' | 'profit' | 'benchmark' | null
@@ -101,7 +97,6 @@ export default function CreateBacktestPage() {
     term: null
   })
 
-  // 포트폴리오 상세 정보 로드
   useEffect(() => {
     const loadPortfolioDetail = async () => {
       try {
@@ -110,16 +105,13 @@ export default function CreateBacktestPage() {
         
         if (detail) {
           setPortfolioDetail(detail)
-          // 포트폴리오의 기본 벤치마크를 설정
           const defaultBenchmark = detail.rules?.basicBenchmark || "KOSPI"
           setSelectedBenchmark(defaultBenchmark)
         } else {
-          // 기본값으로 KOSPI 설정
           setSelectedBenchmark("KOSPI")
         }
       } catch (error) {
         console.error("Failed to load portfolio detail:", error)
-        // 기본값으로 KOSPI 설정
         setSelectedBenchmark("KOSPI")
       } finally {
         setLoading(false)
@@ -129,7 +121,6 @@ export default function CreateBacktestPage() {
     if (portfolioId) {
       loadPortfolioDetail()
     } else {
-      // 포트폴리오 ID가 없는 경우에도 기본값 설정
       setSelectedBenchmark("KOSPI")
       setLoading(false)
     }
@@ -142,7 +133,6 @@ export default function CreateBacktestPage() {
     }))
   }
 
-  // 챗봇 열기/닫기 함수
   const openChatbot = (term: 'loss' | 'profit' | 'benchmark') => {
     setChatbotOpen({
       isOpen: true,
@@ -173,7 +163,6 @@ export default function CreateBacktestPage() {
 
   const handleStopConditionTypeChange = (type: 'stopLoss' | 'takeProfit' | 'period') => {
     setNewStopCondition(prev => {
-      // 이미 같은 타입이면 초기화하지 않음
       if (prev.type === type) {
         return prev
       }
@@ -191,7 +180,6 @@ export default function CreateBacktestPage() {
   }
 
   const addStopCondition = () => {
-    // 기간 설정의 경우 시작일과 종료일 검증
     if (newStopCondition.type === 'period') {
       if (!newStopCondition.startDate || !newStopCondition.endDate) {
         setAlertDialog({
@@ -213,7 +201,6 @@ export default function CreateBacktestPage() {
       }
     }
 
-    // 손절/익절의 경우 기준과 값 검증
     if (newStopCondition.type === 'stopLoss' || newStopCondition.type === 'takeProfit') {
       if (!newStopCondition.criteria?.trim()) {
         setAlertDialog({
@@ -250,7 +237,6 @@ export default function CreateBacktestPage() {
       stopConditions: [...prev.stopConditions, stopCondition]
     }))
 
-    // 폼 초기화
     setNewStopCondition({
       type: 'period',
       criteria: '',
@@ -271,7 +257,6 @@ export default function CreateBacktestPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 포트폴리오 ID 유효성 검사
     if (!portfolioId) {
       setAlertDialog({
         isOpen: true,
@@ -283,7 +268,6 @@ export default function CreateBacktestPage() {
       return
     }
     
-    // 유효성 검사
     if (!formData.name.trim()) {
       setAlertDialog({
         isOpen: true,
@@ -294,7 +278,6 @@ export default function CreateBacktestPage() {
       return
     }
 
-    // 기간 설정이 최소 하나는 있어야 함
     const hasPeriodCondition = formData.stopConditions.some(condition => condition.type === 'period')
     if (!hasPeriodCondition) {
       setAlertDialog({
@@ -306,7 +289,6 @@ export default function CreateBacktestPage() {
       return
     }
 
-    // 벤치마크 코드 검증
     if (!selectedBenchmark) {
       setAlertDialog({
         isOpen: true,
@@ -319,13 +301,10 @@ export default function CreateBacktestPage() {
 
     setSubmitting(true)
     try {
-      // 폼 데이터를 API 요청 형식으로 변환
       const requestData = transformToBacktestRequest(formData, portfolioId, selectedBenchmark)
       
-      // 백테스트 생성 API 호출 (비동기 작업 큐 방식)
       const response: CreateBacktestResponse = await createBacktest(portfolioId, requestData)
       
-      // 전역 상태에서 CREATED 상태로 업데이트
       updateBacktestStatus(portfolioId, response.data, 'CREATED')
       
       setAlertDialog({
@@ -335,7 +314,6 @@ export default function CreateBacktestPage() {
         type: 'success'
       })
       
-      // 잠시 후 포트폴리오 목록으로 이동
       setTimeout(() => {
         router.push("/portfolios")
       }, 2000)
@@ -385,7 +363,7 @@ export default function CreateBacktestPage() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-8">
-          {/* 기본 정보 */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">기본 정보</CardTitle>
@@ -412,7 +390,7 @@ export default function CreateBacktestPage() {
                 />
               </div>
               
-              {/* 벤치마크 지수 선택 */}
+              
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Label htmlFor="benchmark">벤치마크 지수</Label>
@@ -443,14 +421,14 @@ export default function CreateBacktestPage() {
             </CardContent>
           </Card>
 
-          {/* 중지 조건 설정 */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">중지 조건 설정</CardTitle>
               <p className="text-sm text-[#6b7280]">기간 설정은 필수이며, 손절/익절은 선택사항입니다.</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* 기간 설정 (필수) */}
+              
               <div>
                 <div className="flex items-center gap-2">
                   <Button 
@@ -489,7 +467,6 @@ export default function CreateBacktestPage() {
                                 type="date"
                                 value={newStopCondition.type === 'period' ? newStopCondition.startDate || '' : ''}
                                 onChange={(e) => {
-                                  // 기간 설정 섹션에서는 타입 변경 없이 값만 업데이트
                                   setNewStopCondition(prev => ({
                                     ...prev,
                                     type: 'period',
@@ -505,7 +482,6 @@ export default function CreateBacktestPage() {
                                 type="date"
                                 value={newStopCondition.type === 'period' ? newStopCondition.endDate || '' : ''}
                                 onChange={(e) => {
-                                  // 기간 설정 섹션에서는 타입 변경 없이 값만 업데이트
                                   setNewStopCondition(prev => ({
                                     ...prev,
                                     type: 'period',
@@ -536,7 +512,7 @@ export default function CreateBacktestPage() {
                 </AnimatePresence>
               </div>
 
-              {/* 손절 (선택) */}
+              
               <div>
                 <div className="flex items-center gap-2">
                   <Button 
@@ -645,7 +621,7 @@ export default function CreateBacktestPage() {
                 </AnimatePresence>
               </div>
 
-              {/* 익절 (선택) */}
+              
               <div>
                 <div className="flex items-center gap-2">
                   <Button 
@@ -754,7 +730,7 @@ export default function CreateBacktestPage() {
                 </AnimatePresence>
               </div>
 
-              {/* 추가된 중지 조건들 */}
+              
               {formData.stopConditions.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-[#1f2937]">추가된 중지 조건</h4>
@@ -792,7 +768,7 @@ export default function CreateBacktestPage() {
             </CardContent>
           </Card>
 
-          {/* 제출 버튼 */}
+          
           <div className="flex justify-end gap-4">
             <Button
               type="button"
@@ -814,7 +790,7 @@ export default function CreateBacktestPage() {
           </div>
         </form>
 
-        {/* 용어 설명 챗봇 */}
+        
         {chatbotOpen.isOpen && chatbotOpen.term && (
           <TermChatbot
             isOpen={chatbotOpen.isOpen}
@@ -823,7 +799,7 @@ export default function CreateBacktestPage() {
           />
         )}
 
-        {/* 알림 모달 */}
+        
         <Dialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, isOpen: open }))}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

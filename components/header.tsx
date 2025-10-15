@@ -26,7 +26,7 @@ function Header() {
       className="bg-white/95 backdrop-blur-sm shadow-lg"
     >
       <div className="max-w-6xl mx-auto flex justify-between items-center px-8 py-4">
-        {/* Logo */}
+        
         <Link href="/">
           <motion.div
             whileHover={{ scale: 1.05 }}
@@ -36,7 +36,7 @@ function Header() {
           </motion.div>
         </Link>
 
-        {/* Desktop Navigation */}
+        
         <nav className="hidden md:block">
           <ul className="flex gap-16 list-none">
             {navigationItems.map((item) => (
@@ -63,7 +63,7 @@ function Header() {
           </ul>
         </nav>
 
-        {/* Mobile Menu Button */}
+        
         <div className="md:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -121,7 +121,7 @@ function Header() {
           </Sheet>
         </div>
 
-        {/* Desktop User Section */}
+        
         <div className="hidden md:flex items-center gap-4">
           <div className="text-black font-semibold text-lg">
             남지현님 환영합니다!

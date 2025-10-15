@@ -13,7 +13,6 @@ interface AnalysisCacheContextType {
 const AnalysisCacheContext = createContext<AnalysisCacheContextType | undefined>(undefined)
 
 export function AnalysisCacheProvider({ children }: { children: ReactNode }) {
-  // 포트폴리오별 분석 데이터 캐시: portfolioId -> PortfolioAnalysis
   const analysisCacheRef = useRef<Map<number, PortfolioAnalysis | null>>(new Map())
   
   const setAnalysisData = useCallback((portfolioId: number, analysis: PortfolioAnalysis | null) => {

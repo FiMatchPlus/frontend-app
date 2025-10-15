@@ -13,8 +13,6 @@ interface StockInfoProps {
 }
 
 export function StockInfo({ selectedStock, className }: StockInfoProps) {
-  // 일시적으로 API 호출 비활성화 - 오른쪽 패널은 아직 구현하지 않음
-  // const { getStockPrice, isLoading } = useStockCacheContext()
 
   if (!selectedStock) {
     return (
@@ -27,8 +25,6 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
     )
   }
 
-  // 일시적으로 실시간 데이터 대신 기본 데이터만 사용
-  // const realTimeData = selectedStock ? getStockPrice(selectedStock.symbol) : null
   const currentStock = selectedStock
 
   const infoItems = [
@@ -60,7 +56,7 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
 
   return (
     <div className={cn("bg-background/50 backdrop-blur-sm rounded-lg border border-border", className)}>
-      {/* Header */}
+      
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 mb-2">
           <h3 className="text-lg font-semibold text-foreground">{currentStock.name}</h3>
@@ -75,7 +71,7 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
         <p className="text-sm text-muted-foreground">{selectedStock.symbol}</p>
       </div>
 
-      {/* Stock Info Grid */}
+      
       <div className="p-4 space-y-4">
         {infoItems.map((item, index) => {
           const Icon = item.icon
@@ -93,7 +89,7 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
         })}
       </div>
 
-      {/* Additional Info */}
+      
       <div className="p-4 border-t border-border">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>

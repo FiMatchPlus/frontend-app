@@ -31,7 +31,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
   const { updatePortfolioMappings, getStockName } = useTickerMapping()
   const { getAnalysisData, setAnalysisData: cacheAnalysisData } = useAnalysisCache()
 
-  // 포트폴리오별 티커-종목명 매핑 저장
   useEffect(() => {
     const mappings: Record<string, string> = {}
     holdings.forEach(holding => {
@@ -40,26 +39,21 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     updatePortfolioMappings(portfolioId, mappings)
   }, [holdings, portfolioId, updatePortfolioMappings])
 
-  // 분석 데이터 로드 함수 (캐시 우선 사용)
   const loadAnalysisData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     
     try {
-      // 1. 먼저 캐시에서 분석 데이터 확인
       const cachedData = getAnalysisData(portfolioId)
       
       if (cachedData !== undefined) {
-        // 캐시된 데이터가 있으면 사용 (null이어도 캐시된 값으로 간주)
         setAnalysisData(cachedData)
         setIsLoading(false)
         return
       }
       
-      // 2. 캐시에 데이터가 없으면 API 호출
       const data = await fetchPortfolioAnalysis(portfolioId.toString())
       
-      // 3. API 응답을 캐시에 저장
       cacheAnalysisData(portfolioId, data)
       
       setAnalysisData(data)
@@ -70,7 +64,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     }
   }, [portfolioId, getAnalysisData, cacheAnalysisData])
 
-  // 재시도 함수 (캐시 무시하고 강제 API 호출)
   const handleRetry = useCallback(async () => {
     setIsLoading(true)
     setError(null)
@@ -78,7 +71,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     try {
       const data = await fetchPortfolioAnalysis(portfolioId.toString())
       
-      // API 응답을 캐시에 저장
       cacheAnalysisData(portfolioId, data)
       
       setAnalysisData(data)
@@ -89,14 +81,11 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     }
   }, [portfolioId, cacheAnalysisData])
 
-  // 초기 데이터 로드
   useEffect(() => {
     loadAnalysisData()
   }, [portfolioId]) // loadAnalysisData 대신 portfolioId 직접 사용
 
-  // RUNNING 상태일 때 30초마다 폴링
   useEffect(() => {
-    // RUNNING 상태가 아니면 폴링 안 함
     if (!analysisData || (analysisData.status !== 'RUNNING' && analysisData.status !== 'PENDING')) {
       return
     }
@@ -115,7 +104,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
 
       console.log(`[분석 폴링] 현재 상태: ${statusData.status}`)
 
-      // 상태가 변경되었으면 전체 분석 데이터 다시 로드
       if (statusData.status === 'COMPLETED' || statusData.status === 'FAILED') {
         console.log(`[분석 폴링] 분석 완료 또는 실패 - 전체 데이터 새로고침`)
         await handleRetry()
@@ -128,9 +116,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     }
   }, [portfolioId, analysisData?.status, handleRetry])
 
-  // 분석 결과를 파이차트 데이터로 변환
   const convertToPieChartData = (result: AnalysisResult) => {
-    // holdings 배열 [{code, name, weight}]
     if (Array.isArray(result.holdings)) {
       return result.holdings.map((holding: any, index: number) => ({
         name: holding.name,
@@ -139,12 +125,10 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
       }))
     }
     
-    // { "005930": 0.05 }
     if (typeof result.holdings === 'object' && !Array.isArray(result.holdings)) {
       const colorMap: Record<string, string> = {}
       const nameMap: Record<string, string> = {}
       
-      // 기존 보유 종목의 색상 매핑 및 이름 매핑 생성
       holdings.forEach((h, idx) => {
         colorMap[h.ticker] = `hsl(${(idx * 137.5) % 360}, 70%, 50%)`
         nameMap[h.ticker] = h.name
@@ -161,8 +145,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     return []
   }
 
-  // 분석 결과 타입을 한글명으로 변환
-  // /api/portfolios/${id}/analysis 는 이미 한글로 제공됨
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
       case '내 포트폴리오':
@@ -182,7 +164,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
   }
 
 
-  // 초기 로딩 상태
   if (isLoading && !analysisData) {
     return (
       <div className="bg-[#f0f9f7] rounded-xl p-4">
@@ -198,7 +179,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     )
   }
 
-  // API 에러 상태
   if (error) {
     return (
       <div className="bg-[#f0f9f7] rounded-xl p-4">
@@ -219,7 +199,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     )
   }
 
-  // 분석 데이터가 없는 경우 (null)
   if (!analysisData) {
     return (
       <div className="bg-[#f0f9f7] rounded-xl p-4">
@@ -234,7 +213,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     )
   }
 
-  // 분석 실패 상태 (FAILED 상태를 먼저 확인)
   if (analysisData.status === 'FAILED') {
     return (
       <div className="bg-[#f0f9f7] rounded-xl p-4">
@@ -255,7 +233,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     )
   }
 
-  // 분석 진행 중 상태
   if (analysisData.status === 'RUNNING' || analysisData.status === 'PENDING') {
     return (
       <div className="bg-[#f0f9f7] rounded-xl p-4">
@@ -273,8 +250,6 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     )
   }
 
-  // 분석 완료 상태
-  // /api/portfolios/${id}/analysis 응답: data.results 사용
   const results = analysisData.results || analysisData.portfolio_insights || []
   
   if (analysisData.status === 'COMPLETED' && results.length > 0) {
@@ -285,7 +260,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
           <h3 className="text-lg font-semibold text-[#1f2937]">상세 분석</h3>
         </div>
         
-        {/* 분석 결과 카드들 */}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {results.map((result, index) => {
             const pieChartData = convertToPieChartData(result)
@@ -312,7 +287,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
                   />
                 </div>
                 
-                {/* 종목별 비중 정보 */}
+                
                 <div className="space-y-2">
                   {pieChartData.map((item, itemIndex) => (
                     <div key={itemIndex} className="flex items-center justify-between text-sm">
@@ -334,7 +309,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
           })}
         </div>
         
-        {/* 결과 더보기 버튼 */}
+        
         <div className="text-center">
           <Link href={`/portfolios/analysis/${portfolioId}`}>
             <Button variant="outline" className="bg-white hover:bg-gray-50">

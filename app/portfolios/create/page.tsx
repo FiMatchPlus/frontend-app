@@ -48,7 +48,6 @@ function CreatePortfolioContent() {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // URL 파라미터에서 템플릿 데이터 처리
   useEffect(() => {
     const isTemplate = searchParams.get('template')
     const templateData = searchParams.get('data')
@@ -57,12 +56,9 @@ function CreatePortfolioContent() {
       try {
         const parsedData = JSON.parse(templateData)
         
-        // Product의 holdings 데이터를 StockHolding 형식으로 변환
-        // 1단계: 최소 투자 금액을 보장하는 방식으로 계산
         const baseInvestment = 1000000 // 100만원
         const minInvestmentPerStock = 50000 // 종목당 최소 5만원
         
-        // 각 종목의 최소 주식 수 계산 (최소 1주)
         const tempHoldings = parsedData.holdings.map((holding: any) => {
           const minShares = Math.max(1, Math.ceil(minInvestmentPerStock / holding.price))
           const targetValue = (baseInvestment * holding.weight) / 100
@@ -76,12 +72,10 @@ function CreatePortfolioContent() {
           }
         })
         
-        // 2단계: 총 목표 금액과 실제 필요 금액 비교 후 조정
         const totalTargetValue = tempHoldings.reduce((sum: number, h: any) => sum + h.targetValue, 0)
         const adjustmentRatio = baseInvestment / totalTargetValue
         
         const stockHoldings: StockHolding[] = tempHoldings.map((holding: any) => {
-          // 조정된 주식 수 계산 (최소 1주 보장)
           const adjustedShares = Math.max(1, Math.round(holding.shares * adjustmentRatio))
           const actualTotalValue = adjustedShares * holding.price
           
@@ -97,10 +91,8 @@ function CreatePortfolioContent() {
           }
         })
         
-        // 총 투자 금액 계산
         const totalValue = stockHoldings.reduce((sum, holding) => sum + holding.totalValue, 0)
         
-        // 비중 재계산 (실제 투자 금액 기준)
         const updatedHoldings = stockHoldings.map(holding => ({
           ...holding,
           weight: totalValue > 0 ? (holding.totalValue / totalValue) * 100 : 0
@@ -127,7 +119,6 @@ function CreatePortfolioContent() {
         [field]: value
       }
       
-      // portfolioTotalValue 변경 시에는 비중 재계산하지 않음 (onBlur에서 처리)
       
       return newData
     })
@@ -141,7 +132,6 @@ function CreatePortfolioContent() {
   }
 
   const handleStockSelect = async (stock: Stock) => {
-    // Optimistically set selected stock with placeholders
     setSelectedStock(stock)
     setNewStock(prev => ({
       ...prev,
@@ -155,7 +145,6 @@ function CreatePortfolioContent() {
       weight: undefined
     }))
 
-    // Fetch live current price and daily rate
     const now = await fetchCurrentPriceByCode(stock.symbol)
     if (now) {
       setSelectedStock(prev => prev ? { ...prev, price: now.price, changePercent: now.changePercent } : prev)
@@ -169,17 +158,13 @@ function CreatePortfolioContent() {
 
   const handleSharesChange = (shares: number) => {
     if (selectedStock) {
-      // 음수 입력 방지
       const validShares = Math.max(0, shares)
       const totalValue = validShares * selectedStock.price
       
-      // 기존 포트폴리오 가치 계산 (이미 추가된 종목들)
       const existingPortfolioValue = formData.stockHoldings.reduce((sum, holding) => sum + holding.totalValue, 0)
       
-      // 총 포트폴리오 가치 (기존 + 새 종목)
       const totalPortfolioValue = existingPortfolioValue + totalValue
       
-      // 비중 계산 (총 포트폴리오 가치 기준)
       const weight = totalPortfolioValue > 0 ? (totalValue / totalPortfolioValue) * 100 : 0
       
       setNewStock(prev => ({
@@ -194,18 +179,14 @@ function CreatePortfolioContent() {
 
   const handleAmountChange = (amount: number) => {
     if (selectedStock) {
-      // 음수 입력 방지
       const validAmount = Math.max(0, amount)
       const shares = Math.floor(validAmount / selectedStock.price)
       const actualTotalValue = shares * selectedStock.price
       
-      // 기존 포트폴리오 가치 계산 (이미 추가된 종목들)
       const existingPortfolioValue = formData.stockHoldings.reduce((sum, holding) => sum + holding.totalValue, 0)
       
-      // 총 포트폴리오 가치 (기존 + 새 종목)
       const totalPortfolioValue = existingPortfolioValue + actualTotalValue
       
-      // 비중 계산 (총 포트폴리오 가치 기준)
       const weight = totalPortfolioValue > 0 ? (actualTotalValue / totalPortfolioValue) * 100 : 0
       
       setNewStock(prev => ({
@@ -249,7 +230,6 @@ function CreatePortfolioContent() {
         const newHoldings = [...prev.stockHoldings, stock]
         const newTotalValue = newHoldings.reduce((sum, s) => sum + s.totalValue, 0)
         
-        // Calculate weights for all stocks based on total value
         const updatedHoldings = newHoldings.map(s => ({
           ...s,
           weight: newTotalValue > 0 ? (s.totalValue / newTotalValue) * 100 : 0
@@ -258,12 +238,10 @@ function CreatePortfolioContent() {
         return {
           ...prev,
           stockHoldings: updatedHoldings,
-          // 자동 계산되는 포트폴리오 가치 업데이트
           totalValue: newTotalValue
         }
       })
       
-      // Reset form
       setSelectedStock(null)
       setNewStock({
         symbol: "",
@@ -300,7 +278,6 @@ function CreatePortfolioContent() {
       const newHoldings = prev.stockHoldings.filter((_, i) => i !== index)
       const newTotalValue = newHoldings.reduce((sum, s) => sum + s.totalValue, 0)
       
-      // Recalculate weights for remaining stocks based on total value
       const updatedHoldings = newHoldings.map(s => ({
         ...s,
         weight: newTotalValue > 0 ? (s.totalValue / newTotalValue) * 100 : 0
@@ -309,7 +286,6 @@ function CreatePortfolioContent() {
       return {
         ...prev,
         stockHoldings: updatedHoldings,
-        // 자동 계산되는 포트폴리오 가치 업데이트
         totalValue: newTotalValue
       }
     })
@@ -320,7 +296,6 @@ function CreatePortfolioContent() {
       const target = prev.stockHoldings[index]
       if (!target) return prev
 
-      // Remove the stock from holdings first
       const remaining = prev.stockHoldings.filter((_, i) => i !== index)
       const newTotalValue = remaining.reduce((sum, s) => sum + s.totalValue, 0)
       const updatedHoldings = remaining.map(s => ({
@@ -328,7 +303,6 @@ function CreatePortfolioContent() {
         weight: newTotalValue > 0 ? (s.totalValue / newTotalValue) * 100 : 0
       }))
 
-      // Load into edit form
       setSelectedStock({
         symbol: target.symbol,
         name: target.name,
@@ -361,7 +335,6 @@ function CreatePortfolioContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validation
     if (!formData.name.trim()) {
       alert("포트폴리오 이름을 입력해주세요.")
       return
@@ -372,7 +345,6 @@ function CreatePortfolioContent() {
       return
     }
 
-    // Additional payload validation for diagnostics
     const invalidHoldings = formData.stockHoldings.filter(h => {
       const hasSymbol = typeof h.symbol === 'string' && h.symbol.trim().length > 0
       const validShares = typeof h.shares === 'number' && isFinite(h.shares) && h.shares > 0
@@ -386,7 +358,6 @@ function CreatePortfolioContent() {
       return
     }
 
-    // Log payload for verification
     try {
       console.log('[CreatePortfolio] Request payload:', JSON.parse(JSON.stringify(formData)))
     } catch (_) {
@@ -398,7 +369,6 @@ function CreatePortfolioContent() {
     try {
       console.log("Creating portfolio:", formData)
       
-      // API 호출
       const result = await createPortfolio(formData)
       
       console.log("Portfolio created successfully:", result)
@@ -442,7 +412,7 @@ function CreatePortfolioContent() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">기본 정보</CardTitle>
@@ -473,15 +443,15 @@ function CreatePortfolioContent() {
             </CardContent>
           </Card>
 
-          {/* Stock Holdings */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-[#1f2937]">보유 종목</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Add New Stock */}
+              
               <div className="p-4 bg-[#f8fafc] rounded-lg space-y-4">
-                {/* Stock Search */}
+                
                 <div>
                   <Label className="text-base font-medium">종목 검색</Label>
                   <StockSearch
@@ -527,7 +497,7 @@ function CreatePortfolioContent() {
                   )}
                 </div>
 
-                {/* Input Fields */}
+                
                 {selectedStock && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -554,7 +524,7 @@ function CreatePortfolioContent() {
                   </div>
                 )}
 
-                {/* Add Button */}
+                
                 {selectedStock && newStock.shares && newStock.shares > 0 && (
                   <div className="flex justify-end">
                     <Button 
@@ -569,7 +539,7 @@ function CreatePortfolioContent() {
                 )}
               </div>
 
-              {/* Portfolio Summary */}
+              
               <div className="p-4 bg-[#f9fafb] rounded-lg border">
                 <div className="flex justify-between items-center">
                   <div className="text-lg font-semibold text-[#1f2937]">
@@ -581,7 +551,7 @@ function CreatePortfolioContent() {
                 </div>
               </div>
 
-              {/* Stock List */}
+              
               {formData.stockHoldings.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-[#1f2937]">추가된 종목</h4>
@@ -621,7 +591,7 @@ function CreatePortfolioContent() {
             </CardContent>
           </Card>
 
-          {/* Submit Buttons */}
+          
           <div className="flex justify-end gap-4">
             <Button
               type="button"
@@ -643,7 +613,7 @@ function CreatePortfolioContent() {
         </form>
       </main>
       
-      {/* 플로팅 챗봇 */}
+      
       <FloatingChatbot context="create-portfolio" />
     </div>
   )

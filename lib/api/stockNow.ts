@@ -53,12 +53,10 @@ export async function fetchCurrentPriceByCode(code: string): Promise<CurrentPric
     clearTimeout(timeoutId)
 
     if (!response.ok) {
-      // Log and fail soft
       try {
         const text = await response.text()
         console.error("[StockNow] Error Response:", text)
       } catch (_) {
-        // ignore
       }
       return null
     }

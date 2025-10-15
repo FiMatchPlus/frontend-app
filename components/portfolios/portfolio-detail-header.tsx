@@ -42,7 +42,6 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
   ]
 
   const handleEdit = () => {
-    // 포트폴리오 수정 페이지로 이동 (추후 구현)
     router.push(`/portfolios/${portfolio.id}/edit`)
   }
 
@@ -56,7 +55,6 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
       const success = await deletePortfolio(portfolio.id)
       if (success) {
         setIsDeleteDialogOpen(false)
-        // 삭제 성공 시 부모 컴포넌트에 알림
         onPortfolioDeleted?.()
       } else {
         alert("포트폴리오 삭제에 실패했습니다.")
@@ -71,7 +69,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
 
   return (
     <>
-      {/* Header */}
+      
       <div className="flex items-center justify-between mb-6">
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-[#1f2937]">{portfolio.name}</h2>
@@ -90,7 +88,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
             </div>
           </div>
           
-          {/* 케밥 메뉴 */}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="p-2 rounded-lg hover:bg-[#f0f9f7] transition-colors">
@@ -115,7 +113,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
         </div>
       </div>
 
-      {/* Tabs */}
+      
       <div className="flex gap-2 mb-6 p-1 bg-[#f0f9f7] rounded-xl">
         {tabs.map((tab) => {
           const Icon = tab.icon
@@ -136,7 +134,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
         })}
       </div>
 
-      {/* 삭제 확인 모달 */}
+      
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

@@ -1,5 +1,3 @@
-// Stock-related type definitions for Fi-Match⁺
-
 export interface Stock {
   symbol: string
   name: string

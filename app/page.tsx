@@ -41,7 +41,6 @@ export default function LandingPage() {
     setCurrentSection((prev) => (prev - 1 + totalSections) % totalSections)
   }
 
-  // 키보드 이벤트 처리
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
@@ -107,7 +106,7 @@ export default function LandingPage() {
         {children}
       </div>
       
-      {/* Section Indicators */}
+      
       <div className="flex justify-center pb-8">
         <div className="flex gap-3">
           {Array.from({ length: totalSections }).map((_, index) => (
@@ -130,7 +129,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#f0f9f7] flex flex-col">
       <Header />
 
-      {/* Navigation Buttons */}
+      
       <div className="fixed top-1/2 left-4 z-50 transform -translate-y-1/2">
         <button
           onClick={prevSection}
@@ -149,10 +148,10 @@ export default function LandingPage() {
         </button>
       </div>
 
-      {/* Sections Container */}
+      
       <div className="flex-1">
         <AnimatePresence initial={false} custom={currentSection} mode="wait">
-          {/* Section 1: Hero */}
+          
           {currentSection === 0 && (
             <SectionWrapper sectionKey="hero">
               <div className="w-full py-12">
@@ -162,7 +161,7 @@ export default function LandingPage() {
           transition={{ duration: 0.8 }}
           className="text-center"
                 >
-                  {/* 표어 */}
+                  
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -191,7 +190,7 @@ export default function LandingPage() {
                     수익을 키워<strong>(+)</strong>나가는 스마트한 포트폴리오 플랫폼
                   </motion.p>
 
-                  {/* Features Grid */}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
                     {features.map((feature, index) => (
                       <motion.div
@@ -217,7 +216,7 @@ export default function LandingPage() {
             </SectionWrapper>
           )}
 
-          {/* Section 2: Features */}
+          
           {currentSection === 1 && (
             <SectionWrapper sectionKey="features">
               <div className="w-full">
@@ -257,7 +256,7 @@ export default function LandingPage() {
             </SectionWrapper>
           )}
 
-          {/* Section 3: Analysis */}
+          
           {currentSection === 2 && (
             <SectionWrapper sectionKey="analysis">
               <div className="w-full">
@@ -276,7 +275,7 @@ export default function LandingPage() {
           </motion.div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Investment Style Analysis */}
+            
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -300,7 +299,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Performance Analysis */}
+            
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -324,7 +323,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Risk Analysis */}
+            
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -352,7 +351,7 @@ export default function LandingPage() {
             </SectionWrapper>
           )}
 
-          {/* Section 4: How to Use */}
+          
           {currentSection === 3 && (
             <SectionWrapper sectionKey="howto">
               <div className="w-full">
@@ -417,7 +416,7 @@ export default function LandingPage() {
             </SectionWrapper>
           )}
 
-          {/* Section 5: CTA */}
+          
           {currentSection === 4 && (
             <SectionWrapper sectionKey="cta">
               <div className="w-full">
@@ -455,7 +454,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-      {/* Footer */}
+      
                 <div className="mt-12 pt-6 border-t border-white/20">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
@@ -481,13 +480,13 @@ export default function LandingPage() {
         </AnimatePresence>
       </div>
 
-      {/* Simplified Footer */}
+      
       <footer className="bg-[#004e42] text-white">
         <div className="py-8">
           <div className="max-w-6xl mx-auto px-8">
-            {/* Main Footer Content */}
+            
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-              {/* Company Info */}
+              
               <div className="mb-4 md:mb-0 text-center md:text-left">
                 <h3 className="text-2xl font-bold mb-2">Fi-Match<span className="text-[#DC321E]">⁺</span></h3>
                 <p className="text-gray-300 text-sm">
@@ -495,7 +494,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* Contact Info */}
+              
               <div className="text-center md:text-right text-sm text-gray-300">
                 <p className="font-semibold text-white mb-1">고객센터</p>
                 <p>1588-0000</p>
@@ -503,7 +502,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Bottom Section */}
+            
             <div className="border-t border-gray-600 pt-4">
               <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
                 <div className="mb-2 md:mb-0">

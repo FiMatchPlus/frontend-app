@@ -23,7 +23,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
       <Link href={`/products/${product.id}`}>
         <div className="group cursor-pointer border-b border-gray-200 hover:bg-gray-50 transition-all duration-200 py-5 px-6">
           <div className="flex items-center justify-between">
-            {/* Left Section - Product Info */}
+            
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-2">
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-[#006b6c] transition-colors">
@@ -36,7 +36,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
                 </Badge>
               </div>
               
-              {/* Keywords */}
+              
               <div className="flex flex-wrap gap-2">
                 {product.keywords.map((keyword, index) => (
                   <Badge 
@@ -50,9 +50,9 @@ export function ProductListCard({ product }: ProductListCardProps) {
               </div>
             </div>
 
-            {/* Right Section - Performance & Arrow */}
+            
             <div className="flex items-center gap-6">
-              {/* 1년 수익률 */}
+              
               <div className="text-right">
                 <div className="text-sm text-gray-600 mb-1">1년 수익률</div>
                 <div className={`flex items-center gap-1 text-lg font-semibold ${
@@ -67,7 +67,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
                 </div>
               </div>
 
-              {/* 최소 투자금액 */}
+              
               <div className="text-right">
                 <div className="text-sm text-gray-600 mb-1">최소 투자</div>
                 <div className="text-base font-semibold text-gray-900">
@@ -75,7 +75,7 @@ export function ProductListCard({ product }: ProductListCardProps) {
                 </div>
               </div>
 
-              {/* Arrow */}
+              
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#006b6c] transition-colors" />
             </div>
           </div>

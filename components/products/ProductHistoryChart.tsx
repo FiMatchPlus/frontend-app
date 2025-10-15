@@ -36,7 +36,6 @@ export function ProductHistoryChart({ dailyHistory }: ProductHistoryChartProps) 
   const isPositive = averageReturn >= 0
   const latestOriginalValue = data[data.length - 1]?.originalValue || 0
 
-  // Y축 범위를 고정 범위로 설정 (변동성 완화)
   const yAxisDomain = [-5, 5] // +/-5% 고정 범위
 
   const timeFrameButtons = [
@@ -80,7 +79,7 @@ export function ProductHistoryChart({ dailyHistory }: ProductHistoryChartProps) 
         
         <CardContent>
           <div className="space-y-4">
-            {/* Performance Summary */}
+            
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">평균 일일 수익률</span>
@@ -102,7 +101,7 @@ export function ProductHistoryChart({ dailyHistory }: ProductHistoryChartProps) 
               </div>
             </div>
 
-            {/* Chart */}
+            
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>

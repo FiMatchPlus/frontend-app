@@ -6,7 +6,6 @@ import { createContext, useContext, useReducer, useEffect, type ReactNode } from
 import type { Stock, StockState } from "@/types/stock"
 import { getPopularStocks } from "@/lib/api/stockSearch"
 
-// Action types for reducer
 type StockAction =
   | { type: "SET_SELECTED_STOCK"; payload: Stock | null }
   | { type: "ADD_TO_RECENT"; payload: Stock }
@@ -16,7 +15,6 @@ type StockAction =
   | { type: "INITIALIZE_DATA" }
   | { type: "SET_POPULAR_STOCKS"; payload: Stock[] }
 
-// Initial state
 const initialState: StockState = {
   selectedStock: null,
   recentlyViewed: [],
@@ -27,7 +25,6 @@ const initialState: StockState = {
   error: null,
 }
 
-// Reducer function
 function stockReducer(state: StockState, action: StockAction): StockState {
   switch (action.type) {
     case "SET_SELECTED_STOCK":
@@ -38,7 +35,6 @@ function stockReducer(state: StockState, action: StockAction): StockState {
       }
 
     case "ADD_TO_RECENT":
-      // Add to recent stocks, avoiding duplicates and limiting to 5
       const filteredRecent = state.recentlyViewed.filter((stock) => stock.symbol !== action.payload.symbol)
       return {
         ...state,
@@ -65,7 +61,6 @@ function stockReducer(state: StockState, action: StockAction): StockState {
       }
 
     case "INITIALIZE_DATA":
-      // Load data from localStorage if available
       const savedRecent = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("recent-stocks") || "[]") : []
 
       return {
@@ -84,7 +79,6 @@ function stockReducer(state: StockState, action: StockAction): StockState {
   }
 }
 
-// Context
 const StockContext = createContext<{
   state: StockState
   dispatch: React.Dispatch<StockAction>
@@ -97,7 +91,6 @@ const StockContext = createContext<{
   }
 } | null>(null)
 
-// Provider component
 interface StockProviderProps {
   children: ReactNode
 }
@@ -105,7 +98,6 @@ interface StockProviderProps {
 export function StockProvider({ children }: StockProviderProps) {
   const [state, dispatch] = useReducer(stockReducer, initialState)
 
-  // Load popular stocks from API
   useEffect(() => {
     const loadPopularStocks = async () => {
       try {
@@ -119,19 +111,16 @@ export function StockProvider({ children }: StockProviderProps) {
     loadPopularStocks()
   }, [])
 
-  // Initialize data on mount
   useEffect(() => {
     dispatch({ type: "INITIALIZE_DATA" })
   }, [])
 
-  // Save recent stocks to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== "undefined" && state.recentlyViewed.length > 0) {
       localStorage.setItem("recent-stocks", JSON.stringify(state.recentlyViewed))
     }
   }, [state.recentlyViewed])
 
-  // Action creators
   const actions = {
     selectStock: (stock: Stock | null) => {
       dispatch({ type: "SET_SELECTED_STOCK", payload: stock })
@@ -156,7 +145,6 @@ export function StockProvider({ children }: StockProviderProps) {
   return <StockContext.Provider value={{ state, dispatch, actions }}>{children}</StockContext.Provider>
 }
 
-// Custom hook to use stock context
 export function useStock() {
   const context = useContext(StockContext)
   if (!context) {
@@ -165,7 +153,6 @@ export function useStock() {
   return context
 }
 
-// Selector hooks for specific parts of state
 export function useSelectedStock() {
   const { state } = useStock()
   return state.selectedStock

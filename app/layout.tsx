@@ -48,7 +48,6 @@ const hanaFont = localFont({
 export const metadata: Metadata = {
   title: "Fi-Match⁺ - 주식 포트폴리오 관리",
   description: "스마트한 주식 투자를 위한 포트폴리오 관리 플랫폼",
-  generator: "v0.app",
 }
 
 export default function RootLayout({

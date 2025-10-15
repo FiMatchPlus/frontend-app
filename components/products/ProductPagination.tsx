@@ -54,7 +54,7 @@ export function ProductPagination({
       transition={{ duration: 0.6 }}
       className="flex justify-center items-center gap-2 mt-8"
     >
-      {/* Previous Button */}
+      
       <Button
         variant="outline"
         size="sm"
@@ -66,7 +66,7 @@ export function ProductPagination({
         이전
       </Button>
 
-      {/* Page Numbers */}
+      
       <div className="flex items-center gap-1">
         {visiblePages.map((page, index) => (
           <div key={index}>
@@ -90,7 +90,7 @@ export function ProductPagination({
         ))}
       </div>
 
-      {/* Next Button */}
+      
       <Button
         variant="outline"
         size="sm"

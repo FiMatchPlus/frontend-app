@@ -52,7 +52,6 @@ export interface PortfolioWithDetails {
   dailyChange: number
 }
 
-// 포트폴리오 상세 정보 인터페이스
 export interface PortfolioDetailData {
   portfolioId: number
   name: string
@@ -114,7 +113,6 @@ export async function fetchPortfolioSummary(): Promise<PortfolioSummary | null> 
       try {
         const text = await response.text()
       } catch (_) {
-        // ignore
       }
       return null
     }
@@ -131,9 +129,7 @@ export async function fetchPortfolioSummary(): Promise<PortfolioSummary | null> 
     }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      // Request timeout
     } else {
-      // Fetch error
     }
     return null
   }
@@ -158,7 +154,6 @@ export async function fetchPortfolioList(): Promise<PortfolioWithDetails[]> {
       try {
         const text = await response.text()
       } catch (_) {
-        // ignore
       }
       return []
     }
@@ -179,15 +174,12 @@ export async function fetchPortfolioList(): Promise<PortfolioWithDetails[]> {
     }))
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      // Request timeout
     } else {
-      // Fetch error
     }
     return []
   }
 }
 
-// 포트폴리오 상세 정보를 가져오는 함수
 export async function fetchPortfolioDetail(portfolioId: string): Promise<PortfolioDetailData | null> {
   const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/${portfolioId}/long`
 
@@ -207,7 +199,6 @@ export async function fetchPortfolioDetail(portfolioId: string): Promise<Portfol
       try {
         const text = await response.text()
       } catch (_) {
-        // ignore
       }
       return null
     }
@@ -224,9 +215,7 @@ export async function fetchPortfolioDetail(portfolioId: string): Promise<Portfol
     if (error instanceof Error) {
       
       if (error.name === "AbortError") {
-        // Request timeout
       } else if (error.name === "TypeError") {
-        // Network error
       }
     }
     
@@ -234,7 +223,6 @@ export async function fetchPortfolioDetail(portfolioId: string): Promise<Portfol
   }
 }
 
-// 포트폴리오 상세 분석을 가져오는 함수 (분석 탭용)
 export async function fetchPortfolioAnalysis(portfolioId: string): Promise<PortfolioAnalysis | null> {
   const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/${portfolioId}/analysis`
 
@@ -254,7 +242,6 @@ export async function fetchPortfolioAnalysis(portfolioId: string): Promise<Portf
       try {
         const text = await response.text()
       } catch (_) {
-        // ignore
       }
       return null
     }
@@ -271,9 +258,7 @@ export async function fetchPortfolioAnalysis(portfolioId: string): Promise<Portf
     if (error instanceof Error) {
       
       if (error.name === "AbortError") {
-        // Request timeout
       } else if (error.name === "TypeError") {
-        // Network error
       }
     } else {
     }
@@ -282,7 +267,6 @@ export async function fetchPortfolioAnalysis(portfolioId: string): Promise<Portf
   }
 }
 
-// 포트폴리오 분석 상세를 가져오는 함수 (분석 상세 페이지용)
 export async function fetchPortfolioAnalysisDetail(portfolioId: string): Promise<PortfolioAnalysis | null> {
   const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/${portfolioId}/detail`
 
@@ -302,7 +286,6 @@ export async function fetchPortfolioAnalysisDetail(portfolioId: string): Promise
       try {
         const text = await response.text()
       } catch (_) {
-        // ignore
       }
       return null
     }
@@ -319,9 +302,7 @@ export async function fetchPortfolioAnalysisDetail(portfolioId: string): Promise
     if (error instanceof Error) {
       
       if (error.name === "AbortError") {
-        // Request timeout
       } else if (error.name === "TypeError") {
-        // Network error
       }
     } else {
     }
@@ -330,7 +311,6 @@ export async function fetchPortfolioAnalysisDetail(portfolioId: string): Promise
   }
 }
 
-// 포트폴리오 삭제 함수
 export async function deletePortfolio(portfolioId: number): Promise<boolean> {
   const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/${portfolioId}`
 
@@ -351,7 +331,6 @@ export async function deletePortfolio(portfolioId: number): Promise<boolean> {
         const text = await response.text()
         console.error("Failed to delete portfolio:", text)
       } catch (_) {
-        // ignore
       }
       return false
     }
@@ -371,7 +350,6 @@ export async function deletePortfolio(portfolioId: number): Promise<boolean> {
   }
 }
 
-// 포트폴리오 수정 함수
 export async function updatePortfolio(portfolioId: number, portfolioData: any): Promise<any> {
   const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/${portfolioId}`
 
@@ -421,7 +399,6 @@ export async function updatePortfolio(portfolioId: number, portfolioData: any): 
   }
 }
 
-// 포트폴리오 분석 상태를 확인하는 함수 (폴링용)
 export interface AnalysisStatusData {
   portfolio_id: number
   status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
@@ -450,7 +427,6 @@ export async function fetchAnalysisStatus(portfolioId: string): Promise<Analysis
       try {
         const text = await response.text()
       } catch (_) {
-        // ignore
       }
       return null
     }
@@ -464,7 +440,6 @@ export async function fetchAnalysisStatus(portfolioId: string): Promise<Analysis
     return result.data
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      // Request timeout
     }
     return null
   }
