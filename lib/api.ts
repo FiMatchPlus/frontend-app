@@ -1,4 +1,4 @@
-import type { BacktestResponse, PortfolioMainData } from "@/types/portfolio"
+import type { BacktestResponse } from "@/types/portfolio"
 
 export const API_CONFIG = {
   baseUrl: "https://fi-match.shop",
@@ -198,39 +198,6 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
     return result.data
   } catch (error) {
     console.error("[API] 백테스트 조회 오류:", error)
-    throw error
-  }
-}
-
-export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
-  try {
-    const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/main`
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
-
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: API_CONFIG.headers,
-      signal: controller.signal,
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error("[API] 오류 응답:", errorText)
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const result: ApiResponse<PortfolioMainData> = await response.json()
-
-    if (result.status !== "success") {
-      throw new Error(result.message || "포트폴리오 정보 조회에 실패했습니다.")
-    }
-
-    return result.data
-  } catch (error) {
     throw error
   }
 }
