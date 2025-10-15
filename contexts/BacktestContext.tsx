@@ -158,8 +158,6 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
           )
 
           if (hasChanges) {
-            console.log(`[BacktestContext] 포트폴리오 ${portfolioId} 상태 변경 감지`)
-            
             const newStates: Record<string, BacktestStateInfo> = {}
             Object.entries(currentStatuses).forEach(([id, status]) => {
               newStates[id] = {
@@ -174,7 +172,6 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
 
           const hasRunning = Object.values(currentStatuses).some(status => status === 'RUNNING')
           if (!hasRunning) {
-            console.log(`[BacktestContext] 포트폴리오 ${portfolioId} 실행 중인 백테스트 없음, 폴링 중지`)
             dispatch({ type: 'STOP_POLLING', portfolioId })
           }
         } catch (error) {

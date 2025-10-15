@@ -12,7 +12,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
         setStoredValue(JSON.parse(item))
       }
     } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error)
+      console.error(`localStorage 키 읽기 오류 "${key}":`, error)
     }
   }, [key])
 
@@ -24,7 +24,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
 
       window.localStorage.setItem(key, JSON.stringify(valueToStore))
     } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error)
+      console.error(`localStorage 키 설정 오류 "${key}":`, error)
     }
   }
 

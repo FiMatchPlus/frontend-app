@@ -89,7 +89,6 @@ export function StockChart({ selectedStock, className }: StockChartProps) {
           startValue: Math.max(0, convertedData.length - 45),
           endValue: Math.max(44, convertedData.length - 1),
           onDataZoom: function(params: any) {
-            console.log('[Chart] Inside DataZoom event:', params)
             if (params && typeof params.startValue === 'number') {
               handleScrollBoundary(params.startValue, convertedData.length)
             }

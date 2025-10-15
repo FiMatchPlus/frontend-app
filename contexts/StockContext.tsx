@@ -4,7 +4,6 @@ import type React from "react"
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
 import type { Stock, StockState } from "@/types/stock"
-import { getPopularStocks } from "@/lib/api/stockSearch"
 
 type StockAction =
   | { type: "SET_SELECTED_STOCK"; payload: Stock | null }
@@ -13,13 +12,11 @@ type StockAction =
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "CLEAR_ERROR" }
   | { type: "INITIALIZE_DATA" }
-  | { type: "SET_POPULAR_STOCKS"; payload: Stock[] }
 
 const initialState: StockState = {
   selectedStock: null,
   recentlyViewed: [],
   portfolioStocks: [],
-  popularStocks: [],
   searchResults: [],
   isLoading: false,
   error: null,
@@ -38,7 +35,7 @@ function stockReducer(state: StockState, action: StockAction): StockState {
       const filteredRecent = state.recentlyViewed.filter((stock) => stock.symbol !== action.payload.symbol)
       return {
         ...state,
-        recentlyViewed: [action.payload, ...filteredRecent].slice(0, 5),
+        recentlyViewed: [action.payload, ...filteredRecent].slice(0, 10),
       }
 
     case "SET_LOADING":
@@ -65,13 +62,7 @@ function stockReducer(state: StockState, action: StockAction): StockState {
 
       return {
         ...state,
-        recentlyViewed: savedRecent.length > 0 ? savedRecent : state.popularStocks.slice(0, 3),
-      }
-
-    case "SET_POPULAR_STOCKS":
-      return {
-        ...state,
-        popularStocks: action.payload,
+        recentlyViewed: savedRecent,
       }
 
     default:
@@ -97,19 +88,6 @@ interface StockProviderProps {
 
 export function StockProvider({ children }: StockProviderProps) {
   const [state, dispatch] = useReducer(stockReducer, initialState)
-
-  useEffect(() => {
-    const loadPopularStocks = async () => {
-      try {
-        const stocks = await getPopularStocks()
-        dispatch({ type: "SET_POPULAR_STOCKS", payload: stocks })
-      } catch (error) {
-        console.error("Failed to load popular stocks:", error)
-      }
-    }
-
-    loadPopularStocks()
-  }, [])
 
   useEffect(() => {
     dispatch({ type: "INITIALIZE_DATA" })
@@ -166,11 +144,6 @@ export function useRecentStocks() {
 export function usePortfolioStocks() {
   const { state } = useStock()
   return state.portfolioStocks
-}
-
-export function usePopularStocks() {
-  const { state } = useStock()
-  return state.popularStocks
 }
 
 export function useStockLoading() {

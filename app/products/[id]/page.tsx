@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
           changePercent: 0
         })))
       } catch (err) {
-        console.error('Failed to load product:', err)
+        console.error('상품 로드 실패:', err)
         setError('상품 정보를 불러오는데 실패했습니다.')
         setProduct(null)
       } finally {
@@ -108,7 +108,7 @@ export default function ProductDetailPage() {
         
         setLiveHoldings(enriched)
       } catch (err) {
-        console.error("Failed to fetch live data:", err)
+        console.error("실시간 데이터 조회 실패:", err)
         setLiveHoldings(product.holdings.map(h => ({
           ...h,
           price: 0,

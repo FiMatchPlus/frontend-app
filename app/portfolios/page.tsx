@@ -31,7 +31,7 @@ export default function PortfoliosPage() {
           setSelectedPortfolio(portfolioList[0])
         }
       } catch (error) {
-        console.error("Failed to load portfolio data:", error)
+        console.error("포트폴리오 데이터 로드 실패:", error)
       } finally {
         setLoading(false)
       }
@@ -58,7 +58,7 @@ export default function PortfoliosPage() {
       const summaryData = await fetchPortfolioSummary()
       setPortfolioSummary(summaryData)
     } catch (error) {
-      console.error("Failed to refresh portfolio data:", error)
+      console.error("포트폴리오 데이터 새로고침 실패:", error)
     }
   }
 

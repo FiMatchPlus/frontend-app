@@ -86,17 +86,14 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
     setExecutingBacktests(prev => new Set([...prev, backtestId]))
     
     try {
-      console.log(`[UI] 백테스트 실행 요청 시작: ${backtestId}`)
       const result = await executeBacktest(backtestId)
-      
-      console.log(`[UI] 백테스트 실행 응답 받음:`, result)
       
       updateBacktestStatus(portfolio.id.toString(), backtestId.toString(), 'RUNNING')
       
       startPolling(portfolio.id.toString())
       
     } catch (error) {
-      console.error("[UI] 백테스트 실행 실패:", error)
+      console.error("백테스트 실행 실패:", error)
       
       alert(error instanceof Error ? error.message : "백테스트 실행에 실패했습니다.")
     } finally {
@@ -148,11 +145,10 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       })
       
       if (hasRunning) {
-        console.log(`[PortfolioTab] 실행 중인 백테스트 감지, 폴링 시작`)
         startPolling(portfolio.id.toString())
       }
     } catch (error) {
-      console.error("Failed to fetch backtests:", error)
+        console.error("백테스트 조회 실패:", error)
       setBacktestError(error instanceof Error ? error.message : "백테스트 내역을 불러오는데 실패했습니다.")
     } finally {
       setIsLoadingBacktests(false)
@@ -170,10 +166,8 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       const hasRunning = backtests.some(bt => getBacktestDisplayStatus(bt) === 'running')
       
       if (hasRunning) {
-        console.log(`[PortfolioTab] 실행 중인 백테스트 감지, 폴링 시작`)
         startPolling(portfolio.id.toString())
       } else {
-        console.log(`[PortfolioTab] 실행 중인 백테스트 없음, 폴링 중지`)
         stopPolling(portfolio.id.toString())
       }
     }

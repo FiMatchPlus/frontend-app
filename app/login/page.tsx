@@ -56,7 +56,7 @@ export default function LoginPage() {
         const data = await fetchPortfolioMain()
         setPortfolioData(data)
       } catch (err) {
-        console.error("Failed to load portfolio data:", err)
+        console.error("포트폴리오 데이터 로드 실패:", err)
         setError(err instanceof Error ? err.message : "포트폴리오 데이터를 불러오는데 실패했습니다.")
         setPortfolioData(null) // 404나 에러 시 portfolioData를 null로 설정
       } finally {

@@ -24,10 +24,7 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
   }
 
   try {
-    console.log("[StockSearch] Searching stocks for:", query)
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/search?keyword=${encodeURIComponent(query)}`
-    console.log("[StockSearch] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -40,12 +37,9 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
 
     clearTimeout(timeoutId)
 
-    console.log("[StockSearch] Response Status:", response.status)
-    console.log("[StockSearch] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[StockSearch] Error Response:", errorText)
+      console.error("[StockSearch] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
@@ -63,13 +57,13 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
     return sanitized
   } catch (error) {
     if (error instanceof TypeError) {
-      console.error("[StockSearch] Network connection failed - Mixed Content or CORS issue")
-      console.error("[StockSearch] Server URL:", API_CONFIG.baseUrl)
-      console.error("[StockSearch] Client Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
+      console.error("[StockSearch] 네트워크 연결 실패 - Mixed Content 또는 CORS 문제")
+      console.error("[StockSearch] 서버 URL:", API_CONFIG.baseUrl)
+      console.error("[StockSearch] 클라이언트 Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
     } else if (error instanceof Error && error.name === "AbortError") {
-      console.error("[StockSearch] Request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[StockSearch] 요청 시간 초과:", API_CONFIG.timeout, "ms")
     } else {
-      console.error("[StockSearch] Stock search API error:", error)
+      console.error("[StockSearch] 주식 검색 API 오류:", error)
     }
     
     return []
@@ -78,10 +72,7 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
 
 export async function getPopularStocks(): Promise<StockSearchResult[]> {
   try {
-    console.log("[StockSearch] Fetching popular stocks")
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/popular`
-    console.log("[StockSearch] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -94,12 +85,9 @@ export async function getPopularStocks(): Promise<StockSearchResult[]> {
 
     clearTimeout(timeoutId)
 
-    console.log("[StockSearch] Response Status:", response.status)
-    console.log("[StockSearch] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[StockSearch] Error Response:", errorText)
+      console.error("[StockSearch] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
@@ -117,13 +105,13 @@ export async function getPopularStocks(): Promise<StockSearchResult[]> {
     return sanitized
   } catch (error) {
     if (error instanceof TypeError) {
-      console.error("[StockSearch] Network connection failed - Mixed Content or CORS issue")
-      console.error("[StockSearch] Server URL:", API_CONFIG.baseUrl)
-      console.error("[StockSearch] Client Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
+      console.error("[StockSearch] 네트워크 연결 실패 - Mixed Content 또는 CORS 문제")
+      console.error("[StockSearch] 서버 URL:", API_CONFIG.baseUrl)
+      console.error("[StockSearch] 클라이언트 Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
     } else if (error instanceof Error && error.name === "AbortError") {
-      console.error("[StockSearch] Request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[StockSearch] 요청 시간 초과:", API_CONFIG.timeout, "ms")
     } else {
-      console.error("[StockSearch] Popular stocks API error:", error)
+      console.error("[StockSearch] 인기 주식 API 오류:", error)
     }
     
     return []

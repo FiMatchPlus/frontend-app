@@ -24,7 +24,7 @@ export default function ProductsPage() {
         const data = await fetchProducts(selectedRiskLevel || undefined, searchQuery || undefined)
         setProducts(data)
       } catch (err) {
-        console.error('Failed to load products:', err)
+        console.error('상품 로드 실패:', err)
         setError('상품 목록을 불러오는데 실패했습니다.')
         setProducts([])
       } finally {

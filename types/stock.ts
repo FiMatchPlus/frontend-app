@@ -38,7 +38,6 @@ export interface StockState {
   selectedStock: Stock | null
   recentlyViewed: Stock[]
   portfolioStocks: Portfolio[]
-  popularStocks: Stock[]
   searchResults: StockSearchResult[]
   isLoading: boolean
   error: string | null

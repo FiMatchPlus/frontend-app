@@ -179,13 +179,12 @@ export async function createBacktest(
     }
 
     const result: CreateBacktestResponse = await response.json()
-    console.log("[Backtest] 백테스트 실행 시작됨:", result.data) // 백테스트 ID 로깅
     return result
   } catch (error) {
     clearTimeout(timeoutId)
     
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Backtest] Request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[Backtest] 요청 시간 초과:", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.")
     }
     
@@ -212,13 +211,12 @@ export async function getPortfolioBacktestStatuses(portfolioId: string): Promise
     }
 
     const result: BacktestStatusListResponse = await response.json()
-    console.log("[Backtest] 백테스트 상태 목록 조회:", result.data)
     return result.data
   } catch (error) {
     clearTimeout(timeoutId)
     
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Backtest] Status list timeout after", API_CONFIG.timeout, "ms")
+      console.error("[Backtest] 상태 목록 조회 시간 초과:", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 상태 목록 조회 시간이 초과되었습니다.")
     }
     
@@ -245,13 +243,12 @@ export async function getBacktestDetail(backtestId: string): Promise<BacktestDet
     }
 
     const result: BacktestDetailResponse = await response.json()
-    console.log("[Backtest] 백테스트 상세 조회 성공:", result.data.historyId)
     return result
   } catch (error) {
     clearTimeout(timeoutId)
     
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Backtest] Detail request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[Backtest] 상세 조회 요청 시간 초과:", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 상세 조회 시간이 초과되었습니다.")
     }
     
@@ -278,13 +275,12 @@ export async function getBacktestMetadata(backtestId: string): Promise<BacktestM
     }
 
     const result: BacktestMetadataResponse = await response.json()
-    console.log("[Backtest] 백테스트 메타데이터 조회 성공:", result.data.backtestId)
     return result
   } catch (error) {
     clearTimeout(timeoutId)
     
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Backtest] Metadata request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[Backtest] 메타데이터 조회 요청 시간 초과:", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 메타데이터 조회 시간이 초과되었습니다.")
     }
     
@@ -315,13 +311,12 @@ export async function updateBacktest(
     }
 
     const result = await response.json()
-    console.log("[Backtest] 백테스트 업데이트 성공:", backtestId)
     return result
   } catch (error) {
     clearTimeout(timeoutId)
     
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Backtest] Update request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[Backtest] 업데이트 요청 시간 초과:", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 업데이트 시간이 초과되었습니다.")
     }
     
@@ -353,7 +348,7 @@ export async function deleteBacktest(backtestId: string, portfolioId: string): P
     clearTimeout(timeoutId)
     
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[Backtest] Delete request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[Backtest] 삭제 요청 시간 초과:", API_CONFIG.timeout, "ms")
       throw new Error("백테스트 삭제 요청 시간이 초과되었습니다.")
     }
     

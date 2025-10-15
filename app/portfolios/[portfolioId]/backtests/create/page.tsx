@@ -111,7 +111,7 @@ export default function CreateBacktestPage() {
           setSelectedBenchmark("KOSPI")
         }
       } catch (error) {
-        console.error("Failed to load portfolio detail:", error)
+        console.error("포트폴리오 상세 로드 실패:", error)
         setSelectedBenchmark("KOSPI")
       } finally {
         setLoading(false)

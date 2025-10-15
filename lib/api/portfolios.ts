@@ -329,7 +329,7 @@ export async function deletePortfolio(portfolioId: number): Promise<boolean> {
     if (!response.ok) {
       try {
         const text = await response.text()
-        console.error("Failed to delete portfolio:", text)
+        console.error("포트폴리오 삭제 실패:", text)
       } catch (_) {
       }
       return false
@@ -341,9 +341,9 @@ export async function deletePortfolio(portfolioId: number): Promise<boolean> {
   } catch (error) {
     if (error instanceof Error) {
       if (error.name === "AbortError") {
-        console.error("Delete portfolio request timeout")
+        console.error("포트폴리오 삭제 요청 시간 초과")
       } else if (error.name === "TypeError") {
-        console.error("Network error during portfolio deletion")
+        console.error("포트폴리오 삭제 중 네트워크 오류")
       }
     }
     return false
@@ -369,7 +369,7 @@ export async function updatePortfolio(portfolioId: number, portfolioData: any): 
     if (!response.ok) {
       try {
         const text = await response.text()
-        console.error("Failed to update portfolio:", text)
+        console.error("포트폴리오 수정 실패:", text)
         throw new Error(`포트폴리오 수정에 실패했습니다 (${response.status})`)
       } catch (error) {
         if (error instanceof Error) {

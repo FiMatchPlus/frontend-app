@@ -36,8 +36,6 @@ export async function fetchChartData(
   endDate?: string
 ): Promise<ChartDataResponse[]> {
   try {
-    console.log("Fetching chart data for:", symbol, "timeframe:", timeFrame, "range:", startDate, "~", endDate)
-
     const mappedInterval = TIMEFRAME_MAPPING[timeFrame] || timeFrame.toLowerCase()
     
     const params = new URLSearchParams({
@@ -49,9 +47,6 @@ export async function fetchChartData(
     if (endDate) params.append('endDate', endDate)
     
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/chart?${params.toString()}`
-    console.log("API URL:", apiUrl)
-
-    console.log("Request headers:", API_CONFIG.headers)
 
     let response: Response
     try {
@@ -67,10 +62,10 @@ export async function fetchChartData(
       clearTimeout(timeoutId)
     } catch (fetchError: unknown) {
       if (fetchError instanceof TypeError) {
-        console.error("Network connection failed - Mixed Content or CORS issue")
-        console.error("HTTPS environment cannot connect to HTTP localhost")
-        console.error("Server URL:", API_CONFIG.baseUrl)
-        console.error("Client Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
+        console.error("네트워크 연결 실패 - Mixed Content 또는 CORS 문제")
+        console.error("HTTPS 환경에서 HTTP localhost 연결 불가")
+        console.error("서버 URL:", API_CONFIG.baseUrl)
+        console.error("클라이언트 Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
         throw new Error("네트워크 연결 실패: HTTPS 환경에서 HTTP localhost 연결 불가")
       } else if (
         typeof fetchError === "object" &&
@@ -78,42 +73,20 @@ export async function fetchChartData(
         "name" in fetchError &&
         (fetchError as { name?: string }).name === "AbortError"
       ) {
-        console.error("Request timeout after", API_CONFIG.timeout, "ms")
+        console.error("요청 시간 초과:", API_CONFIG.timeout, "ms")
         throw new Error("요청 시간 초과")
       } else {
-        console.error("Unexpected fetch error:", fetchError)
+        console.error("예상치 못한 fetch 오류:", fetchError)
         throw new Error("네트워크 요청 실패")
       }
     }
 
-    console.log("=== COMPLETE API RESPONSE ===")
-    console.log("Response Status:", response.status)
-    console.log("Response Status Text:", response.statusText)
-    console.log("Response URL:", response.url)
-    console.log("Response Type:", response.type)
-    console.log("Response Redirected:", response.redirected)
-    console.log("Response OK:", response.ok)
-
-    const responseHeaders = Object.fromEntries(response.headers.entries())
-    console.log("All Response Headers:", responseHeaders)
-
-    const corsHeaders = {
-      "access-control-allow-origin": response.headers.get("access-control-allow-origin"),
-      "access-control-allow-methods": response.headers.get("access-control-allow-methods"),
-      "access-control-allow-headers": response.headers.get("access-control-allow-headers"),
-      "access-control-allow-credentials": response.headers.get("access-control-allow-credentials"),
-    }
-    console.log("CORS Headers:", corsHeaders)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.log("Response Body:", errorText)
-      console.log("=== END API RESPONSE ===")
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: ApiResponse<ChartDataResponse[]> = await response.json()
-    console.log("Response Body:", result)
 
     if (result.status !== "success") {
       throw new Error(result.message || "데이터 조회에 실패했습니다.")
@@ -121,18 +94,6 @@ export async function fetchChartData(
 
     return result.data
   } catch (error: unknown) {
-    console.log("=== API ERROR DETAILS ===")
-    if (error instanceof Error) {
-      console.log("Error Type:", error.constructor.name)
-      console.log("Error Message:", error.message)
-      if (!(error instanceof TypeError)) {
-        console.log("Error Stack:", error.stack)
-      }
-    } else {
-      console.log("Non-Error thrown:", String(error))
-    }
-    console.log("=== END ERROR DETAILS ===")
-
     throw error as unknown as Error
   }
 }
@@ -161,10 +122,7 @@ interface CreatePortfolioResponse {
 
 export async function createPortfolio(portfolioData: any): Promise<CreatePortfolioResponse> {
   try {
-    console.log("[API] Creating portfolio:", portfolioData)
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios`
-    console.log("[API] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -186,17 +144,13 @@ export async function createPortfolio(portfolioData: any): Promise<CreatePortfol
 
     clearTimeout(timeoutId)
 
-    console.log("[API] Response Status:", response.status)
-    console.log("[API] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[API] Error Response:", errorText)
+      console.error("[API] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: ApiResponse<CreatePortfolioResponse> = await response.json()
-    console.log("[API] Response Body:", result)
 
     if (result.status !== "success") {
       throw new Error(result.message || "포트폴리오 생성에 실패했습니다.")
@@ -204,17 +158,14 @@ export async function createPortfolio(portfolioData: any): Promise<CreatePortfol
 
     return result.data
   } catch (error) {
-    console.error("[API] Portfolio creation error:", error)
+    console.error("[API] 포트폴리오 생성 오류:", error)
     throw error
   }
 }
 
 export async function fetchPortfolioBacktests(portfolioId: string): Promise<BacktestResponse[]> {
   try {
-    console.log("[API] Fetching backtests for portfolio:", portfolioId)
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/backtests/portfolio/${portfolioId}`
-    console.log("[API] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -232,17 +183,13 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
 
     clearTimeout(timeoutId)
 
-    console.log("[API] Response Status:", response.status)
-    console.log("[API] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[API] Error Response:", errorText)
+      console.error("[API] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: ApiResponse<BacktestResponse[]> = await response.json()
-    console.log("[API] Response Body:", result)
 
     if (result.status !== "success") {
       throw new Error(result.message || "백테스트 내역 조회에 실패했습니다.")
@@ -250,17 +197,14 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
 
     return result.data
   } catch (error) {
-    console.error("[API] Backtest fetch error:", error)
+    console.error("[API] 백테스트 조회 오류:", error)
     throw error
   }
 }
 
 export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
   try {
-    console.log("[API] Fetching main portfolio data")
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/portfolios/main`
-    console.log("[API] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -273,17 +217,13 @@ export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
 
     clearTimeout(timeoutId)
 
-    console.log("[API] Response Status:", response.status)
-    console.log("[API] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[API] Error Response:", errorText)
+      console.error("[API] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: ApiResponse<PortfolioMainData> = await response.json()
-    console.log("[API] Response Body:", result)
 
     if (result.status !== "success") {
       throw new Error(result.message || "포트폴리오 정보 조회에 실패했습니다.")
@@ -297,10 +237,7 @@ export async function fetchPortfolioMain(): Promise<PortfolioMainData> {
 
 export async function executeBacktest(backtestId: number): Promise<{ success: boolean; message?: string; backtestId?: string }> {
   try {
-    console.log("[API] Executing backtest:", backtestId)
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/backtests/${backtestId}/execute`
-    console.log("[API] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -313,17 +250,13 @@ export async function executeBacktest(backtestId: number): Promise<{ success: bo
 
     clearTimeout(timeoutId)
 
-    console.log("[API] Response Status:", response.status)
-    console.log("[API] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[API] Error Response:", errorText)
+      console.error("[API] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result = await response.json()
-    console.log("[API] Execute backtest result:", result)
 
     return { 
       success: true, 
@@ -332,10 +265,10 @@ export async function executeBacktest(backtestId: number): Promise<{ success: bo
     }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[API] Execute backtest request timeout")
+      console.error("[API] 백테스트 실행 요청 시간 초과")
       throw new Error("백테스트 실행 요청 시간이 초과되었습니다.")
     } else {
-      console.error("[API] Execute backtest error:", error)
+      console.error("[API] 백테스트 실행 오류:", error)
       throw error instanceof Error ? error : new Error("백테스트 실행 요청에 실패했습니다.")
     }
   }
@@ -367,11 +300,8 @@ export interface StockMultiResponse {
 
 export async function fetchMultiStockPrices(codes: string[]): Promise<StockMultiData[]> {
   try {
-    console.log("[API] Fetching multi stock prices for:", codes)
-
     const params = codes.map(code => `codes=${code}`).join('&')
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks/multi?${params}`
-    console.log("[API] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -384,26 +314,21 @@ export async function fetchMultiStockPrices(codes: string[]): Promise<StockMulti
 
     clearTimeout(timeoutId)
 
-    console.log("[API] Response Status:", response.status)
-    console.log("[API] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[API] Error Response:", errorText)
+      console.error("[API] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: StockMultiResponse = await response.json()
-    console.log("[API] Response Body:", result)
 
     if (result.status !== "success") {
       throw new Error(result.message || "주식 데이터 조회에 실패했습니다.")
     }
 
-    console.log("[API] Stock data array:", result.data.data)
     return result.data.data
   } catch (error) {
-    console.error("[API] Multi stock fetch error:", error)
+    console.error("[API] 다중 주식 조회 오류:", error)
     throw error
   }
 }

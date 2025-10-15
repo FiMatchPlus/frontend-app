@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { StockSidebar } from "@/components/stocks/StockSidebar"
 import { StockChart } from "@/components/stocks/StockChart"
@@ -9,14 +8,8 @@ import { StockErrorBoundary } from "@/components/stocks/ErrorBoundary"
 import { useStock, useSelectedStock } from "@/contexts/StockContext"
 
 export default function StocksPage() {
-  const { state, actions } = useStock()
+  const { actions } = useStock()
   const selectedStock = useSelectedStock()
-
-  useEffect(() => {
-    if (!selectedStock && state.popularStocks.length > 0) {
-      actions.selectStock(state.popularStocks[0])
-    }
-  }, [selectedStock, state.popularStocks, actions])
 
   return (
     <PageLayout>

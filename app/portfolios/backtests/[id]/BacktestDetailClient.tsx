@@ -25,11 +25,10 @@ export default function BacktestDetailClient() {
       setError(null)
       
       try {
-        console.log("Fetching backtest detail for ID:", params.id)
         const response = await getBacktestDetail(params.id)
         setBacktestData(response.data)
       } catch (err) {
-        console.error("Failed to fetch backtest detail:", err)
+        console.error("백테스트 상세 조회 실패:", err)
         setError(err instanceof Error ? err.message : "백테스트 상세 정보를 불러오는데 실패했습니다.")
       } finally {
         setIsLoading(false)

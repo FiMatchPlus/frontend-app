@@ -40,11 +40,8 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
   }
 
   try {
-    console.log("[BatchStock] Fetching prices for codes:", codes)
-
     const codesParam = codes.join(',')
     const apiUrl = `${API_CONFIG.baseUrl}/api/stocks?codes=${encodeURIComponent(codesParam)}`
-    console.log("[BatchStock] API URL:", apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -57,17 +54,13 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
 
     clearTimeout(timeoutId)
 
-    console.log("[BatchStock] Response Status:", response.status)
-    console.log("[BatchStock] Response OK:", response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("[BatchStock] Error Response:", errorText)
+      console.error("[BatchStock] 오류 응답:", errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: BatchStockResponse = await response.json()
-    console.log("[BatchStock] Response Body:", result)
 
     if (result.status !== 'success') {
       throw new Error(result.message || 'API 요청이 실패했습니다.')
@@ -86,13 +79,13 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
     return stockData
   } catch (error) {
     if (error instanceof TypeError) {
-      console.error("[BatchStock] Network connection failed - Mixed Content or CORS issue")
-      console.error("[BatchStock] Server URL:", API_CONFIG.baseUrl)
-      console.error("[BatchStock] Client Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
+      console.error("[BatchStock] 네트워크 연결 실패 - Mixed Content 또는 CORS 문제")
+      console.error("[BatchStock] 서버 URL:", API_CONFIG.baseUrl)
+      console.error("[BatchStock] 클라이언트 Origin:", typeof window !== "undefined" ? window.location.origin : "unknown")
     } else if (error instanceof Error && error.name === "AbortError") {
-      console.error("[BatchStock] Request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[BatchStock] 요청 시간 초과:", API_CONFIG.timeout, "ms")
     } else {
-      console.error("[BatchStock] Batch stock API error:", error)
+      console.error("[BatchStock] 배치 주식 API 오류:", error)
     }
     
     return []

@@ -60,7 +60,7 @@ export function PortfolioDetailHeader({ portfolio, activeTab, onTabChange, onPor
         alert("포트폴리오 삭제에 실패했습니다.")
       }
     } catch (error) {
-      console.error("Error deleting portfolio:", error)
+      console.error("포트폴리오 삭제 오류:", error)
       alert("포트폴리오 삭제 중 오류가 발생했습니다.")
     } finally {
       setIsDeleting(false)

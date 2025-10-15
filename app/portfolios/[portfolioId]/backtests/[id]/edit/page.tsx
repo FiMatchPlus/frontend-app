@@ -152,7 +152,7 @@ export default function EditBacktestPage() {
 
         setSelectedBenchmark(metadata.benchmarkCode)
       } catch (error) {
-        console.error("Failed to load backtest metadata:", error)
+        console.error("백테스트 메타데이터 로드 실패:", error)
         setAlertDialog({
           isOpen: true,
           title: '오류',
@@ -339,16 +339,7 @@ export default function EditBacktestPage() {
     setSubmitting(true)
     
     try {
-      console.log("=== 백테스트 수정 폼 데이터 ===")
-      console.log("원본 폼 데이터:", JSON.stringify(formData, null, 2))
-      console.log("포트폴리오 ID:", portfolioId)
-      console.log("백테스트 ID:", backtestId)
-      console.log("선택된 벤치마크:", selectedBenchmark)
-      
       const requestData = transformToBacktestRequest(formData, portfolioId, selectedBenchmark)
-      
-      console.log("=== 변환된 API 요청 데이터 ===")
-      console.log(JSON.stringify(requestData, null, 2))
       
       await updateBacktest(backtestId, requestData)
       

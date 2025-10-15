@@ -90,28 +90,19 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
       return
     }
 
-    console.log(`[분석 폴링] 포트폴리오 ${portfolioId} 분석 상태 폴링 시작 (30초 간격)`)
-
     const pollInterval = setInterval(async () => {
-      console.log(`[분석 폴링] 포트폴리오 ${portfolioId} 상태 확인 중...`)
-      
       const statusData = await fetchAnalysisStatus(portfolioId.toString())
       
       if (!statusData) {
-        console.log(`[분석 폴링] 상태 조회 실패`)
         return
       }
 
-      console.log(`[분석 폴링] 현재 상태: ${statusData.status}`)
-
       if (statusData.status === 'COMPLETED' || statusData.status === 'FAILED') {
-        console.log(`[분석 폴링] 분석 완료 또는 실패 - 전체 데이터 새로고침`)
         await handleRetry()
       }
     }, 30000) // 30초
 
     return () => {
-      console.log(`[분석 폴링] 포트폴리오 ${portfolioId} 폴링 중지`)
       clearInterval(pollInterval)
     }
   }, [portfolioId, analysisData?.status, handleRetry])

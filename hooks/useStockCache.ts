@@ -45,7 +45,6 @@ export function useStockCache(): UseStockCacheReturn {
     setError(null)
 
     try {
-      console.log("[StockCache] Fetching batch data for:", finalSymbols, "at", new Date().toLocaleTimeString())
       const stockData = await fetchMultipleStockPrices(finalSymbols)
       
       setCache(prev => {
@@ -57,11 +56,10 @@ export function useStockCache(): UseStockCacheReturn {
       })
       
       setLastUpdated(Date.now())
-      console.log("[StockCache] Successfully cached", stockData.length, "stocks")
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '종목 데이터 조회 실패'
       setError(errorMessage)
-      console.error("[StockCache] Batch request failed:", err)
+      console.error("Stock 캐시 요청 실패:", err)
     } finally {
       finalSymbols.forEach(symbol => pendingRequestsRef.current.delete(symbol))
       setIsLoading(false)
@@ -118,7 +116,6 @@ export function useStockCache(): UseStockCacheReturn {
     setError(null)
     
     try {
-      console.log("[StockCache] Force refreshing stocks:", symbols)
       const stockData = await fetchMultipleStockPrices(symbols)
       
       setCache(prev => {

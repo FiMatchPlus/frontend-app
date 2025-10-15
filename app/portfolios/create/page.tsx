@@ -353,29 +353,19 @@ function CreatePortfolioContent() {
       return !hasSymbol || !validShares || !validPrice || !validTotal
     })
     if (invalidHoldings.length > 0) {
-      console.error('[CreatePortfolio] Invalid holdings detected:', invalidHoldings)
+      console.error('[CreatePortfolio] 유효하지 않은 보유 종목 감지:', invalidHoldings)
       alert('종목 데이터가 올바르지 않습니다. 수량/현재가/평가금액을 확인하세요.')
       return
-    }
-
-    try {
-      console.log('[CreatePortfolio] Request payload:', JSON.parse(JSON.stringify(formData)))
-    } catch (_) {
-      console.log('[CreatePortfolio] Request payload (raw):', formData)
     }
     
     setIsSubmitting(true)
     
     try {
-      console.log("Creating portfolio:", formData)
-      
       const result = await createPortfolio(formData)
-      
-      console.log("Portfolio created successfully:", result)
       alert("포트폴리오가 성공적으로 생성되었습니다!")
       router.push("/portfolios")
     } catch (error: unknown) {
-      console.error("Failed to create portfolio:", error)
+      console.error("포트폴리오 생성 실패:", error)
       const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
       alert(`포트폴리오 생성에 실패했습니다: ${errorMessage}`)
     } finally {

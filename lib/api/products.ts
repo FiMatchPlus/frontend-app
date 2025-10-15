@@ -41,15 +41,12 @@ export async function fetchProducts(
   search?: string
 ): Promise<ProductListItem[]> {
   try {
-    console.log('[API] Fetching products', { riskLevel, search })
-
     const params = new URLSearchParams()
     if (riskLevel) params.append('riskLevel', riskLevel)
     if (search) params.append('search', search)
 
     const queryString = params.toString()
     const apiUrl = `${API_CONFIG.baseUrl}/api/products${queryString ? `?${queryString}` : ''}`
-    console.log('[API] API URL:', apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -62,17 +59,13 @@ export async function fetchProducts(
 
     clearTimeout(timeoutId)
 
-    console.log('[API] Response Status:', response.status)
-    console.log('[API] Response OK:', response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('[API] Error Response:', errorText)
+      console.error('[API] 오류 응답:', errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: ApiResponse<{ products: ProductListItem[] }> = await response.json()
-    console.log('[API] Response Body:', result)
 
     if (result.status !== 'success') {
       throw new Error(result.message || '상품 목록 조회에 실패했습니다.')
@@ -80,17 +73,14 @@ export async function fetchProducts(
 
     return result.data.products
   } catch (error) {
-    console.error('[API] Products fetch error:', error)
+    console.error('[API] 상품 목록 조회 오류:', error)
     throw error
   }
 }
 
 export async function fetchProductDetail(productId: number): Promise<ProductDetail> {
   try {
-    console.log('[API] Fetching product detail:', productId)
-
     const apiUrl = `${API_CONFIG.baseUrl}/api/products/${productId}`
-    console.log('[API] API URL:', apiUrl)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
@@ -103,17 +93,13 @@ export async function fetchProductDetail(productId: number): Promise<ProductDeta
 
     clearTimeout(timeoutId)
 
-    console.log('[API] Response Status:', response.status)
-    console.log('[API] Response OK:', response.ok)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('[API] Error Response:', errorText)
+      console.error('[API] 오류 응답:', errorText)
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const result: ApiResponse<ProductDetail> = await response.json()
-    console.log('[API] Response Body:', result)
 
     if (result.status !== 'success') {
       throw new Error(result.message || '상품 상세 조회에 실패했습니다.')
@@ -121,7 +107,7 @@ export async function fetchProductDetail(productId: number): Promise<ProductDeta
 
     return result.data
   } catch (error) {
-    console.error('[API] Product detail fetch error:', error)
+    console.error('[API] 상품 상세 조회 오류:', error)
     throw error
   }
 }

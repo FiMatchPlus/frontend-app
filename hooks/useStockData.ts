@@ -44,15 +44,11 @@ export function useStockData(selectedStock: Stock | null) {
     setError(null)
 
     try {
-      console.log("Starting API call for stock:", stock.symbol, "timeframe:", timeframe, "range:", startDate, "~", endDate)
-
       const apiData = await fetchChartData(stock.symbol, timeframe, startDate, endDate)
       const transformedData = transformChartData(apiData)
       setChartData(transformedData)
-
-      console.log("Successfully fetched and transformed data:", transformedData.length, "points")
     } catch (err) {
-      console.error("Failed to fetch chart data:", err)
+      console.error("차트 데이터 조회 실패:", err)
       setChartData([])
       setError("차트 데이터를 불러오는데 실패했습니다.")
     } finally {
@@ -82,9 +78,7 @@ export function useStockData(selectedStock: Stock | null) {
       newEndDate.setDate(newEndDate.getDate() - 1)
       const newEndDateStr = newEndDate.toISOString().split('T')[0]
       
-      console.log("[API Request] Requesting data from", newStartDateStr, "to", newEndDateStr)
       const apiData = await fetchChartData(stock.symbol, timeframe, newStartDateStr, newEndDateStr)
-      console.log("[API Response] Received", apiData.length, "data points")
       const transformedData = transformChartData(apiData)
       
       if (transformedData.length === 0) {
@@ -94,27 +88,17 @@ export function useStockData(selectedStock: Stock | null) {
       setChartData(prev => {
         const combined = [...transformedData, ...prev]
         
-        if (transformedData.length > 0) {
-          const dates = transformedData.map(d => new Date(d.timestamp).toISOString().split('T')[0]).sort()
-          console.log("[Data Debug] New data date range:", dates[0], "~", dates[dates.length - 1], `(${dates.length} points)`)
-        }
-        
         const uniqueData = combined.filter((item, index, arr) => 
           arr.findIndex(t => t.timestamp === item.timestamp) === index
         )
         
         const sorted = uniqueData.sort((a, b) => a.timestamp - b.timestamp)
         
-        if (sorted.length > 0) {
-          const allDates = sorted.map(d => new Date(d.timestamp).toISOString().split('T')[0])
-          console.log("[Data Debug] Total data after merge:", allDates[0], "~", allDates[allDates.length - 1], `(${allDates.length} points)`)
-        }
-        
         return sorted
       })
       setLoadedDateRange(prev => prev ? { ...prev, start: newStartDateStr } : null)
     } catch (err) {
-      console.error("Failed to load more past data:", err)
+      console.error("과거 데이터 추가 로드 실패:", err)
     } finally {
       setIsLoadingMore(false)
     }

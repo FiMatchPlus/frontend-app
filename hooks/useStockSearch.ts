@@ -38,7 +38,7 @@ export function useStockSearch() {
         if (error instanceof Error && error.name === 'AbortError') {
           return
         }
-        console.error('Search error:', error)
+        console.error('검색 오류:', error)
         setError('검색 중 오류가 발생했습니다.')
         setSearchResults([])
       } finally {

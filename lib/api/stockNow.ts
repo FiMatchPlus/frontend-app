@@ -55,7 +55,7 @@ export async function fetchCurrentPriceByCode(code: string): Promise<CurrentPric
     if (!response.ok) {
       try {
         const text = await response.text()
-        console.error("[StockNow] Error Response:", text)
+        console.error("[StockNow] 오류 응답:", text)
       } catch (_) {
       }
       return null
@@ -77,9 +77,9 @@ export async function fetchCurrentPriceByCode(code: string): Promise<CurrentPric
     }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[StockNow] Request timeout after", API_CONFIG.timeout, "ms")
+      console.error("[StockNow] 요청 시간 초과:", API_CONFIG.timeout, "ms")
     } else {
-      console.error("[StockNow] fetch error:", error)
+      console.error("[StockNow] fetch 오류:", error)
     }
     return null
   }
