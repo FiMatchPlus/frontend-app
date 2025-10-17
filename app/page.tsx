@@ -31,7 +31,7 @@ const features = [
 
 export default function LandingPage() {
   const [currentSection, setCurrentSection] = useState(0)
-  const totalSections = 5
+  const totalSections = 1
 
   const nextSection = () => {
     setCurrentSection((prev) => (prev + 1) % totalSections)
@@ -130,30 +130,12 @@ export default function LandingPage() {
       <Header />
 
       
-      <div className="fixed top-1/2 left-4 z-50 transform -translate-y-1/2">
-        <button
-          onClick={prevSection}
-          className="bg-white/80 hover:bg-white text-[#009178] p-3 rounded-full shadow-lg transition-all hover:scale-110"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-      </div>
       
-      <div className="fixed top-1/2 right-4 z-50 transform -translate-y-1/2">
-        <button
-          onClick={nextSection}
-          className="bg-white/80 hover:bg-white text-[#009178] p-3 rounded-full shadow-lg transition-all hover:scale-110"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      </div>
 
       
       <div className="flex-1">
         <AnimatePresence initial={false} custom={currentSection} mode="wait">
-          
-          {currentSection === 0 && (
-            <SectionWrapper sectionKey="hero">
+          <SectionWrapper sectionKey="hero">
               <div className="w-full py-12">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -191,7 +173,7 @@ export default function LandingPage() {
                   </motion.p>
 
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto items-stretch">
                     {features.map((feature, index) => (
                       <motion.div
                         key={feature.title}
@@ -199,284 +181,21 @@ export default function LandingPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
                         whileHover={{ y: -5, scale: 1.02 }}
-                        className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#009178] hover:shadow-2xl transition-all"
+                        className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-t-4 border-t-[#009178] hover:shadow-2xl transition-all h-full flex flex-col"
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <div className="text-[#009178]">
                             {feature.icon}
                           </div>
-                          <h3 className="text-xl font-bold text-[#1f2937]">{feature.title}</h3>
+                          <h3 className="text-xl font-bold text-[#1f2937] truncate min-h-[28px]">{feature.title}</h3>
                         </div>
-                        <p className="text-base text-[#6b7280] leading-relaxed text-left">{feature.description}</p>
+                        <p className="text-base text-[#6b7280] leading-relaxed text-left line-clamp-2 overflow-hidden min-h-[52px]">{feature.description}</p>
                       </motion.div>
                     ))}
                   </div>
         </motion.div>
               </div>
             </SectionWrapper>
-          )}
-
-          
-          {currentSection === 1 && (
-            <SectionWrapper sectionKey="features">
-              <div className="w-full">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-center mb-6"
-        >
-                <h2 className="text-3xl font-bold text-[#1f2937] mb-3">
-            <span className="text-[#009178]">Fi-Match<span className="text-[#DC321E]">⁺</span></span>로 뭘 할 수 있나요?
-          </h2>
-          <p className="text-lg text-[#6b7280] max-w-3xl mx-auto">
-            투자 초보자도 전문가처럼! 복잡한 투자 관리를 쉽고 체계적으로 할 수 있어요
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#009178] hover:shadow-2xl transition-all"
-            >
-              <div className="text-[#009178] mb-3">
-                {feature.icon}
-              </div>
-              <h3 className="text-xl font-bold text-[#1f2937] mb-3">{feature.title}</h3>
-              <p className="text-base text-[#6b7280] leading-relaxed">{feature.description}</p>
-            </motion.div>
-          ))}
-        </div>
-                </div>
-            </SectionWrapper>
-          )}
-
-          
-          {currentSection === 2 && (
-            <SectionWrapper sectionKey="analysis">
-              <div className="w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-center mb-12"
-          >
-                <h2 className="text-4xl font-bold text-[#1f2937] mb-4">
-              <span className="text-[#009178]">과학적 데이터</span>로 알아보는 나의 투자 분석
-            </h2>
-            <p className="text-xl text-[#6b7280] max-w-3xl mx-auto">
-              실제 포트폴리오 구성으로 성향부터 전문 분석까지 한 번에!
-            </p>
-          </motion.div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-white rounded-2xl p-8 shadow-xl border border-[#009178]"
-            >
-              <h3 className="text-2xl font-bold text-[#1f2937] mb-6 text-center">투자 성향 진단</h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">위험 선호도</h4>
-                  <p className="text-[#6b7280] text-sm">안전 vs 고위험 자산 비중으로 리스크 성향 파악</p>
-                </div>
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">시장 민감도</h4>
-                  <p className="text-[#6b7280] text-sm">폭락장에서 내 포트폴리오 반응 정도 측정</p>
-                </div>
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">포트폴리오 효율성</h4>
-                  <p className="text-[#6b7280] text-sm">위험 대비 수익률 최적화 수준 분석</p>
-                </div>
-              </div>
-            </motion.div>
-
-            
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-              className="bg-white rounded-2xl p-8 shadow-xl border border-[#009178]"
-            >
-              <h3 className="text-2xl font-bold text-[#1f2937] mb-6 text-center">성과 분석</h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">시장 대비 성과</h4>
-                  <p className="text-[#6b7280] text-sm">KOSPI 대비 내 투자 전략의 우수성 확인</p>
-                </div>
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">위험 조정 수익률</h4>
-                  <p className="text-[#6b7280] text-sm">샤프 비율로 효율적 수익 창출 여부 분석</p>
-                </div>
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">종목 기여도</h4>
-                  <p className="text-[#6b7280] text-sm">어떤 주식이 수익에 도움이 되었는지 분석</p>
-                </div>
-              </div>
-            </motion.div>
-
-            
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-              className="bg-white rounded-2xl p-8 shadow-xl border border-[#009178]"
-            >
-              <h3 className="text-2xl font-bold text-[#1f2937] mb-6 text-center">리스크 분석</h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">최대 손실 예상</h4>
-                  <p className="text-[#6b7280] text-sm">최악의 상황에서 예상되는 최대 낙폭</p>
-                </div>
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">변동성 측정</h4>
-                  <p className="text-[#6b7280] text-sm">포트폴리오의 가격 변동 정도 수치화</p>
-                </div>
-                <div className="p-4 bg-[#f0f9f7] rounded-lg">
-                  <h4 className="font-bold text-[#1f2937] mb-2">하방 위험</h4>
-                  <p className="text-[#6b7280] text-sm">손실이 날 때만의 위험도 별도 측정</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-              </div>
-            </SectionWrapper>
-          )}
-
-          
-          {currentSection === 3 && (
-            <SectionWrapper sectionKey="howto">
-              <div className="w-full">
-                <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-center mb-12"
-        >
-                <h2 className="text-4xl font-bold text-[#1f2937] mb-4">
-            어떻게 사용하나요?
-          </h2>
-          <p className="text-xl text-[#6b7280] max-w-3xl mx-auto">
-            3단계만 따라하면 바로 투자 전문가처럼 포트폴리오를 관리할 수 있어요
-          </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-center"
-          >
-            <div className="w-16 h-16 bg-[#009178] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
-            <h3 className="text-2xl font-bold text-[#1f2937] mb-4">종목 검색 & 차트 확인</h3>
-            <p className="text-lg text-[#6b7280] leading-relaxed">
-              관심 있는 종목을 검색하고 실시간 차트로 주가 흐름을 확인해보세요. 
-              1일부터 1년까지 다양한 기간으로 볼 수 있어요.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-center"
-          >
-            <div className="w-16 h-16 bg-[#009178] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
-            <h3 className="text-2xl font-bold text-[#1f2937] mb-4">포트폴리오 만들기</h3>
-            <p className="text-lg text-[#6b7280] leading-relaxed">
-              마음에 드는 종목들을 선택하고 투자 비중을 정해서 나만의 포트폴리오를 만들어보세요. 
-              파이 차트로 한눈에 확인할 수 있어요.
-            </p>
-          </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-center"
-          >
-            <div className="w-16 h-16 bg-[#009178] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
-            <h3 className="text-2xl font-bold text-[#1f2937] mb-4">백테스트로 검증하기</h3>
-            <p className="text-lg text-[#6b7280] leading-relaxed">
-              내 투자 전략이 과거에 어떤 성과를 냈을지 미리 시뮬레이션해보고 
-              수익률과 위험도를 확인한 후 투자하세요.
-            </p>
-          </motion.div>
-        </div>
-              </div>
-            </SectionWrapper>
-          )}
-
-          
-          {currentSection === 4 && (
-            <SectionWrapper sectionKey="cta">
-              <div className="w-full">
-                <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="bg-gradient-to-r from-[#009178] to-[#004e42] rounded-3xl p-12 text-center text-white shadow-2xl"
-        >
-                <h2 className="text-4xl font-bold mb-4">투자 관리, 이제 더 쉽게!</h2>
-                <p className="text-lg mb-6 opacity-90">
-            복잡한 투자 분석이 클릭 몇 번으로! 지금 바로 체험해보세요
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link href="/login">
-              <motion.button
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-white text-[#009178] px-10 py-4 rounded-xl font-semibold text-xl hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3"
-              >
-                <Users className="w-6 h-6" />
-                회원가입하고 시작하기
-              </motion.button>
-            </Link>
-            
-            <Link href="/stocks">
-              <motion.button
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="border-2 border-white text-white px-10 py-4 rounded-xl font-semibold text-xl hover:bg-white hover:text-[#009178] transition-all"
-              >
-                종목 차트 먼저 보기
-              </motion.button>
-            </Link>
-          </div>
-
-      
-                <div className="mt-12 pt-6 border-t border-white/20">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-6 md:mb-0">
-                      <h3 className="text-3xl font-bold mb-2">Fi-Match<span className="text-[#DC321E]">⁺</span></h3>
-                      <p className="text-white/70">스마트한 투자의 시작</p>
-            </div>
-            
-            <div className="flex gap-8">
-                      <Link href="/products" className="hover:text-white/80 transition-colors">상품</Link>
-                      <Link href="/stocks" className="hover:text-white/80 transition-colors">종목 정보</Link>
-                      <Link href="/portfolios" className="hover:text-white/80 transition-colors">포트폴리오</Link>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 pt-4 text-center border-t border-white/20">
-                    <p className="text-white/70">© 2025 Fi-Match<span className="text-[#DC321E]">⁺</span>. All rights reserved.</p>
-                  </div>
-              </div>
-                </motion.div>
-              </div>
-            </SectionWrapper>
-          )}
         </AnimatePresence>
       </div>
 

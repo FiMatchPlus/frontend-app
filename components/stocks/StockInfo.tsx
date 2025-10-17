@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Building2, TrendingUp, Volume2, DollarSign } from "lucide-react"
-import { formatCurrency, formatNumber, formatPercent, getChangeColor, getChangeColorBySign, formatMarketCap } from "@/utils/formatters"
+import { Building2, TrendingUp, DollarSign } from "lucide-react"
+import { formatCurrency, formatPercent, getChangeColor, getChangeColorBySign, formatMarketCap } from "@/utils/formatters"
 import { fetchCurrentPriceWithMarketStatus, type CurrentPriceResult } from "@/lib/api/stockNow"
 import type { Stock } from "@/types/stock"
 import { cn } from "@/lib/utils"
@@ -67,12 +67,6 @@ export function StockInfo({ selectedStock, className }: StockInfoProps) {
       value: formatPercent(currentStock.changePercent),
       icon: TrendingUp,
       color: (currentStock as any).sign ? getChangeColorBySign((currentStock as any).sign) : getChangeColor(currentStock.changePercent),
-    },
-    {
-      label: "거래량",
-      value: formatNumber(selectedStock.volume),
-      icon: Volume2,
-      color: "text-muted-foreground",
     },
     {
       label: "시가총액",
