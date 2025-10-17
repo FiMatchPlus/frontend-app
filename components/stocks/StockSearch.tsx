@@ -23,7 +23,7 @@ export function StockSearch({ onSelectStock, className, showPriceChange = true }
       symbol: result.symbol,
       name: result.name,
       price: 0,
-      change: 0, // Would be calculated from API
+      change: 0,
       changePercent: 0,
       volume: 0,
       marketCap: 0,

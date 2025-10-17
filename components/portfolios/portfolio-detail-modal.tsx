@@ -172,7 +172,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                   
                   <div className="bg-white rounded-xl border border-[#009178] p-6">
                     <h3 className="text-lg font-semibold text-[#1f2937] mb-4">포트폴리오 구성</h3>
-                    <PortfolioPieChart data={portfolio.holdings.map((h) => ({ ...h, trend: h.change }))} />
+                    <PortfolioPieChart data={portfolio.holdings.map((h) => ({ ...h, trend: h.change, shares: h.shares }))} />
                   </div>
                 </div>
               )}

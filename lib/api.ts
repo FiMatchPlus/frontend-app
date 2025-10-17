@@ -1,4 +1,5 @@
 import type { BacktestResponse } from "@/types/portfolio"
+import { authenticatedFetch } from "./api/interceptor"
 
 export const API_CONFIG = {
   baseUrl: "https://fi-match.shop",
@@ -53,9 +54,8 @@ export async function fetchChartData(
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-      response = await fetch(apiUrl, {
+      response = await authenticatedFetch(apiUrl, {
         method: "GET",
-        headers: API_CONFIG.headers,
         signal: controller.signal,
       })
 
@@ -135,9 +135,8 @@ export async function createPortfolio(portfolioData: any): Promise<CreatePortfol
     delete (requestBody as any).stockHoldings
     delete (requestBody as any).rule
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "POST",
-      headers: API_CONFIG.headers,
       body: JSON.stringify(requestBody),
       signal: controller.signal,
     })
@@ -170,10 +169,9 @@ export async function fetchPortfolioBacktests(portfolioId: string): Promise<Back
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
       headers: {
-        ...API_CONFIG.headers,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
@@ -209,9 +207,8 @@ export async function executeBacktest(backtestId: number): Promise<{ success: bo
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "POST",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -273,9 +270,8 @@ export async function fetchMultiStockPrices(codes: string[]): Promise<StockMulti
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 

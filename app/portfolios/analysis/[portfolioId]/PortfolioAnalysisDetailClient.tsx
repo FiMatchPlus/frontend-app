@@ -122,7 +122,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     if (Array.isArray(result.holdings)) {
       return result.holdings.map((holding: any, index: number) => ({
         name: holding.name,
-        percent: holding.weight * 100, // 0.05 -> 5%
+        percent: holding.weight * 100, 
         trend: 0,
         color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`,
         amount: 0
@@ -196,9 +196,9 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
   const AnalysisTab = () => (
     <div className="space-y-6">
       
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-5 gap-6">
         
-        <div className="lg:col-span-3 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
+        <div className="col-span-3 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
           <h3 className="text-xl font-bold text-[#1f2937] mb-2">포트폴리오 위험-효율성 분석</h3>
           <p className="text-[#6b7280] mb-4 text-sm">하방 위험과 소르티노 비율로 비교한 포지셔닝</p>
           
@@ -215,7 +215,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
         </div>
 
         
-        <div className="lg:col-span-2 space-y-4">
+        <div className="col-span-2 space-y-4">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-[#009178] p-6">
             <h3 className="text-lg font-bold text-[#1f2937] mb-4">핵심 지표 요약</h3>
             <div className="space-y-3">
@@ -291,7 +291,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           </div>
 
           
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
               <h4 className="font-semibold text-sm text-blue-900 mb-2">위험 관점</h4>
               <p className="text-xs text-blue-800 leading-relaxed">{analysisData.comparative_analysis.three_way_comparison.risk_perspective}</p>
@@ -309,7 +309,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       )}
 
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {(analysisData.results || []).map((result) => {
           const pieChartData = convertToPieChartData(result)
           const metrics = scatterData.find(d => d.type === result.type)
@@ -461,57 +461,120 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
 
   const RecommendationTab = () => {
     if (!analysisData.personalized_recommendation) {
-      const recommendations = [
-        { 
-          title: '안정 추구형', 
-          Icon: Shield, 
-          bgColor: 'bg-[#10b981]',
-          lightBg: 'bg-green-50',
-          border: 'border-green-300',
-          textColor: 'text-green-800',
-          portfolio: '최소 하방위험 포트폴리오', 
-          desc: '손실을 최소화하고 안정적인 투자를 원하시나요?', 
-          features: ['하방위험 극소화로 안정적 투자', '심리적 안정감 제공', '단기 투자에 적합', '손실 위험 최소화']
-        },
-        { 
-          title: '효율 추구형', 
-          Icon: Target, 
-          bgColor: 'bg-[#f59e0b]',
-          lightBg: 'bg-yellow-50',
-          border: 'border-yellow-300',
-          textColor: 'text-yellow-800',
-          portfolio: '소르티노 최적화 포트폴리오', 
-          desc: '하방위험 대비 최고의 수익을 원하시나요?', 
-          features: ['최고의 하방위험 대비 수익', '효율적인 자산 배분', '중기 투자에 적합', '균형잡힌 리스크 관리']
-        },
-        { 
-          title: '수익 추구형', 
-          Icon: TrendingUp, 
-          bgColor: 'bg-[#ef4444]',
-          lightBg: 'bg-red-50',
-          border: 'border-red-300',
-          textColor: 'text-red-800',
-          portfolio: '사용자 포트폴리오', 
-          desc: '높은 수익을 위해 위험을 감수할 수 있나요?', 
-          features: ['높은 수익 가능성', '적극적 포트폴리오 구성', '장기 투자에 적합', '하방위험 감수 필요']
-        }
-      ]
+      const generateRecommendationsFromResults = () => {
+        const results = analysisData.results || []
+        const recommendations: Array<{
+          title: string
+          Icon: any
+          bgColor: string
+          lightBg: string
+          border: string
+          textColor: string
+          portfolio: string
+          desc: string
+          features: string[]
+          riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
+          actualMetrics: any
+        }> = []
+
+        results.forEach((result) => {
+          const metrics = scatterData.find(d => d.type === result.type)
+          if (!metrics) return
+
+          let recommendation: typeof recommendations[0] | null = null
+
+          if (result.riskLevel === 'LOW') {
+            recommendation = {
+              title: '안정 추구형',
+              Icon: Shield,
+              bgColor: 'bg-[#10b981]',
+              lightBg: 'bg-green-50',
+              border: 'border-green-300',
+              textColor: 'text-green-800',
+              portfolio: getAnalysisTypeLabel(result.type),
+              desc: '손실을 최소화하고 안정적인 투자를 원하시나요?',
+              features: [
+                `하방위험 ${metrics.risk.toFixed(2)}%로 낮은 수준`,
+                `기대수익률 ${metrics.expectedReturn.toFixed(2)}%`,
+                `소르티노 비율 ${metrics.sortino.toFixed(3)}`,
+                '심리적 안정감 제공',
+                '단기 투자에 적합'
+              ],
+              riskLevel: result.riskLevel,
+              actualMetrics: metrics
+            }
+          } else if (result.riskLevel === 'MEDIUM') {
+            recommendation = {
+              title: '균형 추구형',
+              Icon: Target,
+              bgColor: 'bg-[#f59e0b]',
+              lightBg: 'bg-yellow-50',
+              border: 'border-yellow-300',
+              textColor: 'text-yellow-800',
+              portfolio: getAnalysisTypeLabel(result.type),
+              desc: '위험과 수익의 균형을 추구하시나요?',
+              features: [
+                `적정 하방위험 ${metrics.risk.toFixed(2)}%`,
+                `기대수익률 ${metrics.expectedReturn.toFixed(2)}%`,
+                `소르티노 비율 ${metrics.sortino.toFixed(3)}`,
+                '균형잡힌 리스크 관리',
+                '중기 투자에 적합'
+              ],
+              riskLevel: result.riskLevel,
+              actualMetrics: metrics
+            }
+          } else if (result.riskLevel === 'HIGH') {
+            recommendation = {
+              title: '수익 추구형',
+              Icon: TrendingUp,
+              bgColor: 'bg-[#ef4444]',
+              lightBg: 'bg-red-50',
+              border: 'border-red-300',
+              textColor: 'text-red-800',
+              portfolio: getAnalysisTypeLabel(result.type),
+              desc: '높은 수익을 위해 위험을 감수할 수 있나요?',
+              features: [
+                `높은 하방위험 ${metrics.risk.toFixed(2)}%`,
+                `높은 기대수익률 ${metrics.expectedReturn.toFixed(2)}%`,
+                `소르티노 비율 ${metrics.sortino.toFixed(3)}`,
+                '적극적 포트폴리오 구성',
+                '장기 투자에 적합'
+              ],
+              riskLevel: result.riskLevel,
+              actualMetrics: metrics
+            }
+          }
+
+          if (recommendation) {
+            recommendations.push(recommendation)
+          }
+        })
+
+        return recommendations
+      }
+
+      const dynamicRecommendations = generateRecommendationsFromResults()
 
       return (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendations.map(({ title, Icon, bgColor, lightBg, border, textColor, portfolio, desc, features }) => (
+          <div className="grid grid-cols-3 gap-6">
+            {dynamicRecommendations.map(({ title, Icon, bgColor, lightBg, border, textColor, portfolio, desc, features, riskLevel, actualMetrics }) => (
               <div key={title} className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-t-4 ${border} hover:shadow-2xl transition-all`}>
                 <div className={`${bgColor} w-12 h-12 rounded-full flex items-center justify-center mb-4`}>
                   <Icon className="text-white" size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-[#1f2937] mb-3">{title}</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-[#1f2937]">{title}</h3>
+                  <Badge className={`text-xs font-medium ${PORTFOLIO_RISK_LEVEL_COLORS[riskLevel]}`}>
+                    {PORTFOLIO_RISK_LEVEL_LABELS[riskLevel]}
+                  </Badge>
+                </div>
                 <p className="text-sm text-[#6b7280] mb-4 leading-relaxed">{desc}</p>
                 <div className={`${lightBg} p-4 rounded-xl mb-4 border ${border}`}>
                   <p className={`font-semibold text-sm ${textColor}`}>→ {portfolio}</p>
                 </div>
                 <ul className="text-sm space-y-2 text-[#374151]">
-                  {features.map((f, i) => (
+                  {features.map((f: string, i: number) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className={`${bgColor} text-white font-semibold text-xs px-1.5 py-0.5 rounded mt-0.5`}>{i + 1}</span>
                       <span>{f}</span>
@@ -544,7 +607,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             <Shield className="w-5 h-5 text-[#009178]" />
             위험 성향별 맞춤 추천
           </h3>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="p-4 bg-green-50 rounded-xl border-2 border-green-300 hover:shadow-lg transition-all">
               <div className="flex items-center gap-2 mb-3">
                 <div className="bg-green-500 w-10 h-10 rounded-full flex items-center justify-center">
@@ -618,7 +681,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
               나에게 맞는 포트폴리오 찾기
             </h3>
             <p className="text-sm text-[#6b7280] mb-6">각 포트폴리오는 다음과 같은 경우에 적합합니다</p>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {Object.entries(analysisData.comparative_analysis.decision_framework).map(([key, conditions]) => {
                 const portfolioName = key.replace('choose_', '').replace('_if', '').replace(/_/g, ' ')
                 const displayInfo = 

@@ -3,7 +3,7 @@
 import React from 'react'
 
 interface MarkdownReportProps {
-  report?: string  // 마크다운 형식의 레포트 텍스트 (선택사항)
+  report?: string
   metrics: {
     totalReturn: number
     annualizedReturn: number
@@ -19,7 +19,7 @@ interface MarkdownReportProps {
     trackingError?: number
     calmarRatio?: number
   }
-  testMode?: boolean  // 테스트 모드 활성화 (개발용)
+  testMode?: boolean
 }
 
 export function MarkdownReport({ report, metrics, testMode = false }: MarkdownReportProps) {
@@ -43,6 +43,11 @@ export function MarkdownReport({ report, metrics, testMode = false }: MarkdownRe
     const winRatePercent = (metrics.winRate * 100).toFixed(0)
     const profitLossRatio = metrics.profitLossRatio.toFixed(2)
 
+    const sharpeRatioNum = metrics.sharpeRatio
+    const maxDrawdownNum = metrics.maxDrawdown * 100
+    const winRateNum = metrics.winRate * 100
+    const profitLossNum = metrics.profitLossRatio
+
     return `
 # 백테스트 분석 리포트
 
@@ -53,10 +58,10 @@ ${metrics.benchmarkReturn ? `**벤치마크 수익률**: ${benchmarkReturnPercen
 ${metrics.alpha ? `**초과 수익률**: ${alphaPercent}%` : ''}
 
 ### 주요 지표
-- **샤프 비율**: ${sharpeRatio} ${sharpeRatio > 1 ? '(양호)' : sharpeRatio > 0.5 ? '(보통)' : '(낮음)'}
-- **최대 낙폭**: ${maxDrawdownPercent}% ${maxDrawdownPercent < 15 ? '(적정)' : '(높음)'}
-- **승률**: ${winRatePercent}% ${winRatePercent > 60 ? '(양호)' : '(개선 필요)'}
-- **손익비**: ${profitLossRatio} ${profitLossRatio > 1.5 ? '(양호)' : '(개선 필요)'}
+- **샤프 비율**: ${sharpeRatio} ${sharpeRatioNum > 1 ? '(양호)' : sharpeRatioNum > 0.5 ? '(보통)' : '(낮음)'}
+- **최대 낙폭**: ${maxDrawdownPercent}% ${maxDrawdownNum < 15 ? '(적정)' : '(높음)'}
+- **승률**: ${winRatePercent}% ${winRateNum > 60 ? '(양호)' : '(개선 필요)'}
+- **손익비**: ${profitLossRatio} ${profitLossNum > 1.5 ? '(양호)' : '(개선 필요)'}
 ${metrics.beta ? `- **베타**: ${metrics.beta.toFixed(2)} (시장 민감도)` : ''}
 
 ## 상세 분석
@@ -78,13 +83,13 @@ ${metrics.calmarRatio ? `- **칼마 비율**: ${metrics.calmarRatio.toFixed(2)} 
 ## 투자 권고사항
 
 ### 장점
-${sharpeRatio > 1 ? '- 벤치마크 대비 안정적인 초과 수익 달성' : ''}  
-${maxDrawdownPercent < 15 ? '- 적절한 리스크 수준 유지' : ''}  
-${winRatePercent > 60 ? '- 일관된 성과 패턴' : ''}
+${sharpeRatioNum > 1 ? '- 벤치마크 대비 안정적인 초과 수익 달성' : ''}  
+${maxDrawdownNum < 15 ? '- 적절한 리스크 수준 유지' : ''}  
+${winRateNum > 60 ? '- 일관된 성과 패턴' : ''}
 
 ### 개선점
-${winRatePercent < 60 ? `- 승률이 ${winRatePercent}%로 다소 낮음` : ''}  
-${profitLossRatio < 1.5 ? `- 손익비 ${profitLossRatio}로 개선 여지 있음` : ''}
+${winRateNum < 60 ? `- 승률이 ${winRatePercent}%로 다소 낮음` : ''}  
+${profitLossNum < 1.5 ? `- 손익비 ${profitLossRatio}로 개선 여지 있음` : ''}
 
 ### 권고사항
 1. **손절매 기준 강화**: 손실 제한을 더 엄격하게 적용

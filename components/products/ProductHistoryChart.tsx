@@ -25,8 +25,8 @@ export function ProductHistoryChart({ dailyHistory }: ProductHistoryChartProps) 
         month: 'short', 
         day: 'numeric' 
       }),
-      value: item.return, // 수익률 데이터 사용
-      originalValue: item.value // 원래 가치는 따로 보관
+      value: item.return,
+      originalValue: item.value
     }))
   }
 
@@ -36,7 +36,7 @@ export function ProductHistoryChart({ dailyHistory }: ProductHistoryChartProps) 
   const isPositive = averageReturn >= 0
   const latestOriginalValue = data[data.length - 1]?.originalValue || 0
 
-  const yAxisDomain = [-5, 5] // +/-5% 고정 범위
+  const yAxisDomain = [-5, 5]
 
   const timeFrameButtons = [
     { key: '1M', label: '1개월' },

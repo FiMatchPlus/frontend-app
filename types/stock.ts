@@ -7,6 +7,7 @@ export interface Stock {
   volume: number
   marketCap: number
   sector: string
+  sign?: string
   logo?: string
 }
 

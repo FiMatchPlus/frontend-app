@@ -1,5 +1,6 @@
 
 import { API_CONFIG } from '../api'
+import { authenticatedFetch } from './interceptor'
 
 interface ApiResponse<T> {
   status: string
@@ -51,9 +52,8 @@ export async function fetchProducts(
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -85,9 +85,8 @@ export async function fetchProductDetail(productId: number): Promise<ProductDeta
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 

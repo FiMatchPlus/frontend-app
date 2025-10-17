@@ -6,13 +6,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
+import { useAuth } from "@/contexts/AuthContext"
+import Header from "@/components/header"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [username, setUsername] = useState("")
+  const { login, isAuthenticated } = useAuth()
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  if (isAuthenticated) {
+    router.push("/")
+    return null
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,12 +28,10 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-
-      setTimeout(() => {
-        router.push("/")
-      }, 500)
+      await login({ email, password })
+      router.push("/")
     } catch (err) {
-      setError("로그인에 실패했습니다. 다시 시도해주세요.")
+      setError("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.")
     } finally {
       setIsLoading(false)
     }
@@ -36,22 +42,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50/30 p-4">
-      <Card className="w-full max-w-md p-8 space-y-6 shadow-lg">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-foreground">StockOne19</h1>
-          <p className="text-muted-foreground">로그인하여 투자 관리를 시작하세요</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f7] via-white to-[#f0f9f7]/30">
+      <Header />
+      <div className="flex items-center justify-center p-4 pt-20">
+        <Card className="w-full max-w-md p-8 space-y-6 shadow-lg border border-[#d1ebe7]">
+          <div className="space-y-2 text-center">
+            <h1 className="text-3xl font-black text-[#009178] flex items-center justify-center gap-2">
+              Fi-Match<span className="text-[#DC321E]">⁺</span>
+            </h1>
+            <p className="text-[#374151] text-sm">로그인하여 투자 관리를 시작하세요</p>
+          </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">아이디</Label>
+            <Label htmlFor="email">이메일</Label>
             <Input
-              id="username"
-              type="text"
-              placeholder="아이디를 입력하세요"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="이메일을 입력하세요"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
             />
@@ -79,7 +89,7 @@ export default function LoginPage() {
           <div className="space-y-2">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-[#009178] hover:bg-[#007a6b] text-white font-semibold py-3"
               disabled={isLoading}
             >
               {isLoading ? "로그인 중..." : "로그인"}
@@ -88,7 +98,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full border border-[#d1ebe7] text-[#374151] hover:bg-[#f0f9f7] font-semibold py-3"
               onClick={handleSignup}
               disabled={isLoading}
             >
@@ -97,10 +107,11 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="text-center text-sm text-muted-foreground">
+        <div className="text-center text-sm text-[#374151]">
           <p>계정이 없으신가요? 회원가입을 진행해주세요.</p>
         </div>
       </Card>
+      </div>
     </div>
   )
 }

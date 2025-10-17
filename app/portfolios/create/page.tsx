@@ -14,6 +14,7 @@ import { X, Plus, ArrowLeft, Pencil } from "lucide-react"
 import { CreatePortfolioData, StockHolding, Rule } from "@/types/portfolio"
 import { StockSearch } from "@/components/stocks/StockSearch"
 import FloatingChatbot from "@/components/ui/FloatingChatbot"
+import { AuthGuard } from "@/components/AuthGuard"
 import type { Stock } from "@/types/stock"
 import { createPortfolio } from "@/lib/api"
 import { fetchCurrentPriceByCode } from "@/lib/api/stockNow"
@@ -23,7 +24,7 @@ function CreatePortfolioContent() {
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState<CreatePortfolioData>({
     name: "",
-    totalValue: 0,           // 자동 계산되는 포트폴리오 가치
+    totalValue: 0,
     description: "",
     stockHoldings: [],
     rule: {
@@ -56,8 +57,8 @@ function CreatePortfolioContent() {
       try {
         const parsedData = JSON.parse(templateData)
         
-        const baseInvestment = 1000000 // 100만원
-        const minInvestmentPerStock = 50000 // 종목당 최소 5만원
+        const baseInvestment = 1000000
+        const minInvestmentPerStock = 50000
         
         const tempHoldings = parsedData.holdings.map((holding: any) => {
           const minShares = Math.max(1, Math.ceil(minInvestmentPerStock / holding.price))
@@ -87,7 +88,7 @@ function CreatePortfolioContent() {
             totalValue: actualTotalValue,
             change: holding.change || 0,
             changePercent: holding.changePercent || 0,
-            weight: holding.weight // 원래 비중 유지 (나중에 재계산됨)
+            weight: holding.weight
           }
         })
         
@@ -223,7 +224,7 @@ function CreatePortfolioContent() {
         totalValue: newStock.totalValue!,
         change: 0,
         changePercent: selectedStock.changePercent,
-        weight: 0 // Will be calculated after adding
+        weight: 0 
       }
       
       setFormData(prev => {
@@ -374,8 +375,9 @@ function CreatePortfolioContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f9f7]">
-      <Header />
+    <AuthGuard>
+      <div className="min-h-screen bg-[#f0f9f7]">
+        <Header />
       
       <main className="max-w-4xl mx-auto pt-8 px-4 pb-8">
         <div className="mb-8">
@@ -489,7 +491,7 @@ function CreatePortfolioContent() {
 
                 
                 {selectedStock && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="stockShares">보유수량 (주)</Label>
                       <Input
@@ -605,7 +607,8 @@ function CreatePortfolioContent() {
       
       
       <FloatingChatbot context="create-portfolio" />
-    </div>
+      </div>
+    </AuthGuard>
   )
 }
 

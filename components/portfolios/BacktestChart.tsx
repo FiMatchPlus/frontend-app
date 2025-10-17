@@ -35,12 +35,12 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
   }
 
   const colors = [
-    '#6366f1', // 인디고
-    '#ec4899', // 핑크
-    '#06b6d4', // 시안
-    '#10b981', // 에메랄드
-    '#f59e0b', // 앰버
-    '#ef4444', // 로즈
+    '#6366f1',
+    '#ec4899',
+    '#06b6d4',
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
   ]
 
   const stockNamesFromData = Object.keys(data[0]?.stocks || {})
@@ -65,7 +65,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
       name: stockName,
       type: 'bar',
       stack: 'ratio', 
-      yAxisIndex: 0, // 왼쪽 Y축 (비중)
+      yAxisIndex: 0,
       data: stockData,
       barWidth: 40,
       emphasis: {
@@ -75,17 +75,17 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
         color: colors[index % colors.length]
       },
       animationDelay: function (idx: number) {
-        return idx * 10 // 각 막대마다 약간씩 지연
+        return idx * 10
       },
-      animationDuration: 150, // 빠른 애니메이션
-      animationEasing: 'linear' // 선형 애니메이션으로 자연스럽게
+      animationDuration: 150,
+      animationEasing: 'linear'
     }
   })
   
   const portfolioSeriesData = {
     name: '포트폴리오',
     type: 'line',
-    yAxisIndex: 1, // 오른쪽 Y축 (포트폴리오)
+    yAxisIndex: 1,
     data: totalValues,
     smooth: false,
     connectNulls: true,
@@ -122,14 +122,14 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     }).filter(val => val !== null)
 
     if (benchmarkValues.length > 0) {
-      benchmarkMin = Math.min(...benchmarkValues) * 0.95 // 5% 여유
-      benchmarkMax = Math.max(...benchmarkValues) * 1.02 // 2% 여유
+      benchmarkMin = Math.min(...benchmarkValues) * 0.95
+      benchmarkMax = Math.max(...benchmarkValues) * 1.02
       
       benchmarkSeriesData = {
         name: benchmarkName,
         type: 'line',
-        yAxisIndex: 2, // 세 번째 Y축 (벤치마크 전용)
-        data: benchmarkValues, // 원본 벤치마크 지수값 그대로 사용
+        yAxisIndex: 2,
+        data: benchmarkValues,
         smooth: false,
         connectNulls: true,
         lineStyle: {
@@ -181,7 +181,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
             percentage = dailyTotal > 0 ? ((displayValue / dailyTotal) * 100).toFixed(1) + '%' : '0%'
           } else if (param.seriesType === 'line') {
             if (param.seriesName === benchmarkName) {
-              displayText = displayValue.toFixed(1) // 벤치마크 지수는 소수점 1자리
+              displayText = displayValue.toFixed(1)
               percentage = ''
             } else {
               displayText = formatCurrency(displayValue)
@@ -204,7 +204,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
     grid: {
       left: '0',
       right: '0',
-      bottom: '12%', // 미니맵과의 간격 줄이기
+      bottom: '12%',
       top: '5%',
       containLabel: true
     },
@@ -222,8 +222,8 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
       axisLabel: {
         color: '#9ca3af',
         fontSize: 11,
-        interval: 0, // 모든 날짜 표시
-        rotate: 45 // 날짜가 겹치지 않도록 45도 회전
+        interval: 0,
+        rotate: 45
       }
     },
     yAxis: [
@@ -256,8 +256,8 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
         type: 'value',
         name: '포트폴리오',
         position: 'right',
-        min: Math.min(...totalValues) * 0.95, // 포트폴리오 최솟값에 5% 여유
-        max: Math.max(...totalValues) * 1.02, // 포트폴리오 최댓값에 2% 여유
+        min: Math.min(...totalValues) * 0.95,
+        max: Math.max(...totalValues) * 1.02,
         axisLine: {
           lineStyle: {
             color: '#e5e7eb'
@@ -267,7 +267,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
           color: '#9ca3af',
           fontSize: 11,
           formatter: function(value: number) {
-            return formatCurrency(value) // 포트폴리오 자산은 통화 형식
+            return formatCurrency(value)
           }
         },
         splitLine: {
@@ -278,7 +278,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
         type: 'value',
         name: benchmarkData && benchmarkData.length > 0 ? benchmarkName : '',
         position: 'right',
-        offset: 60, // 오른쪽에서 60px 떨어뜨려서 별도 y축 표시
+        offset: 60,
         min: benchmarkMin || 0,
         max: benchmarkMax || 100,
         axisLine: {
@@ -291,7 +291,7 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
           fontSize: 11,
           formatter: function(value: number) {
             return benchmarkData && benchmarkData.length > 0 
-              ? value.toFixed(1) // 벤치마크 지수는 소수점 1자리
+              ? value.toFixed(1)
               : ''
           }
         },
@@ -301,9 +301,9 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
       }
     ],
     series: [
-      ...ratioSeriesData, // 비중 바 차트
-      portfolioSeriesData, // 포트폴리오 선 차트
-      ...(benchmarkSeriesData ? [benchmarkSeriesData] : []) // 벤치마크 선 차트
+      ...ratioSeriesData,
+      portfolioSeriesData,
+      ...(benchmarkSeriesData ? [benchmarkSeriesData] : [])
     ],
     dataZoom: [
       {
@@ -311,38 +311,38 @@ export default function BacktestChart({ data, holdings, benchmarkData, benchmark
         xAxisIndex: 0,
         show: true,
         height: 20,
-        bottom: 5, // x축 아래로 더 내리기
+        bottom: 5,
         startValue: 0,
-        endValue: 20, // 처음 20개 데이터만 표시
-        zoomLock: true, // 줌 기능 비활성화, 스크롤만 가능
-        showDetail: false, // 범위 조절 버튼 숨기기
-        handleSize: 0, // 핸들 크기 0으로 설정
+        endValue: 20,
+        zoomLock: true,
+        showDetail: false,
+        handleSize: 0,
         textStyle: {
           color: '#9ca3af'
         },
         borderColor: '#e5e7eb',
         fillerColor: 'rgba(99, 102, 241, 0.2)',
         handleStyle: {
-          color: 'transparent', // 핸들 색상을 투명하게
+          color: 'transparent',
           borderColor: 'transparent'
         }
       },
       {
         type: 'inside',
         xAxisIndex: 0,
-        zoomOnMouseWheel: false, // 마우스 휠 줌 비활성화
-        moveOnMouseMove: true, // 마우스 드래그로 스크롤
-        moveOnMouseWheel: true, // 마우스 휠로 스크롤
-        throttle: 100, // 스크롤 반응 속도 조절
+        zoomOnMouseWheel: false,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: true,
+        throttle: 100,
         preventDefaultMouseMove: true,
-        filterMode: 'filter' // 데이터 필터링 모드로 부드러운 전환
+        filterMode: 'filter'
       }
     ],
     animation: true,
-    animationDuration: 300, // 스크롤 시 빠른 애니메이션
+    animationDuration: 300,
     animationEasing: 'cubicInOut' as const,
-    animationDelay: 0, // 지연 없이 즉시 애니메이션
-    animationDurationUpdate: 200, // 업데이트 시 애니메이션 시간
+    animationDelay: 0,
+    animationDurationUpdate: 200,
     animationEasingUpdate: 'cubicInOut' as const
   }
   

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ProductList, ProductSearch, ProductFilterButtons, ProductPagination } from "@/components/products"
+import { AuthGuard } from "@/components/AuthGuard"
 import { fetchProducts } from "@/lib/api/products"
 import { ProductListCard as ProductListCardType } from "@/types/product"
 
@@ -55,13 +56,14 @@ export default function ProductsPage() {
   }
 
   return (
-    <PageLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
-      >
+    <AuthGuard>
+      <PageLayout>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
+        >
         
         <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">투자 상품</h1>
@@ -116,6 +118,7 @@ export default function ProductsPage() {
           />
         </div>
       </motion.div>
-    </PageLayout>
+      </PageLayout>
+    </AuthGuard>
   )
 }

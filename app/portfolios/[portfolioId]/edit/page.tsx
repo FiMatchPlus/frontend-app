@@ -66,7 +66,7 @@ function EditPortfolioContent() {
         const stockHoldings: StockHolding[] = data.holdings.map((holding: any) => ({
           symbol: holding.ticker,
           name: holding.name,
-          shares: Math.round(holding.value / holding.dailyRate), // 대략적인 주식 수 계산
+          shares: Math.round(holding.value / holding.dailyRate), 
           currentPrice: holding.dailyRate,
           totalValue: holding.value,
           change: 0,
@@ -84,9 +84,9 @@ function EditPortfolioContent() {
         }
 
         setFormData({
-          name: data.name, // API에서 직접 가져온 이름
+          name: data.name, 
           totalValue: totalValue,
-          description: data.description, // API에서 직접 가져온 설명
+          description: data.description, 
           stockHoldings: stockHoldings,
           rule: rule
         })
@@ -429,7 +429,7 @@ function EditPortfolioContent() {
                 </div>
 
                 {selectedStock && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="stockShares">보유수량 (주)</Label>
                       <Input

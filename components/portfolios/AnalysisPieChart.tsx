@@ -56,7 +56,7 @@ export function AnalysisPieChart({ data, width = 200, height = 200 }: AnalysisPi
           },
           data: data.map(item => ({
             name: item.name,
-            value: item.value, // 이미 백분율로 변환됨
+            value: item.value,
             itemStyle: {
               color: item.color
             }

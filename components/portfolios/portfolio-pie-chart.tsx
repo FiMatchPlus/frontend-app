@@ -9,6 +9,7 @@ interface PortfolioItem {
   trend: number
   color: string
   amount: number
+  shares?: number
 }
 
 interface PortfolioPieChartProps {
@@ -34,7 +35,13 @@ export function PortfolioPieChart({ data, className = "", height = "320px" }: Po
       tooltip: {
         trigger: 'item',
         formatter: (params: any) => {
-          return `${params.name} (${params.percent.toFixed(1)}%)`
+          const data = params.data
+          const shares = data.shares
+          let tooltipText = `${params.name} (${params.percent.toFixed(1)}%)`
+          if (shares !== undefined && shares > 0) {
+            tooltipText += `<br/>보유수량: ${shares.toLocaleString()}주`
+          }
+          return tooltipText
         }
       },
       series: [
@@ -64,6 +71,7 @@ export function PortfolioPieChart({ data, className = "", height = "320px" }: Po
           data: data.map(item => ({
             value: item.percent,
             name: item.name,
+            shares: item.shares,
             itemStyle: {
               color: item.color
             }

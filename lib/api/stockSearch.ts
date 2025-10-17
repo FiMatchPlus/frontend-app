@@ -1,5 +1,6 @@
 import type { StockSearchResult } from "@/types/stock"
 import { API_CONFIG } from "../api"
+import { authenticatedFetch } from "./interceptor"
 
 interface ApiResponse<T> {
   status: string
@@ -29,9 +30,8 @@ export async function searchStocks(query: string): Promise<StockSearchResult[]> 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -77,9 +77,8 @@ export async function getPopularStocks(): Promise<StockSearchResult[]> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 

@@ -53,7 +53,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
   const formatDateTime = (dateString: string) => {
     try {
       const date = new Date(dateString)
-      if (isNaN(date.getTime())) return dateString // 유효하지 않은 날짜면 원본 반환
+      if (isNaN(date.getTime())) return dateString
       
       const year = date.getFullYear()
       const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -64,7 +64,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
       
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     } catch (error) {
-      return dateString // 에러 발생시 원본 반환
+      return dateString
     }
   }
 
@@ -179,23 +179,24 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
         <div className="bg-[#f0f9f7] rounded-xl p-4">
           <h3 className="text-lg font-semibold text-[#1f2937] mb-4">자산 구성 및 보유 종목</h3>
 
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-row gap-6">
             
-            <div className="lg:w-1/3 flex-shrink-0 flex items-center justify-center py-4">
+            <div className="w-1/3 flex-shrink-0 flex items-center justify-center py-4">
               <PortfolioPieChart
                 data={portfolio.holdingStocks.map((stock, index) => ({
                   name: stock.name,
                   percent: stock.weight,
                   trend: stock.dailyRate,
-                  color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`, // Generate colors dynamically
+                  color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`,
                   amount: stock.value,
+                  shares: stock.shares,
                 }))}
-                height={`${portfolio.holdingStocks.length * 80 + 16}px`} // 각 항목 높이(80px) + 여백(16px)
+                height={`${portfolio.holdingStocks.length * 80 + 16}px`}
               />
             </div>
 
             
-            <div className="lg:w-2/3 space-y-3">
+            <div className="w-2/3 space-y-3">
               {portfolio.holdingStocks.map((stock, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                   <div className="flex items-center gap-3">
@@ -520,7 +521,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
 
       
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-[425px]">
           <DialogHeader>
             <DialogTitle>백테스트 삭제</DialogTitle>
             <DialogDescription className="pt-2">
@@ -529,7 +530,7 @@ export function PortfolioTabContent({ portfolio, activeTab }: PortfolioTabConten
               <span className="text-red-600 font-medium">이 작업은 되돌릴 수 없습니다.</span>
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2">
             <Button
               type="button"
               variant="outline"

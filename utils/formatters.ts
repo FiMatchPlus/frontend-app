@@ -2,6 +2,8 @@
 export const formatCurrency = (amount: number): string => {
   if (amount >= 100000000) {
     return `${(amount / 10000).toLocaleString()}만원`
+  } else if (amount >= 10000) {
+    return `${(amount / 10000).toLocaleString()}만원`
   } else {
     return `${amount.toLocaleString()}원`
   }
@@ -28,10 +30,35 @@ export const formatNumber = (num: number): string => {
   }
 }
 
+export const formatMarketCap = (marketCap: number): string => {
+  if (marketCap >= 10000) {
+    return `${(marketCap / 10000).toFixed(1)}조원`
+  } else {
+    return `${marketCap.toFixed(0)}억원`
+  }
+}
+
 export const getChangeColor = (change: number): string => {
   if (change > 0) return "text-red-500"    // 상승: 빨강
   if (change < 0) return "text-blue-500"   // 하강: 파랑
   return "text-gray-500"
+}
+
+export const getChangeColorBySign = (sign: string): string => {
+  switch (sign) {
+    case "1": // 상한
+      return "text-red-600"
+    case "2": // 상승
+      return "text-red-500"
+    case "3": // 보합
+      return "text-gray-500"
+    case "4": // 하한
+      return "text-blue-600"
+    case "5": // 하락
+      return "text-blue-500"
+    default:
+      return "text-gray-500"
+  }
 }
 
 export const formatDate = (timestamp: number, format: "short" | "long" = "short"): string => {

@@ -1,4 +1,5 @@
 import { API_CONFIG } from '@/lib/api'
+import { authenticatedFetch } from './interceptor'
 
 export interface ChatResponse {
   answer: string
@@ -22,9 +23,8 @@ export interface ChatApiResponse {
 
 export async function sendChatMessage(category: 'loss' | 'profit' | 'benchmark', question: string): Promise<ChatResponse> {
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/chat/${category}?question=${encodeURIComponent(question)}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/chat/${category}?question=${encodeURIComponent(question)}`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
     })
 
     if (!response.ok) {
@@ -58,9 +58,8 @@ export async function sendChatMessagePost(
   context?: Record<string, any>
 ): Promise<ChatResponse> {
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/chat/${category}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/chat/${category}`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
       body: JSON.stringify({
         question,
         context
@@ -97,9 +96,8 @@ export async function sendContextChatMessage(
   question: string
 ): Promise<ChatResponse> {
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/chat/${context}?question=${encodeURIComponent(question)}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/chat/${context}?question=${encodeURIComponent(question)}`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
     })
 
     if (!response.ok) {

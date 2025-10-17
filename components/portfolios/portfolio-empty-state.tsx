@@ -17,7 +17,7 @@ export default function PortfolioEmptyState({ onShowAll }: PortfolioEmptyStatePr
     >
       <div className="text-6xl mb-4">📊</div>
       <h3 className="text-2xl font-bold text-[#1f2937] mb-2">포트폴리오가 없습니다</h3>
-      <p className="text-[#6b7280] text-lg mb-6">선택한 필터에 해당하는 포트폴리오가 없습니다.</p>
+      <p className="text-[#6b7280] text-lg mb-6">사용자 포트폴리오가 없습니다.</p>
       <Link href="/products">
         <motion.button
           whileHover={{ scale: 1.05 }}

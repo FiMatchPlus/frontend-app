@@ -169,7 +169,7 @@ export default function TermChatbot({ isOpen, onClose, term }: TermChatbotProps)
         return '익절 타이밍은 개인의 투자 목표와 시장 상황에 따라 달라집니다. 목표 수익률 달성 시 전량 매도보다는 분할 매도를 통해 추가 상승 가능성을 남겨두는 것도 좋은 전략입니다.'
       }
       return '익절에 대한 구체적인 질문을 해주시면 더 정확한 답변을 드릴 수 있어요. 목표 수익률 설정, 익절 타이밍, 분할 매도 전략 등에 대해 궁금한 점이 있으시면 언제든 물어보세요!'
-    } else { // benchmark
+    } else {
       if (input.includes('kospi') || input.includes('코스피')) {
         return 'KOSPI는 한국종합주가지수로 대한민국 주식시장의 대표 지수입니다. 삼성전자, SK하이닉스 등 대형주가 큰 비중을 차지하며, 시장 전체의 흐름을 잘 반영합니다. 안정적이고 대형주 중심의 포트폴리오와 비교하기에 적합합니다.'
       }

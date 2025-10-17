@@ -1,5 +1,6 @@
 import { CreateBacktestData } from '@/types/portfolio'
 import { API_CONFIG } from '@/lib/api'
+import { authenticatedFetch } from './interceptor'
 
 export interface CreateBacktestRequest {
   title: string
@@ -164,9 +165,8 @@ export async function createBacktest(
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/portfolio/${portfolioId}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/backtests/portfolio/${portfolioId}`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
       body: JSON.stringify(requestData),
       signal: controller.signal,
     })
@@ -197,9 +197,8 @@ export async function getPortfolioBacktestStatuses(portfolioId: string): Promise
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/portfolios/${portfolioId}/status`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/backtests/portfolios/${portfolioId}/status`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -229,9 +228,8 @@ export async function getBacktestDetail(backtestId: string): Promise<BacktestDet
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -261,9 +259,8 @@ export async function getBacktestMetadata(backtestId: string): Promise<BacktestM
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}/metadata`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}/metadata`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -296,9 +293,8 @@ export async function updateBacktest(
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}`, {
       method: 'PUT',
-      headers: API_CONFIG.headers,
       body: JSON.stringify(requestData),
       signal: controller.signal,
     })
@@ -329,9 +325,8 @@ export async function deleteBacktest(backtestId: string, portfolioId: string): P
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}/portfolio/${portfolioId}`, {
+    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/backtests/${backtestId}/portfolio/${portfolioId}`, {
       method: 'DELETE',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 

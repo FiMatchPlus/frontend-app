@@ -1,4 +1,5 @@
 import { API_CONFIG } from "../api"
+import { authenticatedFetch } from "./interceptor"
 import type { PortfolioAnalysis } from "@/types/portfolio"
 
 interface ApiResponse<T> {
@@ -20,6 +21,7 @@ interface HoldingStock {
   weight: number
   value: number
   dailyRate: number
+  shares: number
 }
 
 interface Portfolio {
@@ -101,9 +103,8 @@ export async function fetchPortfolioSummary(): Promise<PortfolioSummary | null> 
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -142,9 +143,8 @@ export async function fetchPortfolioList(): Promise<PortfolioWithDetails[]> {
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -187,9 +187,8 @@ export async function fetchPortfolioDetail(portfolioId: string): Promise<Portfol
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -230,9 +229,8 @@ export async function fetchPortfolioAnalysis(portfolioId: string): Promise<Portf
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -274,9 +272,8 @@ export async function fetchPortfolioAnalysisDetail(portfolioId: string): Promise
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -318,9 +315,8 @@ export async function deletePortfolio(portfolioId: number): Promise<boolean> {
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "DELETE",
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -357,7 +353,7 @@ export async function updatePortfolio(portfolioId: number, portfolioData: any): 
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "PUT",
       headers: API_CONFIG.headers,
       body: JSON.stringify(portfolioData),
@@ -412,7 +408,7 @@ export async function fetchAnalysisStatus(portfolioId: string): Promise<Analysis
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: "GET",
       headers: {
         ...API_CONFIG.headers,

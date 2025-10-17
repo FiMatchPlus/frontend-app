@@ -1,4 +1,5 @@
 import { API_CONFIG } from "../api"
+import { authenticatedFetch } from "./interceptor"
 
 interface BatchStockResponse {
   status: string
@@ -21,7 +22,7 @@ interface BatchStockItem {
   dailyRate: number
   dailyChange: number
   marketCap: number
-  sign: "PLUS" | "MINUS" | "ZERO"
+  sign: string
 }
 
 export interface StockPriceData {
@@ -31,6 +32,7 @@ export interface StockPriceData {
   change: number
   changePercent: number
   marketCap: number
+  sign: string
   lastUpdated: number
 }
 
@@ -46,9 +48,8 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
 
-    const response = await fetch(apiUrl, {
+    const response = await authenticatedFetch(apiUrl, {
       method: 'GET',
-      headers: API_CONFIG.headers,
       signal: controller.signal,
     })
 
@@ -73,6 +74,7 @@ export async function fetchMultipleStockPrices(codes: string[]): Promise<StockPr
       change: item.dailyChange,
       changePercent: item.dailyRate,
       marketCap: item.marketCap,
+      sign: item.sign,
       lastUpdated: Date.now()
     }))
 

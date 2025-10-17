@@ -120,7 +120,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
         return '백테스트 수익률이 시장 수익률(KOSPI)을 상회한다면 좋은 전략이에요. 하지만 리스크도 함께 고려해야 해요. 위험조정수익률(샤프비율 등)을 확인해보시길 권합니다.'
       }
       return '백테스트 결과에 대한 구체적인 질문을 해주시면 더 정확한 분석을 도와드릴 수 있어요. 수익률, 리스크 지표, 전략 개선 방법 등에 대해 궁금한 점이 있으시면 언제든 물어보세요!'
-    } else { // create-portfolio context
+    } else {
       if (input.includes('종목') || input.includes('주식') || input.includes('선택')) {
         return '좋은 종목 선택을 위해서는 기업의 재무상태, 성장성, 업종 전망을 고려하세요. 또한 상관관계가 낮은 다양한 섹터의 종목을 선택하여 분산투자 효과를 높이는 것이 중요해요.'
       }
@@ -151,7 +151,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
     <>
       
       <motion.div
-        className={`fixed bottom-6 right-3 md:right-6 z-50 ${className}`}
+        className={`fixed bottom-6 right-6 z-50 ${className}`}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
@@ -173,10 +173,10 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
-                    className="absolute bottom-16 right-0 mb-2 whitespace-nowrap max-w-[200px] md:max-w-none"
+                    className="absolute bottom-16 right-0 mb-2 whitespace-nowrap max-w-none"
                   >
                     <div className="bg-[#1f2937] text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg relative">
-                      <div className="md:whitespace-nowrap">
+                      <div className="whitespace-nowrap">
                         {context === 'portfolio' 
                           ? '💼 포트폴리오 관리 도움이 필요하세요?' 
                           : context === 'backtest'
@@ -212,7 +212,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed bottom-24 right-3 md:right-6 z-50 w-96 h-[500px] max-h-[calc(100vh-120px)] max-w-[calc(100vw-24px)] md:max-w-96"
+            className="fixed bottom-24 right-6 z-50 w-96 h-[500px] max-h-[calc(100vh-120px)] max-w-96"
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}

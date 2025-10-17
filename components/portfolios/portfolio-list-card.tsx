@@ -51,13 +51,6 @@ export function PortfolioListCard({ portfolio, onClick, index, isSelected }: Por
           <h3 className={`text-xl font-bold mb-1 ${isSelected ? "text-white" : "text-[#1f2937]"}`}>{portfolio.name}</h3>
           <p className={`text-sm ${isSelected ? "text-white/80" : "text-[#6b7280]"}`}>{portfolio.description}</p>
         </div>
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            isSelected ? "bg-white/20 text-white" : getRiskColor(portfolio.riskLevel)
-          }`}
-        >
-          {portfolio.riskLevel}
-        </span>
       </div>
 
       <div className="flex justify-between items-center mb-4">

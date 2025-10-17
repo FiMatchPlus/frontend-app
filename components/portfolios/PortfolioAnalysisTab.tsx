@@ -83,7 +83,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
 
   useEffect(() => {
     loadAnalysisData()
-  }, [portfolioId]) // loadAnalysisData 대신 portfolioId 직접 사용
+  }, [portfolioId])
 
   useEffect(() => {
     if (!analysisData || (analysisData.status !== 'RUNNING' && analysisData.status !== 'PENDING')) {
@@ -100,7 +100,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
       if (statusData.status === 'COMPLETED' || statusData.status === 'FAILED') {
         await handleRetry()
       }
-    }, 30000) // 30초
+    }, 30000)
 
     return () => {
       clearInterval(pollInterval)
@@ -111,7 +111,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
     if (Array.isArray(result.holdings)) {
       return result.holdings.map((holding: any, index: number) => ({
         name: holding.name,
-        value: holding.weight * 100, // 0.05 -> 5%
+        value: holding.weight * 100,
         color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`
       }))
     }
@@ -128,7 +128,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
       const tickers = Object.keys(result.holdings).sort()
       return tickers.map((ticker, index) => ({
         name: nameMap[ticker] || getStockName(ticker, portfolioId),
-        value: (result.holdings as any)[ticker] * 100,  // 0.05 -> 5%
+        value: (result.holdings as any)[ticker] * 100,
         color: colorMap[ticker] || `hsl(${(index * 137.5) % 360}, 70%, 50%)`
       }))
     }
@@ -252,7 +252,7 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
         </div>
         
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-3 gap-6 mb-6">
           {results.map((result, index) => {
             const pieChartData = convertToPieChartData(result)
             

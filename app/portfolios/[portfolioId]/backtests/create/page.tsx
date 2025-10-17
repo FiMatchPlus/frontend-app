@@ -86,7 +86,7 @@ export default function CreateBacktestPage() {
   }>({
     stopLoss: false,
     takeProfit: false,
-    period: true // 기간 설정은 기본으로 열어둠
+    period: true 
   })
 
   const [chatbotOpen, setChatbotOpen] = useState<{
@@ -459,7 +459,7 @@ export default function CreateBacktestPage() {
                     >
                       <div className="mt-2 space-y-4">
                         <div className="p-4 bg-[#f8fafc] rounded-lg space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-3">
                             <div>
                               <Label htmlFor="startDate">시작 날짜</Label>
                               <Input
@@ -547,7 +547,7 @@ export default function CreateBacktestPage() {
                     >
                       <div className="mt-2 space-y-4">
                         <div className="p-4 bg-[#f8fafc] rounded-lg space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-3 gap-3">
                             <div>
                               <Label htmlFor="stopLossCriteria">기준</Label>
                               <Select
@@ -656,7 +656,7 @@ export default function CreateBacktestPage() {
                     >
                       <div className="mt-2 space-y-4">
                         <div className="p-4 bg-[#f8fafc] rounded-lg space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-3 gap-3">
                             <div>
                               <Label htmlFor="takeProfitCriteria">기준</Label>
                               <Select
@@ -801,7 +801,7 @@ export default function CreateBacktestPage() {
 
         
         <Dialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, isOpen: open }))}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="max-w-[425px]">
             <DialogHeader>
               <DialogTitle className={alertDialog.type === 'error' ? 'text-red-600' : 'text-[#009178]'}>
                 {alertDialog.title}
