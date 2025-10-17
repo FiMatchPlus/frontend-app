@@ -25,7 +25,7 @@ const features = [
   {
     icon: <Target className="w-8 h-8" />,
     title: "모델 포트폴리오 제공",
-    description: "제공하는 다양한 투자 전략과 모델 포트폴리오를 참고하여 투자하세요"
+    description: "제공하는 다양한 모델 포트폴리오를 참고하여 투자하세요"
   }
 ]
 
