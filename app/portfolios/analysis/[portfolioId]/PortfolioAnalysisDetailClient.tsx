@@ -775,10 +775,9 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
                 <Shield className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h2 className="text-lg font-bold mb-2">MPT/CAPM 기반 투자성향 진단</h2>
+                <h2 className="text-lg font-bold mb-2">투자성향 진단</h2>
                 <p className="text-sm leading-relaxed opacity-95 mb-3">
-                  현대 포트폴리오 이론(MPT)과 자본자산가격결정모형(CAPM)을 활용한 과학적 분석으로, 
-                  실제 자산 구성을 바탕으로 귀하의 투자 성향을 객관적으로 진단합니다.
+                  과학적 분석을 통해 실제 자산 구성을 바탕으로 귀하의 투자 성향을 객관적으로 진단합니다.
                 </p>
                 <div className="flex flex-wrap gap-3 text-xs">
                   <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-lg">

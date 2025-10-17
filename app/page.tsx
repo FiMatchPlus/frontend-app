@@ -15,17 +15,17 @@ const features = [
   {
     icon: <Zap className="w-8 h-8" />,
     title: "백테스트 분석",
-    description: "과거 데이터로 내 투자 전략을 미리 검증해보고 예상 수익률을 확인하세요"
+    description: "과거 데이터로 내 투자 전략을 미리 검증해보고 수익률을 확인하세요"
   },
   {
     icon: <FileText className="w-8 h-8" />,
-    title: "투자 성향 리포팅",
-    description: "MPT와 CAPM 이론을 기반으로 실제 포트폴리오 구성을 분석하여 설문지가 아닌 데이터로 투자성향을 과학적으로 진단해드려요"
+    title: "포트폴리오 성향 리포팅",
+    description: "실제 포트폴리오 구성을 분석하여 진단해드려요"
   },
   {
     icon: <Target className="w-8 h-8" />,
     title: "모델 포트폴리오 제공",
-    description: "전문가가 설계한 다양한 투자 전략과 모델 포트폴리오를 참고하여 투자하세요"
+    description: "제공하는 다양한 투자 전략과 모델 포트폴리오를 참고하여 투자하세요"
   }
 ]
 
@@ -270,7 +270,7 @@ export default function LandingPage() {
               <span className="text-[#009178]">과학적 데이터</span>로 알아보는 나의 투자 분석
             </h2>
             <p className="text-xl text-[#6b7280] max-w-3xl mx-auto">
-              설문지가 아닌 실제 포트폴리오 구성으로 투자 성향부터 전문 분석까지 한 번에!
+              실제 포트폴리오 구성으로 성향부터 전문 분석까지 한 번에!
             </p>
           </motion.div>
 
