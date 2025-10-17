@@ -1,7 +1,5 @@
 # Fi-Match⁺ FE - 프로젝트 구조
 
-프로젝트의 주요 디렉터리와 파일 구조를 간단히 정리했습니다.
-
 ```
 stockone19-fe/
 ├─ app/                      # Next.js App Router 페이지들
