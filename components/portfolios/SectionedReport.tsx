@@ -37,7 +37,7 @@ function formatPercent(value?: number, digits: number = 2) {
 
 function formatNumber(value?: number) {
   if (value === undefined || value === null) return '-'
-  return value.toLocaleString()
+  return value.toFixed(2)
 }
 
 export default function SectionedReport({
@@ -119,7 +119,7 @@ export default function SectionedReport({
           </div>
           <div className="rounded-lg border border-gray-100 bg-[#f9fafb] p-4">
             <div className="text-sm text-[#6b7280] mb-1">승률</div>
-            <div className="text-xl font-bold text-[#1f2937]">{formatPercent(metrics.winRate, 0)}</div>
+            <div className="text-xl font-bold text-[#1f2937]">{formatPercent(metrics.winRate, 2)}</div>
             <p className="text-xs text-[#6b7280] mt-1">수익을 낸 거래 비율</p>
           </div>
           <div className="rounded-lg border border-gray-100 bg-[#f9fafb] p-4">
@@ -131,23 +131,15 @@ export default function SectionedReport({
       </div>
 
       
-      {(metrics.alpha !== undefined || metrics.benchmarkReturn !== undefined) && (
+      {metrics.benchmarkReturn !== undefined && (
         <div className="px-6 py-5">
           <h3 className="text-lg font-semibold text-[#1f2937] mb-2">벤치마크 대비 성과</h3>
           <div className="rounded-lg border border-gray-100 bg-[#f9fafb] p-4">
             <div className="text-sm text-[#6b7280]">내 포트폴리오 vs. 시장</div>
             <div className="mt-2 text-[#1f2937]">
-              {metrics.alpha !== undefined ? (
-                <div className="text-base">
-                  <span className="font-semibold">초과 수익률 (Alpha): </span>
-                  <span className="font-bold">{formatPercent(metrics.alpha, 2)}</span>
-                </div>
-              ) : null}
-              {metrics.benchmarkReturn !== undefined ? (
-                <div className="text-sm text-[#6b7280] mt-1">
-                  벤치마크 수익률: {formatPercent(metrics.benchmarkReturn, 2)}
-                </div>
-              ) : null}
+              <div className="text-sm text-[#6b7280] mt-1">
+                벤치마크 수익률: {formatPercent(metrics.benchmarkReturn, 2)}
+              </div>
             </div>
             <p className="text-xs text-[#6b7280] mt-2">과거 성과는 미래를 보장하지 않습니다.</p>
           </div>

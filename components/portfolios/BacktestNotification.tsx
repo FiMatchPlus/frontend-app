@@ -85,9 +85,6 @@ export function BacktestNotification({ portfolioId }: BacktestNotificationProps)
               <div className="font-semibold text-sm">
                 백테스트 {notification.status === 'COMPLETED' ? '완료' : '실패'}
               </div>
-              <div className="text-xs opacity-75">
-                백테스트 ID: {notification.backtestId}
-              </div>
               <div className="text-xs opacity-60 mt-1">
                 클릭하여 결과 확인
               </div>

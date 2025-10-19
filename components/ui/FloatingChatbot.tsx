@@ -18,9 +18,10 @@ interface Message {
 interface FloatingChatbotProps {
   className?: string
   context?: 'portfolio' | 'backtest' | 'create-portfolio'
+  backtestId?: string
 }
 
-export default function FloatingChatbot({ className = '', context = 'portfolio' }: FloatingChatbotProps) {
+export default function FloatingChatbot({ className = '', context = 'portfolio', backtestId }: FloatingChatbotProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showTooltip, setShowTooltip] = useState(true)
   const [messages, setMessages] = useState<Message[]>([
@@ -71,7 +72,7 @@ export default function FloatingChatbot({ className = '', context = 'portfolio' 
     setIsTyping(true)
 
     try {
-      const response = await sendContextChatMessage(context, currentInput)
+      const response = await sendContextChatMessage(context, currentInput, backtestId)
       
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),

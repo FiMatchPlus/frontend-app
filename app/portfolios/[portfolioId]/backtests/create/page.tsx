@@ -310,7 +310,7 @@ export default function CreateBacktestPage() {
       setAlertDialog({
         isOpen: true,
         title: '생성 완료',
-        message: `백테스트가 성공적으로 생성되었습니다.\n백테스트를 실행해주세요.\n백테스트 ID: ${response.data}`,
+        message: `백테스트가 성공적으로 생성되었습니다.\n백테스트를 실행해주세요.`,
         type: 'success'
       })
       

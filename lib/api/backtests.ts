@@ -78,6 +78,88 @@ export interface BacktestStatusListResponse {
   data: Record<string, 'CREATED' | 'RUNNING' | 'COMPLETED' | 'FAILED'>
 }
 
+export interface StructuredReport {
+  title?: string
+  summary: {
+    overall_performance: {
+      headline: string
+      total_return: {
+        value: string
+        interpretation: string
+      }
+      sharpe_ratio: {
+        value: string
+        interpretation: string
+      }
+      max_drawdown: {
+        value: string
+        interpretation: string
+      }
+    }
+    excess_return: {
+      headline: string
+      alpha: {
+        value: string
+        interpretation: string
+      }
+      benchmark_comparison: {
+        benchmark_return: string
+        excess_value: string
+        interpretation: string
+      }
+    }
+    strategy_execution: {
+      headline: string
+      execution_details: {
+        total_trades: string
+        win_rate: string
+        profit_loss_ratio: string
+      }
+      stop_loss_cases: Array<{
+        date: string
+        action: string
+        reason: string
+      }>
+      take_profit_cases: Array<{
+        date: string
+        action: string
+        reason: string
+      }>
+      effectiveness_analysis: string
+    }
+    asset_allocation_analysis: {
+      headline: string
+      allocation_insight: string
+    }
+    diversification_effect: {
+      headline: string
+      individual_vs_portfolio: {
+        individual_investment: {
+          description: string
+          analysis: string
+        }
+        portfolio_investment: {
+          description: string
+          analysis: string
+        }
+      }
+      diversification_benefits: {
+        risk_reduction: string
+        return_stability: string
+        correlation_analysis: string
+      }
+    }
+    recommendations: {
+      headline: string
+      strengths: string[]
+      weaknesses: string[]
+      actionable_recommendations: string[]
+      investment_guidance: string
+    }
+  }
+  disclaimer?: string
+}
+
 export interface BacktestDetailResponse {
   status: string
   message: string
@@ -111,9 +193,10 @@ export interface BacktestDetailResponse {
       stockName: string
       quantity: number
     }>
-    report: string  // 마크다운 형식의 리포트
+    report: string | StructuredReport | { report: StructuredReport }  // 마크다운 형식 또는 구조화된 리포트
     rules?: {
       id: string
+      backtestId: number
       memo?: string
       stopLoss: Array<{
         category: string
@@ -125,7 +208,10 @@ export interface BacktestDetailResponse {
         threshold: string
         description?: string
       }>
-      rebalance: Array<{
+      createdAt?: string
+      updatedAt?: string
+      // 기존 호환성을 위해 유지
+      rebalance?: Array<{
         category: string
         threshold: string
         description?: string

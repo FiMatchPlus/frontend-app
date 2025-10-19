@@ -93,10 +93,26 @@ export async function sendChatMessagePost(
 
 export async function sendContextChatMessage(
   context: 'portfolio' | 'backtest' | 'create-portfolio',
-  question: string
+  question: string,
+  backtestId?: string
 ): Promise<ChatResponse> {
   try {
-    const response = await authenticatedFetch(`${API_CONFIG.baseUrl}/api/chat/${context}?question=${encodeURIComponent(question)}`, {
+    // 벤치마크 관련 질문인지 확인 (더 포괄적인 키워드 사용)
+    const isBenchmarkQuestion = context === 'backtest' && backtestId && 
+      /벤치마크|benchmark|베이스라인|기준지수|kospi|코스피|지수.*대비|시장.*대비|상대.*수익|알파|베타|초과.*수익/i.test(question)
+    
+    // URL 구성
+    let url: string
+    
+    if (isBenchmarkQuestion) {
+      // 벤치마크 관련 질문인 경우 benchmark 엔드포인트 사용하고 backtestId 추가
+      url = `${API_CONFIG.baseUrl}/api/chat/benchmark?question=${encodeURIComponent(question)}&backtestId=${encodeURIComponent(backtestId)}`
+    } else {
+      // 일반 질문인 경우 기존 context 사용
+      url = `${API_CONFIG.baseUrl}/api/chat/${context}?question=${encodeURIComponent(question)}`
+    }
+    
+    const response = await authenticatedFetch(url, {
       method: 'GET',
     })
 

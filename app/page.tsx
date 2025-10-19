@@ -19,8 +19,8 @@ const features = [
   },
   {
     icon: <FileText className="w-8 h-8" />,
-    title: "포트폴리오 성향 리포팅",
-    description: "실제 포트폴리오 구성을 분석하여 진단해드려요"
+    title: "포트폴리오 최적화 리포트",
+    description: "가장 최적화된 포트폴리오 비율을 알려드려요."
   },
   {
     icon: <Target className="w-8 h-8" />,

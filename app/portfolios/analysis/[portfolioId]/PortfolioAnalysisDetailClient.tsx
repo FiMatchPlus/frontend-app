@@ -41,31 +41,58 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
     }
   }
 
+  // 포트폴리오 타입에 따른 위험도 매핑
+  const getRiskLevelByType = (type: string): 'LOW' | 'MEDIUM' | 'HIGH' => {
+    switch (type) {
+      case 'user':
+      case '내 포트폴리오':
+        return 'HIGH' // 사용자 지정은 높음 위험도
+      case '하방위험 최소화':
+      case 'min_variance':
+      case 'min-downside-risk':
+      case 'min_downside_risk':
+        return 'LOW' // 최소 리스크는 낮음 위험도
+      case '소르티노 비율 최적화':
+      case 'max_sortino':
+      case 'max-sharpe':
+        return 'MEDIUM' // 최대 효율은 보통 위험도
+      default:
+        return 'MEDIUM' // 기본값
+    }
+  }
+
   useEffect(() => {
     const loadAnalysis = async () => {
       setIsLoading(true)
       setError(null)
       
       try {
-        const data = await fetchPortfolioAnalysisDetail(portfolioId)
+        // 상세 분석 데이터 가져오기
+        const detailData = await fetchPortfolioAnalysisDetail(portfolioId)
         
-        if (!data) {
+        if (!detailData) {
           setError("분석 데이터를 불러올 수 없습니다.")
           return
         }
         
-        setPortfolioName(data.portfolioName || "포트폴리오 분석")
+        setPortfolioName(detailData.portfolioName || "포트폴리오 분석")
         
-        const resultsData = data.results || data.portfolio_insights || []
+        const resultsData = detailData.results || detailData.portfolio_insights || []
+        
+        // 포트폴리오 타입에 따른 위험도 매핑 적용
+        const updatedResults = resultsData.map(result => ({
+          ...result,
+          riskLevel: getRiskLevelByType(result.type)
+        }))
         
         setAnalysisData({
-          status: data.status,
-          portfolioName: data.portfolioName,
-          analysisDate: data.analysisDate,
-          analysisPeriod: data.analysisPeriod,
-          results: resultsData,
-          comparative_analysis: data.comparative_analysis,
-          personalized_recommendation: data.personalized_recommendation
+          status: detailData.status,
+          portfolioName: detailData.portfolioName,
+          analysisDate: detailData.analysisDate,
+          analysisPeriod: detailData.analysisPeriod,
+          results: updatedResults,
+          comparative_analysis: detailData.comparative_analysis,
+          personalized_recommendation: detailData.personalized_recommendation
         })
       } catch (err) {
         setError(err instanceof Error ? err.message : "분석 데이터를 불러오는데 실패했습니다.")
@@ -464,6 +491,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       const generateRecommendationsFromResults = () => {
         const results = analysisData.results || []
         const recommendations: Array<{
+          id: string
           title: string
           Icon: any
           bgColor: string
@@ -477,7 +505,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
           actualMetrics: any
         }> = []
 
-        results.forEach((result) => {
+        results.forEach((result, index) => {
           const metrics = scatterData.find(d => d.type === result.type)
           if (!metrics) return
 
@@ -485,6 +513,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
 
           if (result.riskLevel === 'LOW') {
             recommendation = {
+              id: `stability-${result.type}-${index}`,
               title: '안정 추구형',
               Icon: Shield,
               bgColor: 'bg-[#10b981]',
@@ -505,6 +534,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             }
           } else if (result.riskLevel === 'MEDIUM') {
             recommendation = {
+              id: `balanced-${result.type}-${index}`,
               title: '균형 추구형',
               Icon: Target,
               bgColor: 'bg-[#f59e0b]',
@@ -525,6 +555,7 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
             }
           } else if (result.riskLevel === 'HIGH') {
             recommendation = {
+              id: `aggressive-${result.type}-${index}`,
               title: '수익 추구형',
               Icon: TrendingUp,
               bgColor: 'bg-[#ef4444]',
@@ -558,8 +589,8 @@ export function PortfolioAnalysisDetailClient({ portfolioId }: PortfolioAnalysis
       return (
         <div className="space-y-6">
           <div className="grid grid-cols-3 gap-6">
-            {dynamicRecommendations.map(({ title, Icon, bgColor, lightBg, border, textColor, portfolio, desc, features, riskLevel, actualMetrics }) => (
-              <div key={title} className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-t-4 ${border} hover:shadow-2xl transition-all`}>
+            {dynamicRecommendations.map(({ id, title, Icon, bgColor, lightBg, border, textColor, portfolio, desc, features, riskLevel, actualMetrics }) => (
+              <div key={id} className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-t-4 ${border} hover:shadow-2xl transition-all`}>
                 <div className={`${bgColor} w-12 h-12 rounded-full flex items-center justify-center mb-4`}>
                   <Icon className="text-white" size={24} />
                 </div>

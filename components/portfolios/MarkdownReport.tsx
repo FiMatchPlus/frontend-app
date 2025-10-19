@@ -1,9 +1,11 @@
 "use client"
 
 import React from 'react'
+import { StructuredReport as StructuredReportType } from '@/lib/api/backtests'
+import { StructuredReportComponent } from './StructuredReport'
 
 interface MarkdownReportProps {
-  report?: string
+  report?: string | StructuredReportType | { report: StructuredReportType }
   metrics: {
     totalReturn: number
     annualizedReturn: number
@@ -23,7 +25,59 @@ interface MarkdownReportProps {
 }
 
 export function MarkdownReport({ report, metrics, testMode = false }: MarkdownReportProps) {
-  const parseMarkdown = (text: string) => {
+  // Check if report is a structured report object
+  const isStructuredReport = (report: any): report is StructuredReportType => {
+    return report && 
+           typeof report === 'object' && 
+           report.summary && 
+           typeof report.summary === 'object' && 
+           report.summary.overall_performance
+  }
+
+  // Check if report is wrapped in a "report" field
+  const isWrappedStructuredReport = (report: any): report is { report: StructuredReportType } => {
+    return report && 
+           typeof report === 'object' && 
+           report.report && 
+           typeof report.report === 'object' && 
+           report.report.summary &&
+           typeof report.report.summary === 'object' &&
+           report.report.summary.overall_performance
+  }
+
+  // If it's a wrapped structured report (report.report.summary 형태), extract the inner report
+  if (report && isWrappedStructuredReport(report)) {
+    console.log('Rendering wrapped structured report')
+    // report.report.summary 형태의 데이터를 직접 전달
+    const innerReport = report.report
+    const reportWithTitle = {
+      ...innerReport,
+      title: innerReport.title || '백테스트 분석 리포트'
+    }
+    return <StructuredReportComponent report={reportWithTitle} />
+  }
+
+  // If it's a direct structured report, render the structured component
+  if (report && isStructuredReport(report)) {
+    console.log('Rendering direct structured report')
+    // 새로운 형식의 리포트에 title이 없으면 기본값 추가
+    const reportWithTitle = {
+      ...report,
+      title: report.title || '백테스트 분석 리포트'
+    }
+    return <StructuredReportComponent report={reportWithTitle} />
+  }
+
+  console.log('Falling back to markdown parsing - report structure:', {
+    hasReport: !!report,
+    hasReportReport: !!(report?.report),
+    hasSummary: !!(report?.summary),
+    hasReportReportSummary: !!(report?.report?.summary)
+  })
+  const parseMarkdown = (text: string | undefined) => {
+    if (!text || typeof text !== 'string') {
+      return ''
+    }
     return text
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-medium text-[#1f2937] mb-2 mt-4">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold text-[#1f2937] mb-3 mt-5">$1</h2>')
@@ -35,18 +89,18 @@ export function MarkdownReport({ report, metrics, testMode = false }: MarkdownRe
   }
 
   const generateDynamicReport = () => {
-    const totalReturnPercent = (metrics.totalReturn * 100).toFixed(1)
-    const benchmarkReturnPercent = metrics.benchmarkReturn ? (metrics.benchmarkReturn * 100).toFixed(1) : 'N/A'
-    const alphaPercent = metrics.alpha ? (metrics.alpha * 100).toFixed(1) : 'N/A'
-    const sharpeRatio = metrics.sharpeRatio.toFixed(2)
-    const maxDrawdownPercent = (metrics.maxDrawdown * 100).toFixed(1)
-    const winRatePercent = (metrics.winRate * 100).toFixed(0)
-    const profitLossRatio = metrics.profitLossRatio.toFixed(2)
+    const totalReturnPercent = ((metrics.totalReturn || 0) * 100).toFixed(2)
+    const benchmarkReturnPercent = metrics.benchmarkReturn ? ((metrics.benchmarkReturn || 0) * 100).toFixed(2) : 'N/A'
+    const alphaPercent = metrics.alpha ? ((metrics.alpha || 0) * 100).toFixed(2) : 'N/A'
+    const sharpeRatio = (metrics.sharpeRatio || 0).toFixed(2)
+    const maxDrawdownPercent = ((metrics.maxDrawdown || 0) * 100).toFixed(2)
+    const winRatePercent = ((metrics.winRate || 0) * 100).toFixed(2)
+    const profitLossRatio = (metrics.profitLossRatio || 0).toFixed(2)
 
-    const sharpeRatioNum = metrics.sharpeRatio
-    const maxDrawdownNum = metrics.maxDrawdown * 100
-    const winRateNum = metrics.winRate * 100
-    const profitLossNum = metrics.profitLossRatio
+    const sharpeRatioNum = metrics.sharpeRatio || 0
+    const maxDrawdownNum = (metrics.maxDrawdown || 0) * 100
+    const winRateNum = (metrics.winRate || 0) * 100
+    const profitLossNum = metrics.profitLossRatio || 0
 
     return `
 # 백테스트 분석 리포트
@@ -54,8 +108,7 @@ export function MarkdownReport({ report, metrics, testMode = false }: MarkdownRe
 ## 성과 요약
 
 **포트폴리오 수익률**: ${totalReturnPercent}%  
-${metrics.benchmarkReturn ? `**벤치마크 수익률**: ${benchmarkReturnPercent}%` : ''}  
-${metrics.alpha ? `**초과 수익률**: ${alphaPercent}%` : ''}
+${metrics.benchmarkReturn ? `**벤치마크 수익률**: ${benchmarkReturnPercent}%` : ''}
 
 ### 주요 지표
 - **샤프 비율**: ${sharpeRatio} ${sharpeRatioNum > 1 ? '(양호)' : sharpeRatioNum > 0.5 ? '(보통)' : '(낮음)'}
@@ -67,7 +120,7 @@ ${metrics.beta ? `- **베타**: ${metrics.beta.toFixed(2)} (시장 민감도)` :
 ## 상세 분석
 
 ### 수익률 분석
-포트폴리오는 ${metrics.benchmarkReturn ? `벤치마크 대비 ${alphaPercent}%p ${metrics.alpha && metrics.alpha > 0 ? '높은' : '낮은'} 수익률을 달성했습니다.` : `${totalReturnPercent}%의 수익률을 달성했습니다.`}
+포트폴리오는 ${totalReturnPercent}%의 수익률을 달성했습니다.
 
 이는 주로 다음과 같은 요인에 기인합니다:
 
@@ -76,9 +129,9 @@ ${metrics.beta ? `- **베타**: ${metrics.beta.toFixed(2)} (시장 민감도)` :
 3. **리스크 관리**: 적절한 손절매 전략 적용
 
 ### 리스크 분석
-- **변동성**: ${(metrics.volatility * 100).toFixed(1)}% (시장 평균 대비 ${metrics.volatility < 0.3 ? '적정' : '높음'})
-${metrics.trackingError ? `- **추적 오차**: ${(metrics.trackingError * 100).toFixed(1)}% (${metrics.trackingError < 0.1 ? '적정' : '높음'} 수준)` : ''}
-${metrics.calmarRatio ? `- **칼마 비율**: ${metrics.calmarRatio.toFixed(2)} (${metrics.calmarRatio > 1 ? '양호' : '개선 필요'})` : ''}
+- **변동성**: ${((metrics.volatility || 0) * 100).toFixed(2)}% (시장 평균 대비 ${(metrics.volatility || 0) < 0.3 ? '적정' : '높음'})
+${metrics.trackingError ? `- **추적 오차**: ${((metrics.trackingError || 0) * 100).toFixed(2)}% (${(metrics.trackingError || 0) < 0.1 ? '적정' : '높음'} 수준)` : ''}
+${metrics.calmarRatio ? `- **칼마 비율**: ${(metrics.calmarRatio || 0).toFixed(2)} (${(metrics.calmarRatio || 0) > 1 ? '양호' : '개선 필요'})` : ''}
 
 ## 투자 권고사항
 
@@ -153,14 +206,34 @@ ${profitLossNum < 1.5 ? `- 손익비 ${profitLossRatio}로 개선 여지 있음`
 이 보고서는 과거의 데이터를 바탕으로 작성되었으므로, 미래의 성과를 보장하지는 않습니다. 하지만 나의 매매 전략이 어떤 상황에서 어떻게 작동하는지 이해하는 데 큰 도움이 될 것입니다.
   `
 
-  const reportContent = testMode ? testReport : (report || generateDynamicReport())
+  // Handle string report case
+  const reportContent = (() => {
+    if (testMode) {
+      return testReport
+    }
+    
+    if (typeof report === 'string') {
+      return report
+    }
+    
+    try {
+      const generated = generateDynamicReport()
+      return typeof generated === 'string' ? generated : ''
+    } catch (error) {
+      console.error('Error generating dynamic report:', error)
+      return ''
+    }
+  })()
+
+  // Ensure reportContent is always a string
+  const safeReportContent = typeof reportContent === 'string' ? reportContent : ''
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <div 
         className="prose prose-sm max-w-none"
         dangerouslySetInnerHTML={{ 
-          __html: parseMarkdown(reportContent)
+          __html: parseMarkdown(safeReportContent)
         }}
       />
     </div>

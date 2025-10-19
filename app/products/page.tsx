@@ -23,7 +23,9 @@ export default function ProductsPage() {
         setIsLoading(true)
         setError(null)
         const data = await fetchProducts(selectedRiskLevel || undefined, searchQuery || undefined)
-        setProducts(data)
+        // ID로 정렬 (오름차순)
+        const sortedData = data.sort((a, b) => a.id - b.id)
+        setProducts(sortedData)
       } catch (err) {
         console.error('상품 로드 실패:', err)
         setError('상품 목록을 불러오는데 실패했습니다.')

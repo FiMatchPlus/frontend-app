@@ -144,13 +144,33 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
       case 'min_variance':
       case 'min-downside-risk':
       case 'min_downside_risk':
-        return '안정형'
+        return '최소 리스크'
       case '소르티노 비율 최적화':
       case 'max_sortino':
       case 'max-sharpe':
-        return '공격형'
+        return '최대 효율'
       default:
         return type
+    }
+  }
+
+  // 포트폴리오 타입에 따른 위험도 매핑
+  const getRiskLevelByType = (type: string): 'LOW' | 'MEDIUM' | 'HIGH' => {
+    switch (type) {
+      case 'user':
+      case '내 포트폴리오':
+        return 'HIGH' // 사용자 지정은 높음 위험도
+      case '하방위험 최소화':
+      case 'min_variance':
+      case 'min-downside-risk':
+      case 'min_downside_risk':
+        return 'LOW' // 최소 리스크는 낮음 위험도
+      case '소르티노 비율 최적화':
+      case 'max_sortino':
+      case 'max-sharpe':
+        return 'MEDIUM' // 최대 효율은 보통 위험도
+      default:
+        return 'MEDIUM' // 기본값
     }
   }
 
@@ -263,10 +283,10 @@ export function PortfolioAnalysisTab({ portfolioId, holdings }: PortfolioAnalysi
                     {getAnalysisTypeLabel(result.type)}
                   </h4>
                   <Badge 
-                    className={`text-sm font-medium px-3 py-1 ${PORTFOLIO_RISK_LEVEL_COLORS[result.riskLevel]}`}
+                    className={`text-sm font-medium px-3 py-1 ${PORTFOLIO_RISK_LEVEL_COLORS[getRiskLevelByType(result.type)]}`}
                   >
                     <AlertTriangle className="w-3 h-3 mr-1" />
-                    {PORTFOLIO_RISK_LEVEL_LABELS[result.riskLevel]}
+                    {PORTFOLIO_RISK_LEVEL_LABELS[getRiskLevelByType(result.type)]}
                   </Badge>
                 </div>
                 
