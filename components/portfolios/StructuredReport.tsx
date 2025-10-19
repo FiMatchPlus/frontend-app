@@ -41,6 +41,20 @@ export function StructuredReportComponent({ report }: StructuredReportProps) {
     return value;
   };
 
+  // Helper function to add % without multiplying by 100
+  const addPercent = (value: string | number) => {
+    if (typeof value === 'string') {
+      if (value.includes('%')) {
+        return value; // Already has %
+      }
+      return value + '%';
+    }
+    if (typeof value === 'number') {
+      return value + '%';
+    }
+    return value;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-8">
       {title && (
@@ -58,7 +72,7 @@ export function StructuredReportComponent({ report }: StructuredReportProps) {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
             <h3 className="text-lg font-medium text-blue-800 mb-2">총 수익률</h3>
-            <p className="text-2xl font-bold text-blue-900 mb-2">{summary.overall_performance.total_return.value}</p>
+            <p className="text-2xl font-bold text-blue-900 mb-2">{addPercent(summary.overall_performance.total_return.value)}</p>
             <p className="text-sm text-blue-700">{summary.overall_performance.total_return.interpretation}</p>
           </div>
           
@@ -70,7 +84,7 @@ export function StructuredReportComponent({ report }: StructuredReportProps) {
           
           <div className="p-4 bg-red-50 rounded-lg border border-red-200">
             <h3 className="text-lg font-medium text-red-800 mb-2">최대 낙폭</h3>
-            <p className="text-2xl font-bold text-red-900 mb-2">{summary.overall_performance.max_drawdown.value}</p>
+            <p className="text-2xl font-bold text-red-900 mb-2">{addPercent(summary.overall_performance.max_drawdown.value)}</p>
             <p className="text-sm text-red-700">{summary.overall_performance.max_drawdown.interpretation}</p>
           </div>
         </div>
